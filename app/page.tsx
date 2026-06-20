@@ -2,147 +2,106 @@
 
 import { useState } from "react";
 
-const content = {
-  tr: {
-    nav: { how: "Nasıl Çalışır", features: "Özellikler", audience: "Kimler İçin", download: "İndir" },
-    hero: {
-      title1: "Diafon Artık",
-      title2: "Cebinizde",
-      sub: "Panele gerek yok, ziyaretçinin uygulamasına gerek yok. QR kodu okutan kişi sizi telefonunuzdan görüntülü arar. Apartman, site, villa ve işletmeler için modern kapı iletişimi.",
-      cta1: "Hemen Başla",
-      cta2: "Nasıl Çalışır?",
-      phoneTitle: "Daire 5 — Ziyaretçi",
-      phoneSub: "görüntülü arıyor...",
-    },
-    how: {
-      eyebrow: "Nasıl Çalışır",
-      title: "Üç adımda kapı iletişimi",
-      lead: "Kurulum yok, kablo yok, panel yok. QR kodunuzu kapıya asın, gerisi telefonda.",
-      steps: [
-        { n: "01", t: "QR Kodu Okut", d: "Ziyaretçi kapıdaki QR kodu telefon kamerasıyla okutur. Uygulama indirmesine gerek yoktur." },
-        { n: "02", t: "Daireyi Seç", d: "Açılan sayfada binadaki daireleri görür ve aramak istediği daireyi seçer." },
-        { n: "03", t: "Görüntülü Görüş", d: "Dairedeki herkesin telefonu çalar. İlk açan kişi ziyaretçiyle görüntülü konuşur." },
-      ],
-    },
-    features: {
-      eyebrow: "Özellikler",
-      title: "Neden Mobil Diafon?",
-      items: [
-        { t: "Panel Gerektirmez", d: "Duvara monte panel, kablo tesisatı yok. Sadece bir QR kod yeterli." },
-        { t: "Ziyaretçiye Uygulama Yok", d: "Kargocu, misafir, komşu — herkes tarayıcıdan arar. İndirme zorunluluğu yok." },
-        { t: "Çoklu Sakin", d: "Bir dairede birden çok kişi olabilir. Çağrı hepsinde çalar, ilk açan görüşür." },
-        { t: "Yönetici Onayı", d: "Site yöneticisi binayı kurar, katılan sakinleri onaylar. Sahte kayıt engellenir." },
-        { t: "Her Yerden Cevapla", d: "Evde olmasanız bile kapınızı yanıtlayın. Telefonunuz nerede, kapınız orada." },
-        { t: "Güvenli Görüşme", d: "Görüşmeler şifreli bağlantı üzerinden yapılır. Konum ve kimlik korunur." },
-      ],
-    },
-    audience: {
-      eyebrow: "Kimler İçin",
-      title: "Her kapı için bir çözüm",
-      lead: "Tek bir sistem, birçok kullanım. İhtiyacınız ne olursa olsun kapınız telefonunuzda.",
-      chips: ["Apartman", "Site", "Villa", "Otel", "İşyeri"],
-    },
-    ai: { title: "Aklınıza takılan bir şey mi var?", sub: "Yapay zekâ asistanımıza sorun — Mobil Diafon hakkında merak ettiğiniz her şeyi anında yanıtlasın.", btn: "Asistana Sor" },
-    download: { eyebrow: "İndir", title: "Mobil Diafon'u edinin", lead: "Sakin olarak katılmak için uygulamayı indirin. Ziyaretçiler uygulamasız, tarayıcıdan arar.", soon: "Yakında" },
-    footer: { about: "Konum ve QR tabanlı panelsiz mobil diafon sistemi. Kapınızı her yerden, telefonunuzdan yanıtlayın.", links: "Bağlantılar", contact: "İletişim", wa: "WhatsApp ile yazın", rights: "Tüm hakları saklıdır.", privacy: "Gizlilik Politikası" },
-  },
-  en: {
-    nav: { how: "How It Works", features: "Features", audience: "Who It's For", download: "Download" },
-    hero: {
-      title1: "Your Intercom Is Now",
-      title2: "In Your Pocket",
-      sub: "No panel needed, no app needed for visitors. Anyone who scans your QR code can video-call you on your phone. Modern door communication for apartments, complexes, villas and businesses.",
-      cta1: "Get Started",
-      cta2: "How It Works?",
-      phoneTitle: "Flat 5 — Visitor",
-      phoneSub: "video calling...",
-    },
-    how: {
-      eyebrow: "How It Works",
-      title: "Door communication in three steps",
-      lead: "No installation, no wiring, no panel. Put your QR code on the door, the rest happens on your phone.",
-      steps: [
-        { n: "01", t: "Scan the QR Code", d: "The visitor scans the QR code at the door with their phone camera. No app download required." },
-        { n: "02", t: "Choose the Flat", d: "On the page that opens, they see the flats in the building and select the one they want to call." },
-        { n: "03", t: "Video Call", d: "Everyone in the flat's phone rings. The first to answer talks with the visitor over video." },
-      ],
-    },
-    features: {
-      eyebrow: "Features",
-      title: "Why Mobil Diafon?",
-      items: [
-        { t: "No Panel Required", d: "No wall-mounted panel, no wiring. A single QR code is enough." },
-        { t: "No App for Visitors", d: "Couriers, guests, neighbors — everyone calls from the browser. No download needed." },
-        { t: "Multiple Residents", d: "A flat can have multiple people. The call rings on all, the first to answer talks." },
-        { t: "Manager Approval", d: "The manager sets up the building and approves residents. Fake registrations are blocked." },
-        { t: "Answer Anywhere", d: "Answer your door even when you're not home. Wherever your phone is, your door is too." },
-        { t: "Secure Calls", d: "Calls run over an encrypted connection. Location and identity stay protected." },
-      ],
-    },
-    audience: {
-      eyebrow: "Who It's For",
-      title: "A solution for every door",
-      lead: "One system, many uses. Whatever your need, your door is on your phone.",
-      chips: ["Apartment", "Complex", "Villa", "Hotel", "Business"],
-    },
-    ai: { title: "Have a question?", sub: "Ask our AI assistant — get instant answers to anything you wonder about Mobil Diafon.", btn: "Ask the Assistant" },
-    download: { eyebrow: "Download", title: "Get Mobil Diafon", lead: "Download the app to join as a resident. Visitors call from the browser, no app needed.", soon: "Soon" },
-    footer: { about: "Location and QR based panel-free mobile intercom system. Answer your door from anywhere, on your phone.", links: "Links", contact: "Contact", wa: "Message on WhatsApp", rights: "All rights reserved.", privacy: "Privacy Policy" },
-  },
-};
-
 export default function Home() {
-  const [lang, setLang] = useState<"tr" | "en">("tr");
   const [menuOpen, setMenuOpen] = useState(false);
-  const t = content[lang];
 
   return (
-    <div className="md-root">
-      {/* HEADER */}
+    <main className="md-root">
       <header className="md-header">
         <div className="md-wrap md-nav">
           <div className="md-logo">
-            <span className="m">Mobil</span><span className="d">Diafon</span>
+            <span>Mobil</span>
+            <b>Diafon</b>
           </div>
-          <nav className={`md-nav-links ${menuOpen ? "open" : ""}`}>
-            <a href="#how" onClick={() => setMenuOpen(false)}>{t.nav.how}</a>
-            <a href="#features" onClick={() => setMenuOpen(false)}>{t.nav.features}</a>
-            <a href="#audience" onClick={() => setMenuOpen(false)}>{t.nav.audience}</a>
-            <a href="#download" onClick={() => setMenuOpen(false)}>{t.nav.download}</a>
-            <button className="md-lang" onClick={() => setLang(lang === "tr" ? "en" : "tr")}>
-              {lang === "tr" ? "EN" : "TR"}
-            </button>
+
+          <nav className={`md-links ${menuOpen ? "open" : ""}`}>
+            <a href="#how">Nasıl Çalışır?</a>
+            <a href="#features">Kurumsal Avantajlar</a>
+            <a href="#business">Kullanım Alanları</a>
+            <a href="#download">İletişim</a>
           </nav>
-          <button className="md-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+
+          <button className="md-menu" onClick={() => setMenuOpen(!menuOpen)}>
+            ☰
           </button>
         </div>
       </header>
 
-      {/* HERO */}
       <section className="md-hero">
-        <div className="md-wrap md-hero-inner">
-          <div>
-            <h1 className="md-h1">{t.hero.title1}<br /><span className="accent">{t.hero.title2}</span></h1>
-            <p className="md-sub">{t.hero.sub}</p>
-            <div className="md-cta">
-              <a href="#download" className="md-btn md-btn-primary">{t.hero.cta1}</a>
-              <a href="#how" className="md-btn md-btn-ghost">{t.hero.cta2}</a>
+        <div className="md-wrap md-hero-grid">
+          <div className="md-hero-text">
+            <span className="md-badge">Kurumsal Kapı İletişim Çözümü</span>
+
+            <h1>
+              Apartman ve Siteler İçin <br />
+              <strong>QR Tabanlı Mobil Diafon Sistemi</strong>
+            </h1>
+
+            <p>
+              MobilDiafon, ziyaretçilerin uygulama yüklemeden QR kod ile daire
+              sakinlerine görüntülü ulaşmasını sağlayan modern, güvenli ve
+              yönetilebilir kapı iletişim altyapısıdır.
+            </p>
+
+            <div className="md-actions">
+              <a href="#download" className="md-btn primary">
+                Demo Talep Et
+              </a>
+              <a href="#how" className="md-btn secondary">
+                Sistemi İncele
+              </a>
+            </div>
+
+            <div className="md-trust">
+              <span>Yönetici onaylı kullanım</span>
+              <span>Daire bazlı yetkilendirme</span>
+              <span>Uygulamasız ziyaretçi deneyimi</span>
             </div>
           </div>
-          <div className="md-visual">
-            <div className="md-wave w1"></div>
-            <div className="md-wave w2"></div>
-            <div className="md-phone">
-              <div className="md-screen">
-                <div className="md-bell">
-                  <svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2a6 6 0 00-6 6c0 7-3 9-3 9h18s-3-2-3-9a6 6 0 00-6-6zm0 20a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22z"/></svg>
+
+          <div className="md-panel-area">
+            <div className="md-panel">
+              <div className="md-panel-head">
+                <div>
+                  <small>MobilDiafon Panel</small>
+                  <h3>Bina Giriş Yönetimi</h3>
                 </div>
-                <div className="md-ptxt">{t.hero.phoneTitle}</div>
-                <div className="md-psub">{t.hero.phoneSub}</div>
-                <div className="md-pactions">
-                  <div className="pa redb"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21 15.46l-5.27-.61-2.52 2.52a15.05 15.05 0 01-6.59-6.59l2.53-2.53L8.54 3H3.03C2.45 13.18 10.82 21.55 21 20.97v-5.51z"/></svg></div>
-                  <div className="pa green"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.25 1.01l-2.2 2.22z"/></svg></div>
+                <span>Aktif</span>
+              </div>
+
+              <div className="md-panel-row">
+                <div>
+                  <strong>Daire 5</strong>
+                  <p>Ziyaretçi araması bekleniyor</p>
+                </div>
+                <button>Görüntülü</button>
+              </div>
+
+              <div className="md-panel-row">
+                <div>
+                  <strong>Daire 12</strong>
+                  <p>2 sakin kayıtlı</p>
+                </div>
+                <button>Onaylı</button>
+              </div>
+
+              <div className="md-panel-box">
+                <span>QR Kod Durumu</span>
+                <strong>Kapı girişi için aktif</strong>
+              </div>
+
+              <div className="md-panel-stats">
+                <div>
+                  <strong>48</strong>
+                  <span>Daire</span>
+                </div>
+                <div>
+                  <strong>126</strong>
+                  <span>Sakin</span>
+                </div>
+                <div>
+                  <strong>7/24</strong>
+                  <span>Erişim</span>
                 </div>
               </div>
             </div>
@@ -150,111 +109,695 @@ export default function Home() {
         </div>
       </section>
 
-      {/* HOW */}
       <section id="how" className="md-section">
         <div className="md-wrap md-center">
-          <div className="md-eyebrow">{t.how.eyebrow}</div>
-          <h2 className="md-title">{t.how.title}</h2>
-          <p className="md-lead md-lead-center">{t.how.lead}</p>
+          <span className="md-label">Nasıl Çalışır?</span>
+          <h2>Basit, hızlı ve yönetilebilir kurulum</h2>
+          <p>
+            MobilDiafon, bina girişlerine yerleştirilen QR kod üzerinden çalışır.
+            Ziyaretçiler herhangi bir uygulama indirmeden daire sakinlerine
+            görüntülü ulaşabilir.
+          </p>
         </div>
+
         <div className="md-wrap md-steps">
-          {t.how.steps.map((s, i) => (
-            <div key={i} className="md-step">
-              <div className="md-step-num">{s.n}</div>
-              <h3>{s.t}</h3>
-              <p>{s.d}</p>
+          {[
+            [
+              "01",
+              "QR Kod Tanımlanır",
+              "Bina veya site için özel QR kod oluşturulur ve giriş alanına yerleştirilir.",
+            ],
+            [
+              "02",
+              "Daireler Sisteme Eklenir",
+              "Yönetici panelinden daireler ve daire sakinleri güvenli şekilde tanımlanır.",
+            ],
+            [
+              "03",
+              "Ziyaretçi Görüntülü Arar",
+              "Ziyaretçi QR kodu okutur, daireyi seçer ve görüntülü arama başlatır.",
+            ],
+          ].map(([n, title, desc]) => (
+            <div className="md-card" key={n}>
+              <div className="md-num">{n}</div>
+              <h3>{title}</h3>
+              <p>{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="md-section md-features-sec">
+      <section id="features" className="md-section md-soft">
         <div className="md-wrap md-center">
-          <div className="md-eyebrow">{t.features.eyebrow}</div>
-          <h2 className="md-title">{t.features.title}</h2>
+          <span className="md-label">Kurumsal Avantajlar</span>
+          <h2>Modern bina yönetimi için güçlü altyapı</h2>
         </div>
+
         <div className="md-wrap md-features">
-          {t.features.items.map((f, i) => (
-            <div key={i} className="md-feature">
-              <h3>{f.t}</h3>
-              <p>{f.d}</p>
+          {[
+            [
+              "Panelsiz Kullanım",
+              "Fiziksel diafon paneli veya ek kablolama ihtiyacını azaltır.",
+            ],
+            [
+              "Yönetici Kontrollü Kayıt",
+              "Bina yöneticisi sakinleri onaylar ve kayıt sürecini kontrol eder.",
+            ],
+            [
+              "Daire Bazlı Yetkilendirme",
+              "Her daire için birden fazla kullanıcı güvenli şekilde tanımlanabilir.",
+            ],
+            [
+              "Uygulamasız Ziyaretçi Deneyimi",
+              "Misafir, kurye veya ziyaretçi sadece QR kod ile arama başlatabilir.",
+            ],
+            [
+              "Bulut Tabanlı Altyapı",
+              "Sistem internet üzerinden yönetilir ve güncel kalır.",
+            ],
+            [
+              "Uzaktan Görüntülü Yanıtlama",
+              "Daire sakini evde olmasa bile gelen ziyaretçiyi yanıtlayabilir.",
+            ],
+          ].map(([title, desc]) => (
+            <div className="md-feature" key={title}>
+              <div className="md-line" />
+              <h3>{title}</h3>
+              <p>{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* AUDIENCE */}
-      <section id="audience" className="md-section">
+      <section id="business" className="md-section">
         <div className="md-wrap md-center">
-          <div className="md-eyebrow">{t.audience.eyebrow}</div>
-          <h2 className="md-title">{t.audience.title}</h2>
-          <p className="md-lead md-lead-center">{t.audience.lead}</p>
-          <div className="md-audience">
-            {t.audience.chips.map((c, i) => (
-              <div key={i} className="md-chip">{c}</div>
-            ))}
+          <span className="md-label">Kullanım Alanları</span>
+          <h2>Farklı yapı tipleri için tek çözüm</h2>
+          <p>
+            Apartmanlardan sitelere, ofislerden villalara kadar birçok giriş
+            noktasında kolayca uygulanabilir.
+          </p>
+
+          <div className="md-chips">
+            {["Apartman", "Site", "Villa", "Ofis", "Otel", "Klinik", "İşletme"].map(
+              (item) => (
+                <span key={item}>{item}</span>
+              )
+            )}
           </div>
         </div>
       </section>
 
-      {/* AI BAND */}
-      <section className="md-section" style={{ paddingTop: 0 }}>
-        <div className="md-wrap">
-          <div className="md-ai">
-            <div>
-              <h3>{t.ai.title}</h3>
-              <p>{t.ai.sub}</p>
-            </div>
-            <button className="md-btn md-btn-primary" onClick={() => alert(lang === "tr" ? "Yapay zekâ asistanı çok yakında!" : "AI assistant coming soon!")}>{t.ai.btn}</button>
+      <section id="download" className="md-cta-section">
+        <div className="md-wrap md-cta-box">
+          <div>
+            <span className="md-label light">MobilDiafon</span>
+            <h2>Binanız için dijital kapı iletişimini başlatın</h2>
+            <p>
+              MobilDiafon ile binanıza özel QR kod oluşturabilir, daireleri
+              tanımlayabilir ve ziyaretçi iletişimini daha güvenli hale
+              getirebilirsiniz.
+            </p>
+          </div>
+
+          <div className="md-store-buttons">
+            <a href="mailto:info@mobildiafon.com">Demo Talep Et</a>
+            <a href="https://wa.me/905555555555">WhatsApp ile Görüş</a>
           </div>
         </div>
       </section>
 
-      {/* DOWNLOAD */}
-      <section id="download" className="md-section md-center">
-        <div className="md-wrap">
-          <div className="md-eyebrow">{t.download.eyebrow}</div>
-          <h2 className="md-title">{t.download.title}</h2>
-          <p className="md-lead md-lead-center">{t.download.lead}</p>
-          <div className="md-stores">
-            <a href="#" className="md-store">
-              <span><span className="st-small">{t.download.soon}</span><span className="st-big">Google Play</span></span>
-            </a>
-            <a href="#" className="md-store">
-              <span><span className="st-small">{t.download.soon}</span><span className="st-big">App Store</span></span>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
       <footer className="md-footer">
-        <div className="md-wrap">
-          <div className="md-foot-grid">
-            <div>
-              <div className="md-foot-logo">Mobil<span className="d">Diafon</span></div>
-              <p className="md-foot-about">{t.footer.about}</p>
+        <div className="md-wrap md-footer-grid">
+          <div>
+            <div className="md-logo footer">
+              <span>Mobil</span>
+              <b>Diafon</b>
             </div>
-            <div className="md-foot-col">
-              <h4>{t.footer.links}</h4>
-              <a href="#how">{t.nav.how}</a>
-              <a href="#features">{t.nav.features}</a>
-              <a href="#audience">{t.nav.audience}</a>
-              <a href="#download">{t.nav.download}</a>
-            </div>
-            <div className="md-foot-col">
-              <h4>{t.footer.contact}</h4>
-              <a href="mailto:info@mobildiafon.com">info@mobildiafon.com</a>
-              <a href="https://wa.me/905555555555" target="_blank" rel="noopener noreferrer">{t.footer.wa}</a>
-            </div>
+            <p>
+              QR tabanlı, panelsiz ve kurumsal mobil diafon çözümü.
+            </p>
           </div>
-          <div className="md-foot-bottom">
-            <span>© 2026 Mobil Diafon. {t.footer.rights}</span>
-            <a href="#">{t.footer.privacy}</a>
+
+          <div>
+            <h4>Bağlantılar</h4>
+            <a href="#how">Nasıl Çalışır?</a>
+            <a href="#features">Kurumsal Avantajlar</a>
+            <a href="#business">Kullanım Alanları</a>
           </div>
+
+          <div>
+            <h4>İletişim</h4>
+            <a href="mailto:info@mobildiafon.com">info@mobildiafon.com</a>
+            <a href="https://wa.me/905555555555">WhatsApp ile yazın</a>
+          </div>
+        </div>
+
+        <div className="md-copy">
+          © 2026 MobilDiafon. Tüm hakları saklıdır.
         </div>
       </footer>
-    </div>
+
+      <style jsx global>{`
+        :root {
+          --navy: #101b33;
+          --navy-soft: #172642;
+          --red: #c73a45;
+          --red-dark: #a62d38;
+          --red-soft: #f7e8ea;
+          --soft: #f6f7f9;
+          --text: #1f2937;
+          --muted: #667085;
+          --border: #e5e7eb;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          font-family: Inter, Arial, sans-serif;
+          background: #fff;
+          color: var(--text);
+        }
+
+        .md-wrap {
+          width: min(1180px, calc(100% - 32px));
+          margin: 0 auto;
+        }
+
+        .md-header {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(14px);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .md-nav {
+          height: 78px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .md-logo {
+          font-size: 27px;
+          font-weight: 800;
+          letter-spacing: -0.8px;
+        }
+
+        .md-logo span {
+          color: var(--navy);
+        }
+
+        .md-logo b {
+          color: var(--red);
+        }
+
+        .md-links {
+          display: flex;
+          gap: 30px;
+          align-items: center;
+        }
+
+        .md-links a {
+          text-decoration: none;
+          color: var(--navy);
+          font-weight: 600;
+          font-size: 15px;
+        }
+
+        .md-menu {
+          display: none;
+          background: transparent;
+          border: 0;
+          color: var(--navy);
+          font-size: 28px;
+        }
+
+        .md-hero {
+          padding: 96px 0 108px;
+          background: linear-gradient(180deg, #ffffff 0%, #f6f7f9 100%);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .md-hero-grid {
+          display: grid;
+          grid-template-columns: 1.05fr 0.95fr;
+          gap: 70px;
+          align-items: center;
+        }
+
+        .md-badge,
+        .md-label {
+          display: inline-flex;
+          padding: 9px 14px;
+          border-radius: 8px;
+          background: var(--red-soft);
+          color: var(--red);
+          font-size: 13px;
+          font-weight: 700;
+          margin-bottom: 18px;
+        }
+
+        .md-hero h1 {
+          margin: 0 0 24px;
+          color: var(--navy);
+          font-size: clamp(40px, 5vw, 64px);
+          line-height: 1.08;
+          letter-spacing: -2.4px;
+          font-weight: 800;
+        }
+
+        .md-hero h1 strong {
+          color: var(--navy);
+          font-weight: 800;
+        }
+
+        .md-hero p {
+          max-width: 640px;
+          margin: 0;
+          color: var(--muted);
+          font-size: 18px;
+          line-height: 1.75;
+        }
+
+        .md-actions {
+          display: flex;
+          gap: 14px;
+          margin-top: 34px;
+          flex-wrap: wrap;
+        }
+
+        .md-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 14px 23px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 700;
+          transition: 0.2s ease;
+        }
+
+        .md-btn.primary {
+          background: var(--red);
+          color: #fff;
+        }
+
+        .md-btn.primary:hover {
+          background: var(--red-dark);
+        }
+
+        .md-btn.secondary {
+          background: #fff;
+          color: var(--navy);
+          border: 1px solid var(--border);
+        }
+
+        .md-trust {
+          display: grid;
+          gap: 10px;
+          margin-top: 34px;
+          color: var(--navy);
+          font-weight: 600;
+          font-size: 15px;
+        }
+
+        .md-trust span {
+          position: relative;
+          padding-left: 18px;
+        }
+
+        .md-trust span::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 8px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--red);
+        }
+
+        .md-panel-area {
+          display: flex;
+          justify-content: center;
+        }
+
+        .md-panel {
+          width: min(100%, 430px);
+          background: #fff;
+          border: 1px solid var(--border);
+          border-radius: 22px;
+          padding: 28px;
+          box-shadow: 0 24px 60px rgba(16, 27, 51, 0.09);
+        }
+
+        .md-panel-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 20px;
+          align-items: flex-start;
+          padding-bottom: 22px;
+          border-bottom: 1px solid var(--border);
+          margin-bottom: 20px;
+        }
+
+        .md-panel-head small {
+          color: var(--muted);
+          font-weight: 600;
+        }
+
+        .md-panel-head h3 {
+          color: var(--navy);
+          margin: 7px 0 0;
+          font-size: 24px;
+        }
+
+        .md-panel-head span {
+          background: #eef8f1;
+          color: #15803d;
+          border-radius: 8px;
+          padding: 7px 10px;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .md-panel-row {
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          align-items: center;
+          padding: 16px 0;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .md-panel-row strong {
+          color: var(--navy);
+        }
+
+        .md-panel-row p {
+          margin: 4px 0 0;
+          color: var(--muted);
+          font-size: 14px;
+        }
+
+        .md-panel-row button {
+          border: 1px solid var(--border);
+          background: #fff;
+          color: var(--navy);
+          border-radius: 8px;
+          padding: 8px 10px;
+          font-weight: 700;
+        }
+
+        .md-panel-box {
+          margin-top: 20px;
+          background: var(--soft);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 18px;
+        }
+
+        .md-panel-box span {
+          display: block;
+          color: var(--muted);
+          font-size: 14px;
+          margin-bottom: 6px;
+        }
+
+        .md-panel-box strong {
+          color: var(--navy);
+        }
+
+        .md-panel-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          margin-top: 18px;
+        }
+
+        .md-panel-stats div {
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 15px 10px;
+          text-align: center;
+        }
+
+        .md-panel-stats strong {
+          display: block;
+          color: var(--red);
+          font-size: 22px;
+          margin-bottom: 4px;
+        }
+
+        .md-panel-stats span {
+          color: var(--muted);
+          font-size: 13px;
+        }
+
+        .md-section {
+          padding: 92px 0;
+        }
+
+        .md-soft {
+          background: var(--soft);
+        }
+
+        .md-center {
+          text-align: center;
+        }
+
+        .md-center h2,
+        .md-cta-box h2 {
+          margin: 0 0 16px;
+          color: var(--navy);
+          font-size: clamp(30px, 4vw, 46px);
+          line-height: 1.16;
+          letter-spacing: -1.5px;
+        }
+
+        .md-center p {
+          max-width: 760px;
+          margin: 0 auto;
+          color: var(--muted);
+          font-size: 17px;
+          line-height: 1.75;
+        }
+
+        .md-steps,
+        .md-features {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 22px;
+          margin-top: 46px;
+        }
+
+        .md-card,
+        .md-feature {
+          background: #fff;
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 30px;
+          box-shadow: none;
+          transition: 0.2s ease;
+        }
+
+        .md-card:hover,
+        .md-feature:hover {
+          box-shadow: 0 14px 30px rgba(16, 27, 51, 0.07);
+        }
+
+        .md-num {
+          color: var(--red);
+          font-size: 30px;
+          font-weight: 800;
+          margin-bottom: 20px;
+        }
+
+        .md-card h3,
+        .md-feature h3 {
+          color: var(--navy);
+          margin: 0 0 11px;
+          font-size: 20px;
+        }
+
+        .md-card p,
+        .md-feature p {
+          color: var(--muted);
+          line-height: 1.7;
+          margin: 0;
+        }
+
+        .md-line {
+          width: 34px;
+          height: 3px;
+          border-radius: 999px;
+          background: var(--red);
+          margin-bottom: 18px;
+        }
+
+        .md-chips {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 34px;
+        }
+
+        .md-chips span {
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 13px 18px;
+          background: #fff;
+          color: var(--navy);
+          font-weight: 700;
+        }
+
+        .md-cta-section {
+          padding: 84px 0;
+          background: #fff;
+        }
+
+        .md-cta-box {
+          background: var(--navy);
+          color: #fff;
+          border-radius: 22px;
+          padding: 52px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 34px;
+          align-items: center;
+        }
+
+        .md-label.light {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+        }
+
+        .md-cta-box h2 {
+          color: #fff;
+        }
+
+        .md-cta-box p {
+          max-width: 650px;
+          color: rgba(255, 255, 255, 0.72);
+          line-height: 1.75;
+          font-size: 17px;
+          margin: 0;
+        }
+
+        .md-store-buttons {
+          display: grid;
+          gap: 12px;
+          min-width: 220px;
+        }
+
+        .md-store-buttons a {
+          background: var(--red);
+          color: #fff;
+          text-decoration: none;
+          text-align: center;
+          border-radius: 8px;
+          padding: 15px 20px;
+          font-weight: 800;
+        }
+
+        .md-store-buttons a:last-child {
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .md-footer {
+          background: #0d172d;
+          color: #fff;
+          padding: 58px 0 24px;
+        }
+
+        .md-footer-grid {
+          display: grid;
+          grid-template-columns: 1.3fr 1fr 1fr;
+          gap: 42px;
+        }
+
+        .md-logo.footer span {
+          color: #fff;
+        }
+
+        .md-footer p {
+          color: rgba(255, 255, 255, 0.66);
+          line-height: 1.7;
+        }
+
+        .md-footer h4 {
+          margin: 0 0 16px;
+          color: #fff;
+        }
+
+        .md-footer a {
+          display: block;
+          color: rgba(255, 255, 255, 0.68);
+          text-decoration: none;
+          margin-bottom: 10px;
+        }
+
+        .md-copy {
+          margin-top: 38px;
+          padding-top: 22px;
+          border-top: 1px solid rgba(255, 255, 255, 0.11);
+          text-align: center;
+          color: rgba(255, 255, 255, 0.48);
+          font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+          .md-hero-grid,
+          .md-cta-box,
+          .md-footer-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .md-steps,
+          .md-features {
+            grid-template-columns: 1fr;
+          }
+
+          .md-links {
+            display: none;
+            position: absolute;
+            top: 78px;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 22px;
+            border-bottom: 1px solid var(--border);
+          }
+
+          .md-links.open {
+            display: grid;
+          }
+
+          .md-menu {
+            display: block;
+          }
+
+          .md-hero {
+            padding: 64px 0 78px;
+          }
+
+          .md-panel {
+            margin-top: 10px;
+          }
+
+          .md-cta-box {
+            padding: 34px;
+          }
+        }
+      `}</style>
+    </main>
   );
 }
