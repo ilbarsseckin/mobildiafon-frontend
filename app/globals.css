@@ -321,3 +321,10 @@ a { text-decoration: none; }
 .adm-add-block { margin-top: 14px; width: 100%; padding: 14px; background: var(--navy); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s; }
 .adm-add-block:hover:not(:disabled) { background: var(--navy-deep); }
 .adm-add-block:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Bina resmi */
+.adm-bld-image-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.adm-bld-image { width: 100px; height: 70px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.adm-bld-image-btn { padding: 8px 16px; font-size: 13px; font-weight: 600; background: var(--bg-soft); color: var(--navy); border: 1px solid var(--line); border-radius: 9px; cursor: pointer; transition: all .15s; }
+.adm-bld-image-btn:hover:not(:disabled) { border-color: var(--navy); }
+.adm-bld-image-btn:disabled { opacity: 0.5; cursor: not-allowed; }
