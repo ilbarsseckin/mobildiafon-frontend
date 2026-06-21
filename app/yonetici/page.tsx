@@ -50,8 +50,13 @@ export default function YoneticiPanel() {
 
   const [isManager, setIsManager] = useState(false);
   const [buildings, setBuildings] = useState<Building[]>([]);
-  const [tab, setTab] = useState<"pending" | "flats">("pending");
+  const [tab, setTab] = useState<"pending" | "flats" | "security">("pending");
   const [openBuilding, setOpenBuilding] = useState<string | null>(null);
+
+  // Güvenlik yönetimi
+  const [guards, setGuards] = useState<{ id: string; phone: string; guardName: string | null }[]>([]);
+  const [newGuardPhone, setNewGuardPhone] = useState("");
+  const [newGuardName, setNewGuardName] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -63,6 +68,10 @@ export default function YoneticiPanel() {
   useEffect(() => {
     if (token && step === "panel") loadOverview(token);
   }, [token, step]);
+
+  useEffect(() => {
+    if (token && tab === "security") loadGuards(token);
+  }, [token, tab]);
 
   async function sendOtp() {
     setError("");
@@ -159,6 +168,41 @@ export default function YoneticiPanel() {
     sessionStorage.removeItem("md_admin_token");
   }
 
+  async function loadGuards(tk: string) {
+    try {
+      const res = await fetch(`${API}/buildings/list-security`, { headers: { Authorization: `Bearer ${tk}` } });
+      const data = await res.json();
+      setGuards(data.guards || []);
+    } catch { /* sessiz */ }
+  }
+  async function addGuard() {
+    if (!token || !newGuardPhone.trim()) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/add-security`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ phone: newGuardPhone.trim(), guardName: newGuardName.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Güvenlik eklendi."); setNewGuardPhone(""); setNewGuardName(""); loadGuards(token); }
+      else setError(data.message || "Eklenemedi");
+    } catch { setError("Eklenemedi"); } finally { setLoading(false); }
+  }
+  async function removeGuard(id: string, name: string) {
+    if (!token) return;
+    if (!confirm(`${name || "Bu güvenlik"} çıkarılsın mı?`)) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/buildings/remove-security`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Güvenlik çıkarıldı."); loadGuards(token); }
+      else setError(data.message || "İşlem başarısız");
+    } catch { setError("İşlem başarısız"); } finally { setLoading(false); }
+  }
+
   // Türetilen veriler
   const pending: { r: Resident; flatNo: string; label: string }[] = [];
   let totalFlats = 0, totalResidents = 0;
@@ -240,6 +284,7 @@ export default function YoneticiPanel() {
                     Bekleyenler {pending.length > 0 && <span className="badge">{pending.length}</span>}
                   </button>
                   <button className={tab === "flats" ? "active" : ""} onClick={() => setTab("flats")}>Daireler</button>
+                  <button className={tab === "security" ? "active" : ""} onClick={() => setTab("security")}>Güvenlik</button>
                 </div>
 
                 {/* BEKLEYENLER */}
@@ -318,6 +363,36 @@ export default function YoneticiPanel() {
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* GÜVENLİK */}
+                {tab === "security" && (
+                  <div className="adm-security">
+                    <p className="adm-muted" style={{ marginBottom: 16 }}>Güvenlik görevlileri sitenizin tüm bloklarını görür, dairelere not bırakabilir (örn. "kargonuz geldi").</p>
+                    <div className="adm-guard-add">
+                      <input className="adm-input" placeholder="Güvenlik telefonu (05XX...)" value={newGuardPhone} onChange={(e) => setNewGuardPhone(e.target.value)} />
+                      <input className="adm-input" placeholder="İsim (opsiyonel)" value={newGuardName} onChange={(e) => setNewGuardName(e.target.value)} />
+                      <button className="adm-btn" onClick={addGuard} disabled={loading || !newGuardPhone.trim()}>Ekle</button>
+                    </div>
+                    {guards.length === 0 ? (
+                      <div className="adm-empty"><p>Henüz güvenlik eklenmemiş.</p><p className="adm-muted">Yukarıdan telefon numarasıyla ekleyin.</p></div>
+                    ) : (
+                      <div className="adm-list" style={{ marginTop: 18 }}>
+                        {guards.map((g) => (
+                          <div key={g.id} className="adm-item">
+                            <div className="adm-avatar" style={{ background: "#1a5fc2" }}>🛡️</div>
+                            <div className="adm-item-info">
+                              <div className="adm-item-name">{g.guardName || "Güvenlik"}</div>
+                              <div className="adm-item-sub">{g.phone}</div>
+                            </div>
+                            <div className="adm-item-actions">
+                              <button className="adm-reject" onClick={() => removeGuard(g.id, g.guardName || "")} disabled={loading}>Çıkar</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
