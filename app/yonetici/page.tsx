@@ -51,8 +51,11 @@ export default function YoneticiPanel() {
 
   const [isManager, setIsManager] = useState(false);
   const [buildings, setBuildings] = useState<Building[]>([]);
-  const [tab, setTab] = useState<"pending" | "flats" | "security">("pending");
+  const [tab, setTab] = useState<"pending" | "flats" | "security" | "calls">("pending");
   const [openBuilding, setOpenBuilding] = useState<string | null>(null);
+
+  // Çağrı logları
+  const [calls, setCalls] = useState<any[]>([]);
 
   // Güvenlik yönetimi
   const [guards, setGuards] = useState<{ id: string; phone: string; guardName: string | null }[]>([]);
@@ -73,6 +76,18 @@ export default function YoneticiPanel() {
   useEffect(() => {
     if (token && tab === "security") loadGuards(token);
   }, [token, tab]);
+
+  useEffect(() => {
+    if (token && tab === "calls") loadCalls(token);
+  }, [token, tab]);
+
+  async function loadCalls(tk: string) {
+    try {
+      const res = await fetch(`${API}/buildings/call-logs`, { headers: { Authorization: `Bearer ${tk}` } });
+      const data = await res.json();
+      setCalls(data.calls || []);
+    } catch { /* sessiz */ }
+  }
 
   async function sendOtp() {
     setError("");
@@ -379,6 +394,7 @@ export default function YoneticiPanel() {
                   </button>
                   <button className={tab === "flats" ? "active" : ""} onClick={() => setTab("flats")}>Daireler</button>
                   <button className={tab === "security" ? "active" : ""} onClick={() => setTab("security")}>Güvenlik</button>
+                  <button className={tab === "calls" ? "active" : ""} onClick={() => setTab("calls")}>Çağrılar</button>
                 </div>
 
                 {/* BEKLEYENLER */}
@@ -501,6 +517,36 @@ export default function YoneticiPanel() {
                             </div>
                             <div className="adm-item-actions">
                               <button className="adm-reject" onClick={() => removeGuard(g.id, g.guardName || "")} disabled={loading}>Çıkar</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ÇAĞRILAR */}
+                {tab === "calls" && (
+                  <div className="adm-calls">
+                    {calls.length === 0 ? (
+                      <div className="adm-empty"><p>Henüz çağrı kaydı yok.</p><p className="adm-muted">Binanızda görüşme yapıldıkça burada listelenir.</p></div>
+                    ) : (
+                      <div className="adm-call-list">
+                        {calls.map((c) => (
+                          <div key={c.id} className="adm-call-item">
+                            <div className={c.status === "ENDED" ? "adm-call-icon ended" : "adm-call-icon missed"}>
+                              {c.status === "ENDED" ? "✓" : "✕"}
+                            </div>
+                            <div className="adm-call-info">
+                              <div className="adm-call-main">
+                                {c.callerName || c.callerPhone || "Ziyaretçi"} → {c.receiverName || "Sakin"}
+                              </div>
+                              <div className="adm-call-sub">
+                                {c.buildingLabel}{c.flatNo ? ` · Daire ${c.flatNo}` : ""} · {new Date(c.startedAt).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                              </div>
+                            </div>
+                            <div className="adm-call-dur">
+                              {c.status === "ENDED" && c.duration != null ? `${c.duration}sn` : (c.status === "MISSED" ? "Cevapsız" : c.status)}
                             </div>
                           </div>
                         ))}
