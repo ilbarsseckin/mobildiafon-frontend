@@ -229,18 +229,33 @@ export default function YoneticiPanel() {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = async () => {
-        const base64 = reader.result as string;
-        setLoading(true); setError(""); setInfo("");
-        try {
-          const res = await fetch(`${API}/buildings/set-building-image`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ buildingId, photo: base64 }),
-          });
-          const data = await res.json();
-          if (data.success) { setInfo("Bina resmi güncellendi."); await loadOverview(token); }
-          else setError(data.message || "Yüklenemedi");
-        } catch { setError("Yüklenemedi"); } finally { setLoading(false); }
+        // Resmi canvas ile küçült (max 1000px, JPEG %70) — sunucuda yer tasarrufu
+        const img = new Image();
+        img.onload = async () => {
+          const maxW = 1000;
+          const scale = Math.min(1, maxW / img.width);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) { setError("Resim işlenemedi"); return; }
+          ctx.drawImage(img, 0, 0, w, h);
+          const base64 = canvas.toDataURL("image/jpeg", 0.7);
+          setLoading(true); setError(""); setInfo("");
+          try {
+            const res = await fetch(`${API}/buildings/set-building-image`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ buildingId, photo: base64 }),
+            });
+            const data = await res.json();
+            if (data.success) { setInfo("Bina resmi güncellendi."); await loadOverview(token); }
+            else setError(data.message || "Yüklenemedi");
+          } catch { setError("Yüklenemedi"); } finally { setLoading(false); }
+        };
+        img.onerror = () => setError("Resim okunamadı");
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     };
