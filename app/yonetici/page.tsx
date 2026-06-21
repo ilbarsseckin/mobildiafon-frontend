@@ -12,7 +12,9 @@ type Resident = {
   photoUrl: string | null;
   approved: boolean;
 };
-type Flat = { apartmentId: string; flatNo: string; floor: number | null; residents: Resident[] };
+type Flat = { apartmentId: string; flatNo: string; floor: number | null; listingStatus: string; residents: Resident[] };
+
+const LISTING_LABELS: Record<string, string> = { none: "", sale: "Satılık", rent: "Kiralık" };
 type Building = {
   id: string;
   buildingName: string;
@@ -133,6 +135,22 @@ export default function YoneticiPanel() {
   }
   function remove(id: string, name: string) {
     if (confirm(`${name || "Bu sakin"} binadan çıkarılsın mı?`)) act("reject-resident", id, "Sakin çıkarıldı.");
+  }
+
+  async function setListing(apartmentId: string, status: string) {
+    if (!token) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/set-listing`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ apartmentId, status }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Daire durumu güncellendi."); await loadOverview(token); }
+      else setError(data.message || "Güncellenemedi");
+    } catch { setError("Güncellenemedi"); }
+    finally { setLoading(false); }
   }
 
   function logout() {
@@ -265,7 +283,11 @@ export default function YoneticiPanel() {
                           <div className="adm-flats">
                             {b.flats.map((f) => (
                               <div key={f.apartmentId} className={f.residents.length ? "adm-flat occupied" : "adm-flat"}>
-                                <div className="adm-flat-no">Daire {f.flatNo}</div>
+                                <div className="adm-flat-no">
+                                  Daire {f.flatNo}
+                                  {f.listingStatus === "sale" && <span className="adm-listing sale">Satılık</span>}
+                                  {f.listingStatus === "rent" && <span className="adm-listing rent">Kiralık</span>}
+                                </div>
                                 {f.residents.length === 0 ? (
                                   <div className="adm-flat-empty">Boş</div>
                                 ) : (
@@ -285,6 +307,11 @@ export default function YoneticiPanel() {
                                     ))}
                                   </div>
                                 )}
+                                <div className="adm-listing-controls">
+                                  <button className={f.listingStatus === "none" ? "active" : ""} onClick={() => setListing(f.apartmentId, "none")} disabled={loading}>Normal</button>
+                                  <button className={f.listingStatus === "sale" ? "active sale" : ""} onClick={() => setListing(f.apartmentId, "sale")} disabled={loading}>Satılık</button>
+                                  <button className={f.listingStatus === "rent" ? "active rent" : ""} onClick={() => setListing(f.apartmentId, "rent")} disabled={loading}>Kiralık</button>
+                                </div>
                               </div>
                             ))}
                           </div>

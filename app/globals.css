@@ -271,3 +271,15 @@ a { text-decoration: none; }
   .adm-stats { grid-template-columns: repeat(2, 1fr); }
   .adm-flats { grid-template-columns: 1fr; }
 }
+
+/* Satılık/kiralık rozet + kontroller */
+.adm-listing { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+.adm-listing.sale { background: #fff0e0; color: #c2691a; }
+.adm-listing.rent { background: #e3f0ff; color: #1a5fc2; }
+.adm-listing-controls { display: flex; gap: 4px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.adm-listing-controls button { flex: 1; padding: 5px 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--line); background: #fff; color: var(--gray); border-radius: 7px; cursor: pointer; transition: all .15s; }
+.adm-listing-controls button:hover:not(:disabled) { border-color: var(--navy); }
+.adm-listing-controls button.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.adm-listing-controls button.active.sale { background: #c2691a; border-color: #c2691a; }
+.adm-listing-controls button.active.rent { background: #1a5fc2; border-color: #1a5fc2; }
+.adm-listing-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
