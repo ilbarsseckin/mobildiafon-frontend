@@ -311,3 +311,13 @@ a { text-decoration: none; }
 .adm-guard-add .adm-input { flex: 1; min-width: 140px; margin-bottom: 0; }
 .adm-guard-add .adm-btn { width: auto; padding: 12px 22px; white-space: nowrap; }
 @media (max-width: 560px) { .adm-guard-add { flex-direction: column; } .adm-guard-add .adm-btn { width: 100%; } }
+
+/* Yapı düzenleme (daire/blok ekle-sil) */
+.adm-flat-delete { margin-top: 6px; width: 100%; padding: 5px; font-size: 11px; font-weight: 600; background: #fff; color: #c0283a; border: 1px solid #f0c0c6; border-radius: 7px; cursor: pointer; }
+.adm-flat-delete:hover:not(:disabled) { background: #fdecee; }
+.adm-flat-delete:disabled { opacity: 0.5; }
+.adm-flat-add { border: 2px dashed var(--line); border-radius: 10px; padding: 16px; text-align: center; color: var(--gray); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.adm-flat-add:hover { border-color: var(--navy); color: var(--navy); background: var(--bg-soft); }
+.adm-add-block { margin-top: 14px; width: 100%; padding: 14px; background: var(--navy); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s; }
+.adm-add-block:hover:not(:disabled) { background: var(--navy-deep); }
+.adm-add-block:disabled { opacity: 0.5; cursor: not-allowed; }

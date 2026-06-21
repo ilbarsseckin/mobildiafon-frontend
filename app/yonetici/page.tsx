@@ -162,6 +162,56 @@ export default function YoneticiPanel() {
     finally { setLoading(false); }
   }
 
+  async function addFlat(buildingId: string) {
+    if (!token) return;
+    const flatNo = prompt("Yeni daire no:");
+    if (!flatNo || !flatNo.trim()) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/add-flat`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ buildingId, flatNo: flatNo.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Daire eklendi."); await loadOverview(token); }
+      else setError(data.message || "Eklenemedi");
+    } catch { setError("Eklenemedi"); } finally { setLoading(false); }
+  }
+
+  async function deleteFlat(apartmentId: string, flatNo: string) {
+    if (!token) return;
+    if (!confirm(`Daire ${flatNo} silinsin mi? (Sadece boş daire silinebilir)`)) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/delete-flat`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ apartmentId }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Daire silindi."); await loadOverview(token); }
+      else setError(data.message || "Silinemedi");
+    } catch { setError("Silinemedi"); } finally { setLoading(false); }
+  }
+
+  async function addBlock(fromBuildingId: string) {
+    if (!token) return;
+    const blockName = prompt("Yeni blok adı (örn: C):");
+    if (!blockName || !blockName.trim()) return;
+    const flatCountStr = prompt("Daire sayısı:");
+    const flatCount = Number(flatCountStr);
+    if (!flatCount || flatCount < 1) { setError("Geçerli daire sayısı girin"); return; }
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/add-block`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ fromBuildingId, blockName: blockName.trim(), flatCount }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Blok eklendi."); await loadOverview(token); }
+      else setError(data.message || "Eklenemedi");
+    } catch { setError("Eklenemedi"); } finally { setLoading(false); }
+  }
+
   function logout() {
     setToken(null); setStep("phone"); setPhone(""); setCode("");
     setBuildings([]); setIsManager(false); setOpenBuilding(null);
@@ -357,12 +407,23 @@ export default function YoneticiPanel() {
                                   <button className={f.listingStatus === "sale" ? "active sale" : ""} onClick={() => setListing(f.apartmentId, "sale")} disabled={loading}>Satılık</button>
                                   <button className={f.listingStatus === "rent" ? "active rent" : ""} onClick={() => setListing(f.apartmentId, "rent")} disabled={loading}>Kiralık</button>
                                 </div>
+                                {f.residents.length === 0 && (
+                                  <button className="adm-flat-delete" onClick={() => deleteFlat(f.apartmentId, f.flatNo)} disabled={loading}>Daireyi Sil</button>
+                                )}
                               </div>
                             ))}
+                            <div className="adm-flat-add" onClick={() => !loading && addFlat(b.id)}>
+                              + Daire Ekle
+                            </div>
                           </div>
                         )}
                       </div>
                     ))}
+                    {buildings.length > 0 && (
+                      <button className="adm-add-block" onClick={() => addBlock(buildings[0].id)} disabled={loading}>
+                        + Yeni Blok Ekle
+                      </button>
+                    )}
                   </div>
                 )}
 
