@@ -20,6 +20,7 @@ type Building = {
   buildingName: string;
   siteName: string | null;
   blockName: string | null;
+  imageUrl: string | null;
   requireApproval: boolean;
   flatCount: number;
   residentCount: number;
@@ -218,6 +219,34 @@ export default function YoneticiPanel() {
     sessionStorage.removeItem("md_admin_token");
   }
 
+  function uploadBuildingImage(buildingId: string) {
+    if (!token) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        setLoading(true); setError(""); setInfo("");
+        try {
+          const res = await fetch(`${API}/buildings/set-building-image`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ buildingId, photo: base64 }),
+          });
+          const data = await res.json();
+          if (data.success) { setInfo("Bina resmi güncellendi."); await loadOverview(token); }
+          else setError(data.message || "Yüklenemedi");
+        } catch { setError("Yüklenemedi"); } finally { setLoading(false); }
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
   async function loadGuards(tk: string) {
     try {
       const res = await fetch(`${API}/buildings/list-security`, { headers: { Authorization: `Bearer ${tk}` } });
@@ -376,6 +405,14 @@ export default function YoneticiPanel() {
                         </button>
                         {openBuilding === b.id && (
                           <div className="adm-flats">
+                            <div className="adm-bld-image-row" style={{ gridColumn: "1 / -1" }}>
+                              {b.imageUrl && (
+                                <img src={b.imageUrl.startsWith("/uploads/") ? b.imageUrl : b.imageUrl} alt={buildingLabel(b)} className="adm-bld-image" />
+                              )}
+                              <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
+                                {b.imageUrl ? "Resmi Değiştir" : "Bina Resmi Yükle"}
+                              </button>
+                            </div>
                             {b.flats.map((f) => (
                               <div key={f.apartmentId} className={f.residents.length ? "adm-flat occupied" : "adm-flat"}>
                                 <div className="adm-flat-no">
