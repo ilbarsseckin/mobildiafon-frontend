@@ -3,6 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 
+// Logo kaynağı: yerelde /public/logo.png, canlıda R2'deki webp.
+// R2'ye geçince koda dokunma — sadece .env'e şunu ekle:
+//   NEXT_PUBLIC_LOGO_URL=https://<r2-domain>/logo.webp
+const LOGO_URL = process.env.NEXT_PUBLIC_LOGO_URL || "/logo.png";
+// Footer (lacivert zemin) için açık renkli logo. R2'de: .../logo-light.webp
+const LOGO_LIGHT_URL = process.env.NEXT_PUBLIC_LOGO_LIGHT_URL || "/logo-light.png";
+
 const FAQS: [string, string][] = [
   [
     "Donanım veya panel kurmam gerekiyor mu?",
@@ -85,7 +92,7 @@ export default function Home() {
       <header className="lp-header">
         <div className="lp-wrap lp-nav">
           <Link href="/" className="lp-logo-img" aria-label="MobilDiafon">
-            <img src="/logo.png" alt="MobilDiafon" />
+            <img src={LOGO_URL} alt="MobilDiafon" />
           </Link>
 
           <nav className={`lp-links ${menuOpen ? "open" : ""}`}>
@@ -395,7 +402,9 @@ export default function Home() {
       <footer className="lp-footer">
         <div className="lp-wrap lp-footer-grid">
           <div className="lp-footer-brand">
-            <div className="lp-logo footer">Mobil<b>Diafon</b></div>
+            <Link href="/" className="lp-logo-img footer" aria-label="MobilDiafon">
+              <img src={LOGO_LIGHT_URL} alt="MobilDiafon" />
+            </Link>
             <p>QR ve konum tabanlı, donanımsız ve kurumsal mobil diafon çözümü.</p>
           </div>
           <div className="lp-footer-col">
@@ -444,6 +453,7 @@ export default function Home() {
         .lp-logo b { color: var(--red); }
         .lp-logo-img { display: inline-flex; align-items: center; }
         .lp-logo-img img { height: 38px; width: auto; display: block; }
+        .lp-logo-img.footer img { height: 34px; }
         .lp-links { display: flex; align-items: center; gap: 30px; }
         .lp-links > a { color: var(--gray); font-weight: 600; font-size: 15px; transition: color .2s; }
         .lp-links > a:hover { color: var(--navy); }
