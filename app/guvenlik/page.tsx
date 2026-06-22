@@ -215,7 +215,8 @@ export default function GuvenlikPanel() {
                                   </button>
                                   <button className="adm-note-btn" onClick={() => openNotes(f.apartmentId, `Daire ${f.flatNo}`)} disabled={loading}>
                                     Not bırak
-                                </button>
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
