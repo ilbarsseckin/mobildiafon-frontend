@@ -84,9 +84,9 @@ export default function Home() {
       {/* ---------- HEADER ---------- */}
       <header className="lp-header">
         <div className="lp-wrap lp-nav">
-          <div className="lp-logo">
-            Mobil<b>Diafon</b>
-          </div>
+          <Link href="/" className="lp-logo-img" aria-label="MobilDiafon">
+            <img src="/logo.png" alt="MobilDiafon" />
+          </Link>
 
           <nav className={`lp-links ${menuOpen ? "open" : ""}`}>
             <a href="#how" onClick={() => setMenuOpen(false)}>Nasıl Çalışır?</a>
@@ -442,6 +442,8 @@ export default function Home() {
         .lp-nav { height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
         .lp-logo { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
         .lp-logo b { color: var(--red); }
+        .lp-logo-img { display: inline-flex; align-items: center; }
+        .lp-logo-img img { height: 38px; width: auto; display: block; }
         .lp-links { display: flex; align-items: center; gap: 30px; }
         .lp-links > a { color: var(--gray); font-weight: 600; font-size: 15px; transition: color .2s; }
         .lp-links > a:hover { color: var(--navy); }
