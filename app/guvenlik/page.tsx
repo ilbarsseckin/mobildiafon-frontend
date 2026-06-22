@@ -83,6 +83,12 @@ export default function GuvenlikPanel() {
     } catch { setError("Liste yüklenemedi"); } finally { setLoading(false); }
   }
 
+  function callFlat(apartmentId: string, flatNo: string) {
+    if (!token) return;
+    const url = `/web/guvenlik-ara.html?token=${encodeURIComponent(token)}&apartmentId=${encodeURIComponent(apartmentId)}&flat=${encodeURIComponent("Daire " + flatNo)}`;
+    window.open(url, "_blank", "noopener");
+  }
+
   async function openNotes(apartmentId: string, label: string) {
     setNoteFlat({ apartmentId, label }); setNoteText(""); setFlatNotes([]);
     try {
@@ -203,8 +209,12 @@ export default function GuvenlikPanel() {
                                     ))}
                                   </div>
                                 )}
-                                <button className="adm-note-btn" onClick={() => openNotes(f.apartmentId, `Daire ${f.flatNo}`)} disabled={loading}>
-                                  Not bırak
+                                <div className="adm-flat-actions">
+                                  <button className="adm-call-btn" onClick={() => callFlat(f.apartmentId, f.flatNo)} disabled={loading}>
+                                    📞 Ara
+                                  </button>
+                                  <button className="adm-note-btn" onClick={() => openNotes(f.apartmentId, `Daire ${f.flatNo}`)} disabled={loading}>
+                                    Not bırak
                                 </button>
                               </div>
                             ))}
