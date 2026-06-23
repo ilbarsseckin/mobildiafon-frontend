@@ -20,7 +20,7 @@ type Building = {
   buildingName: string;
   siteName: string | null;
   blockName: string | null;
-imageUrl: string | null;
+  imageUrl: string | null;
   requireApproval: boolean;
   locationCheckEnabled: boolean;
   locationCheckRadius: number;
@@ -53,7 +53,8 @@ export default function YoneticiPanel() {
 
   const [isManager, setIsManager] = useState(false);
   const [buildings, setBuildings] = useState<Building[]>([]);
-  const [tab, setTab] = useState<"pending" | "flats" | "security" | "calls">("pending");
+  const [tab, setTab] = useState<"pending" | "flats" | "security" | "calls" | "subscription">("pending");
+  const [subs, setSubs] = useState<any[]>([]);
   const [openBuilding, setOpenBuilding] = useState<string | null>(null);
 
   // Çağrı logları
@@ -63,6 +64,8 @@ export default function YoneticiPanel() {
   const [guards, setGuards] = useState<{ id: string; phone: string; guardName: string | null }[]>([]);
   const [newGuardPhone, setNewGuardPhone] = useState("");
   const [newGuardName, setNewGuardName] = useState("");
+
+  const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -83,11 +86,23 @@ export default function YoneticiPanel() {
     if (token && tab === "calls") loadCalls(token);
   }, [token, tab]);
 
+  useEffect(() => {
+    if (token && tab === "subscription") loadSubs(token);
+  }, [token, tab]);
+
   async function loadCalls(tk: string) {
     try {
       const res = await fetch(`${API}/buildings/call-logs`, { headers: { Authorization: `Bearer ${tk}` } });
       const data = await res.json();
       setCalls(data.calls || []);
+    } catch { /* sessiz */ }
+  }
+
+  async function loadSubs(tk: string) {
+    try {
+      const res = await fetch(`${API}/subscription/my`, { headers: { Authorization: `Bearer ${tk}` } });
+      const data = await res.json();
+      setSubs(data.subscriptions || []);
     } catch { /* sessiz */ }
   }
 
@@ -250,7 +265,6 @@ export default function YoneticiPanel() {
       else setError(data.message || "Güncellenemedi");
     } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
   }
-const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({});
 
   async function loadDoors(buildingId: string) {
     if (!token) return;
@@ -297,6 +311,7 @@ const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({}
       else setError(data.message || "Silinemedi");
     } catch { setError("Silinemedi"); } finally { setLoading(false); }
   }
+
   function uploadBuildingImage(buildingId: string) {
     if (!token) return;
     const input = document.createElement("input");
@@ -307,7 +322,6 @@ const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({}
       if (!file) return;
       const reader = new FileReader();
       reader.onload = async () => {
-        // Resmi canvas ile küçült (max 1000px, JPEG %70) — sunucuda yer tasarrufu
         const img = new Image();
         img.onload = async () => {
           const maxW = 1000;
@@ -388,6 +402,13 @@ const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({}
     }
   }
 
+  function subStatusLabel(s: any): { text: string; color: string } {
+    if (s.status === "expired") return { text: "Süresi doldu", color: "#e63946" };
+    if (s.isTrial) return { text: `Deneme — ${s.daysLeft} gün kaldı`, color: s.daysLeft <= 3 ? "#e6a23c" : "#1a8f3c" };
+    if (s.status === "active") return { text: `Aktif — ${s.daysLeft} gün kaldı`, color: s.daysLeft <= 3 ? "#e6a23c" : "#1a8f3c" };
+    return { text: s.status, color: "#666" };
+  }
+
   return (
     <div className="adm-root">
       <div className={step === "panel" ? "adm-card adm-card-wide" : "adm-card"}>
@@ -458,6 +479,7 @@ const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({}
                   <button className={tab === "flats" ? "active" : ""} onClick={() => setTab("flats")}>Daireler</button>
                   <button className={tab === "security" ? "active" : ""} onClick={() => setTab("security")}>Güvenlik</button>
                   <button className={tab === "calls" ? "active" : ""} onClick={() => setTab("calls")}>Çağrılar</button>
+                  <button className={tab === "subscription" ? "active" : ""} onClick={() => setTab("subscription")}>Abonelik</button>
                 </div>
 
                 {/* BEKLEYENLER */}
@@ -503,7 +525,7 @@ const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({}
                               {b.imageUrl && (
                                 <img src={b.imageUrl.startsWith("/uploads/") ? b.imageUrl : b.imageUrl} alt={buildingLabel(b)} className="adm-bld-image" />
                               )}
-              <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
+                              <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
                                 {b.imageUrl ? "Resmi Değiştir" : "Bina Resmi Yükle"}
                               </button>
                             </div>
@@ -652,6 +674,39 @@ const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({}
                             </div>
                           </div>
                         ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ABONELİK */}
+                {tab === "subscription" && (
+                  <div className="adm-subscription">
+                    <p className="adm-muted" style={{ marginBottom: 16 }}>Site ve birimlerinizin abonelik durumu. Deneme süreniz bitince ödeme ile devam edebilirsiniz.</p>
+                    {subs.length === 0 ? (
+                      <div className="adm-empty"><p>Abonelik bilgisi yok.</p></div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {subs.map((s) => {
+                          const st = subStatusLabel(s);
+                          return (
+                            <div key={s.id} style={{ border: "1px solid #eee", borderRadius: "12px", padding: "16px", background: "#fff" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                <div style={{ fontWeight: 700, fontSize: "16px" }}>{s.label}</div>
+                                <span style={{ fontSize: "13px", fontWeight: 600, color: st.color, background: st.color + "18", padding: "4px 10px", borderRadius: "20px" }}>{st.text}</span>
+                              </div>
+                              <div style={{ fontSize: "14px", color: "#555", lineHeight: 1.7 }}>
+                                <div>Tür: {s.scopeType === "site" ? "Site (toplu)" : "Bireysel birim"}</div>
+                                <div>Daire sayısı: {s.flatCount}</div>
+                                <div>Aylık tutar: <b>{s.monthlyPrice} ₺</b></div>
+                                {s.periodEnd && <div>Bitiş: {new Date(s.periodEnd).toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" })}</div>}
+                              </div>
+                              <button disabled style={{ marginTop: 12, padding: "10px 18px", background: "#1a8f3c", color: "#fff", border: "none", borderRadius: "8px", opacity: 0.6, cursor: "not-allowed", width: "100%" }}>
+                                Ödeme ile Devam Et (yakında)
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
