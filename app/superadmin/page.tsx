@@ -6,7 +6,7 @@ const API = "/api";
 // DEMO_MODE=true: örnek verilerle çalışır (anında demo).
 // Gerçek backend hazır olunca false yapın; aşağıdaki /api/superadmin/* uçları kullanılır.
 const DEMO_MODE = true;
-const DEMO_PASS = "mobildiafon2026"; // demo girişi — gerçekte backend doğrulamasıyla değiştirin
+const DEMO_PASS = "123456"; // demo girişi — backend bağlanınca gerçek doğrulamayla değiştirilecek
 
 type PlanId = "baslangic" | "profesyonel" | "kurumsal";
 type Status = "active" | "trial" | "cancelled";
