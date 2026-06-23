@@ -2,22 +2,22 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MobilDiafon | QR ve Konum Tabanlı Dijital Diafon",
+  title: "Mobil Diafon — Diafon Artık Cebinizde",
   description:
-    "MobilDiafon; QR kod, konum doğrulama, görüntülü arama, yönetici paneli ve güvenlik paneli destekli kurumsal dijital diafon platformudur.",
+    "Panelsiz mobil diafon sistemi. Ziyaretçiler QR okutup sizi görüntülü arar, uygulama gerekmez. Apartman, site, villa ve işletmeler için modern kapı iletişimi.",
   keywords: [
     "mobil diafon",
-    "QR diafon",
-    "konum tabanlı diafon",
+    "panelsiz diafon",
     "görüntülü diafon",
+    "QR diafon",
+    "akıllı diafon",
     "apartman diafon",
-    "site yönetimi",
-    "kapı arama uygulaması",
+    "kapı zili uygulaması",
   ],
   metadataBase: new URL("https://mobildiafon.com"),
   openGraph: {
-    title: "MobilDiafon | Diafon Artık Cebinizde",
-    description: "QR ve konum tabanlı modern kapı iletişim platformu.",
+    title: "Mobil Diafon — Diafon Artık Cebinizde",
+    description: "Panelsiz mobil diafon. QR okut, görüntülü görüş. Uygulama gerekmez.",
     url: "https://mobildiafon.com",
     type: "website",
     locale: "tr_TR",
