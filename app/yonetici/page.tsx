@@ -250,7 +250,7 @@ export default function YoneticiPanel() {
       else setError(data.message || "Güncellenemedi");
     } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
   }
-  
+
   function uploadBuildingImage(buildingId: string) {
     if (!token) return;
     const input = document.createElement("input");
@@ -457,9 +457,30 @@ export default function YoneticiPanel() {
                               {b.imageUrl && (
                                 <img src={b.imageUrl.startsWith("/uploads/") ? b.imageUrl : b.imageUrl} alt={buildingLabel(b)} className="adm-bld-image" />
                               )}
-                              <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
+                     <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
                                 {b.imageUrl ? "Resmi Değiştir" : "Bina Resmi Yükle"}
                               </button>
+                            </div>
+                            <div className="adm-loccheck" style={{ gridColumn: "1 / -1", padding: "12px", background: "#f7f7f9", borderRadius: "10px", marginBottom: "10px" }}>
+                              <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontWeight: 600 }}>
+                                <input type="checkbox" checked={b.locationCheckEnabled}
+                                  onChange={(e) => setLocationCheck(b.id, e.target.checked, b.locationCheckRadius)}
+                                  disabled={loading} />
+                                Konum doğrulama {b.locationCheckEnabled ? "açık" : "kapalı"}
+                              </label>
+                              <div style={{ fontSize: "13px", color: "#666", margin: "6px 0 10px" }}>
+                                Açıkken ziyaretçi yalnızca binanın yakınındayken arayabilir (taciz önleme). Kapalıyken QR yeterli.
+                              </div>
+                              {b.locationCheckEnabled && (
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <span style={{ fontSize: "13px" }}>Mesafe:</span>
+                                  <input type="number" min={20} max={2000} step={10} defaultValue={b.locationCheckRadius}
+                                    style={{ width: "90px", padding: "6px", borderRadius: "6px", border: "1px solid #ccc" }}
+                                    onBlur={(e) => { const v = Number(e.target.value); if (v >= 20 && v <= 2000 && v !== b.locationCheckRadius) setLocationCheck(b.id, true, v); }}
+                                    disabled={loading} />
+                                  <span style={{ fontSize: "13px", color: "#666" }}>metre</span>
+                                </div>
+                              )}
                             </div>
                             {b.flats.map((f) => (
                               <div key={f.apartmentId} className={f.residents.length ? "adm-flat occupied" : "adm-flat"}>
