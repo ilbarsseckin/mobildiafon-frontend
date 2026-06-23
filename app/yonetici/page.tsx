@@ -250,7 +250,53 @@ export default function YoneticiPanel() {
       else setError(data.message || "Güncellenemedi");
     } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
   }
+const [doorsByBuilding, setDoorsByBuilding] = useState<Record<string, any[]>>({});
 
+  async function loadDoors(buildingId: string) {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API}/buildings/manage-doors/${buildingId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) setDoorsByBuilding((prev) => ({ ...prev, [buildingId]: data.doors || [] }));
+    } catch { /* sessiz */ }
+  }
+
+  async function addDoor(buildingId: string) {
+    if (!token) return;
+    const name = prompt("Kapı adı (örn: Ana Giriş):");
+    if (!name || !name.trim()) return;
+    const deviceId = prompt("Tuya cihaz ID (device_id):");
+    if (!deviceId || !deviceId.trim()) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/add-door`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ buildingId, name: name.trim(), deviceId: deviceId.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Kapı eklendi."); loadDoors(buildingId); }
+      else setError(data.message || "Eklenemedi");
+    } catch { setError("Eklenemedi"); } finally { setLoading(false); }
+  }
+
+  async function deleteDoor(doorId: string, buildingId: string) {
+    if (!token) return;
+    if (!confirm("Kapı silinsin mi?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/buildings/delete-door`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ doorId }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Kapı silindi."); loadDoors(buildingId); }
+      else setError(data.message || "Silinemedi");
+    } catch { setError("Silinemedi"); } finally { setLoading(false); }
+  }
   function uploadBuildingImage(buildingId: string) {
     if (!token) return;
     const input = document.createElement("input");
@@ -444,7 +490,7 @@ export default function YoneticiPanel() {
                   <div className="adm-buildings-list">
                     {buildings.map((b) => (
                       <div key={b.id} className="adm-bld">
-                        <button className="adm-bld-head" onClick={() => setOpenBuilding(openBuilding === b.id ? null : b.id)}>
+                        <button className="adm-bld-head" onClick={() => { const willOpen = openBuilding !== b.id; setOpenBuilding(willOpen ? b.id : null); if (willOpen) loadDoors(b.id); }}>
                           <div>
                             <div className="adm-bld-name">{buildingLabel(b)}</div>
                             <div className="adm-bld-sub">{b.flatCount} daire · {b.residentCount} sakin</div>
@@ -457,7 +503,7 @@ export default function YoneticiPanel() {
                               {b.imageUrl && (
                                 <img src={b.imageUrl.startsWith("/uploads/") ? b.imageUrl : b.imageUrl} alt={buildingLabel(b)} className="adm-bld-image" />
                               )}
-                     <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
+              <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
                                 {b.imageUrl ? "Resmi Değiştir" : "Bina Resmi Yükle"}
                               </button>
                             </div>
@@ -481,6 +527,24 @@ export default function YoneticiPanel() {
                                   <span style={{ fontSize: "13px", color: "#666" }}>metre</span>
                                 </div>
                               )}
+                            </div>
+                            <div className="adm-doors" style={{ gridColumn: "1 / -1", padding: "12px", background: "#f0f7ff", borderRadius: "10px", marginBottom: "10px" }}>
+                              <div style={{ fontWeight: 600, marginBottom: 8 }}>🚪 Kapılar (Tuya)</div>
+                              <div style={{ fontSize: "13px", color: "#666", marginBottom: 10 }}>
+                                Kapı açma için Tuya röle cihazının device ID'sini ekleyin. Bir blokta birden çok kapı olabilir.
+                              </div>
+                              {(doorsByBuilding[b.id] || []).map((d: any) => (
+                                <div key={d.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "#fff", borderRadius: "8px", marginBottom: 6 }}>
+                                  <div>
+                                    <div style={{ fontWeight: 600 }}>{d.name}</div>
+                                    <div style={{ fontSize: "12px", color: "#999" }}>{d.deviceId}</div>
+                                  </div>
+                                  <button onClick={() => deleteDoor(d.id, b.id)} disabled={loading}
+                                    style={{ color: "#e63946", background: "none", border: "1px solid #e63946", borderRadius: "6px", padding: "4px 10px", cursor: "pointer" }}>Sil</button>
+                                </div>
+                              ))}
+                              <button onClick={() => addDoor(b.id)} disabled={loading}
+                                style={{ marginTop: 4, padding: "8px 14px", background: "#1a5fc2", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>+ Kapı Ekle</button>
                             </div>
                             {b.flats.map((f) => (
                               <div key={f.apartmentId} className={f.residents.length ? "adm-flat occupied" : "adm-flat"}>
