@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,15 +15,31 @@ export const metadata: Metadata = {
     "kapı arama uygulaması",
   ],
   metadataBase: new URL("https://mobildiafon.com"),
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    shortcut: "/favicon.ico",
+  },
   openGraph: {
     title: "MobilDiafon | Diafon Artık Cebinizde",
     description: "QR ve konum tabanlı modern kapı iletişim platformu.",
     url: "https://mobildiafon.com",
     type: "website",
     locale: "tr_TR",
+    images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "MobilDiafon" }],
   },
   robots: { index: true, follow: true },
   alternates: { canonical: "https://mobildiafon.com" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#021E4F",
 };
 
 export default function RootLayout({
