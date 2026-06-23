@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 // Logo kaynağı: yerelde /public/logo.png, canlıda R2'deki webp.
@@ -85,6 +85,19 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
+  const loginRef = useRef<HTMLDivElement>(null);
+
+  // Menü dışına tıklanınca kapan (hover yerine — boşlukta kapanma sorununu çözer)
+  useEffect(() => {
+    if (!loginOpen) return;
+    function onDocClick(e: MouseEvent) {
+      if (loginRef.current && !loginRef.current.contains(e.target as Node)) {
+        setLoginOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [loginOpen]);
 
   return (
     <main className="lp">
@@ -109,7 +122,7 @@ export default function Home() {
           </nav>
 
           <div className="lp-nav-right">
-            <div className="lp-login" onMouseLeave={() => setLoginOpen(false)}>
+            <div className="lp-login" ref={loginRef}>
               <button className="lp-login-btn" onClick={() => setLoginOpen((v) => !v)}>
                 Giriş Yap
                 <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
@@ -118,9 +131,9 @@ export default function Home() {
               </button>
               {loginOpen && (
                 <div className="lp-login-menu">
-                  <Link href="/yonetici">Yönetici Paneli</Link>
-                  <Link href="/guvenlik">Güvenlik Paneli</Link>
-                  <Link href="/superadmin">Süper Admin</Link>
+                  <Link href="/yonetici" onClick={() => setLoginOpen(false)}>Yönetici Paneli</Link>
+                  <Link href="/guvenlik" onClick={() => setLoginOpen(false)}>Güvenlik Paneli</Link>
+                  <Link href="/superadmin" onClick={() => setLoginOpen(false)}>Süper Admin</Link>
                 </div>
               )}
             </div>

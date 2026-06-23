@@ -20,8 +20,10 @@ type Building = {
   buildingName: string;
   siteName: string | null;
   blockName: string | null;
-  imageUrl: string | null;
+imageUrl: string | null;
   requireApproval: boolean;
+  locationCheckEnabled: boolean;
+  locationCheckRadius: number;
   flatCount: number;
   residentCount: number;
   flats: Flat[];
@@ -234,6 +236,21 @@ export default function YoneticiPanel() {
     sessionStorage.removeItem("md_admin_token");
   }
 
+  async function setLocationCheck(buildingId: string, enabled: boolean, radius: number) {
+    if (!token) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/set-location-check`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ buildingId, enabled, radius }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Konum doğrulama güncellendi."); await loadOverview(token); }
+      else setError(data.message || "Güncellenemedi");
+    } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
+  }
+  
   function uploadBuildingImage(buildingId: string) {
     if (!token) return;
     const input = document.createElement("input");
