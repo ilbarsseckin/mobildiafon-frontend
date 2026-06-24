@@ -314,7 +314,7 @@ const REGISTERED: Bldg[] = [
 const bbNorm = (s: string) => (s || "").trim().toLocaleLowerCase("tr");
 const bbTitle = (s: string) => s.replace(/\S+/g, (w) => w.charAt(0).toLocaleUpperCase("tr") + w.slice(1));
 const bbFmt = (n: number) => n.toLocaleString("tr-TR");
-const bbMap = (q: string) => `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=16&output=embed`;
+// bbMap kaldırıldı — interaktif Leaflet haritası (LocationPicker) kullanılıyor
 const bbRate = (n: number) => (n <= 20 ? 15 : n <= 60 ? 13 : n <= 150 ? 11 : 9);
 
 async function bbSearch(il: string, ilce: string): Promise<Bldg[]> {
@@ -326,6 +326,173 @@ async function bbSearch(il: string, ilce: string): Promise<Bldg[]> {
   } catch {
     return [];
   }
+}
+
+/* ============================================================
+   KONUM SEÇİCİ — Leaflet + OpenStreetMap (API key gerekmez)
+   ============================================================ */
+type LatLng = { lat: number; lng: number };
+
+let _leafletPromise: Promise<any> | null = null;
+function loadLeaflet(): Promise<any> {
+  if (typeof window === "undefined") return Promise.reject(new Error("no window"));
+  const w = window as any;
+  if (w.L) return Promise.resolve(w.L);
+  if (_leafletPromise) return _leafletPromise;
+  _leafletPromise = new Promise((resolve, reject) => {
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    s.async = true;
+    s.onload = () => resolve((window as any).L);
+    s.onerror = () => reject(new Error("Leaflet yüklenemedi"));
+    document.body.appendChild(s);
+  });
+  return _leafletPromise;
+}
+
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=tr`
+    );
+    const d: any = await r.json();
+    return (d && d.display_name) || "";
+  } catch {
+    return "";
+  }
+}
+
+function LocationPicker({
+  value,
+  onPick,
+  geocodeQuery,
+  interactive = true,
+}: {
+  value: LatLng | null;
+  onPick?: (lat: number, lng: number, address: string) => void;
+  geocodeQuery?: string;
+  interactive?: boolean;
+}) {
+  const elRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const onPickRef = useRef<typeof onPick>(onPick);
+  onPickRef.current = onPick;
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  function makeIcon(L: any) {
+    return L.icon({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    });
+  }
+
+  function place(L: any, lat: number, lng: number, fly: boolean) {
+    if (!mapRef.current) return;
+    if (!markerRef.current) {
+      markerRef.current = L.marker([lat, lng], {
+        draggable: interactive,
+        icon: makeIcon(L),
+      }).addTo(mapRef.current);
+      if (interactive) {
+        markerRef.current.on("dragend", async () => {
+          const p = markerRef.current.getLatLng();
+          const addr = await reverseGeocode(p.lat, p.lng);
+          if (onPickRef.current) onPickRef.current(p.lat, p.lng, addr);
+        });
+      }
+    } else {
+      markerRef.current.setLatLng([lat, lng]);
+    }
+    if (fly) mapRef.current.setView([lat, lng], 17);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    loadLeaflet()
+      .then(async (L: any) => {
+        if (cancelled || !elRef.current || mapRef.current) return;
+        const start = value || { lat: 39.0, lng: 35.2 };
+        const zoom = value ? 17 : 6;
+        const map = L.map(elRef.current, { scrollWheelZoom: false }).setView(
+          [start.lat, start.lng],
+          zoom
+        );
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap",
+        }).addTo(map);
+        mapRef.current = map;
+        setLoading(false);
+
+        if (value) {
+          place(L, value.lat, value.lng, false);
+        } else if (geocodeQuery) {
+          try {
+            const r = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=tr&q=${encodeURIComponent(
+                geocodeQuery
+              )}`
+            );
+            const d: any = await r.json();
+            if (!cancelled && d && d[0]) {
+              map.setView([parseFloat(d[0].lat), parseFloat(d[0].lon)], 16);
+            }
+          } catch {
+            /* yoksay */
+          }
+        }
+
+        if (interactive) {
+          map.on("click", async (e: any) => {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            place(L, lat, lng, false);
+            const addr = await reverseGeocode(lat, lng);
+            if (onPickRef.current) onPickRef.current(lat, lng, addr);
+          });
+        }
+        setTimeout(() => {
+          if (mapRef.current) mapRef.current.invalidateSize();
+        }, 120);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setErr("Harita yüklenemedi. İnternet bağlantını kontrol et.");
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="bb-map">
+      <div ref={elRef} className="bb-map-canvas" />
+      {loading && <div className="bb-map-load">Harita yükleniyor…</div>}
+      {err && <div className="bb-map-load">{err}</div>}
+    </div>
+  );
 }
 
 function BinaBul() {
@@ -349,12 +516,14 @@ function BinaBul() {
   const [islCount, setIslCount] = useState(20);
   const [resDaire, setResDaire] = useState("1");
   const [resTel, setResTel] = useState("");
+  const [picked, setPicked] = useState<LatLng | null>(null);
+  const [pickedAddr, setPickedAddr] = useState("");
 
   const ilceList = il ? IL_ILCE[il] || [] : [];
   const iller = Object.keys(IL_ILCE).sort((a, b) => a.localeCompare(b, "tr"));
 
   function softReset() {
-    setSearched(false); setSelected(null); setResidentOpen(false);
+    setSearched(false); setSelected(null); setResidentOpen(false); setPicked(null); setPickedAddr("");
     setDenyOpen(false); setJoinDone(false); setManagerOpen(false);
   }
 
@@ -392,12 +561,14 @@ function BinaBul() {
   const typeName = tip === "apartman" ? "Apartman / Site" : tip === "villa" ? "Villa / Müstakil" : "Otel / AVM / İşletme";
 
   function onPay() {
-    const p = new URLSearchParams({ tip, il, ilce, ad: ad.trim(), birim: String(unitCount), yapi, bill });
+    const fields: Record<string, string> = { tip, il, ilce, ad: ad.trim(), birim: String(unitCount), yapi, bill };
+    if (picked) { fields.lat = picked.lat.toFixed(6); fields.lng = picked.lng.toFixed(6); }
+    const p = new URLSearchParams(fields);
     window.location.href = `/satin-al?${p.toString()}`;
   }
 
   const others = inDistrict.filter((r) => !nameMatches.includes(r));
-  const managerMapQ = [ad.trim(), ilce, il].filter(Boolean).join(", ");
+  // managerMapQ kaldırıldı — konum artık haritadan iğneyle seçiliyor
   const multi = nameMatches.length > 1 && !selected;
 
   return (
@@ -446,7 +617,7 @@ function BinaBul() {
                     </div>
                     <span className="bb-tag-ok">✓ Kayıtlı</span>
                   </div>
-                  <div className="bb-mapwrap"><iframe title="harita" loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={bbMap(`${selected.lat},${selected.lng}`)} /></div>
+                  <div style={{ marginTop: 12 }}><LocationPicker key={`sel-${selected.lat},${selected.lng}`} value={{ lat: selected.lat, lng: selected.lng }} interactive={false} /></div>
                   <div className="bb-ask">Bu senin binan mı? Sakini misin?</div>
                   <div className="bb-ask-actions">
                     <button className="btn btn-primary" onClick={() => { setResidentOpen(true); setDenyOpen(false); }}>Evet, sakinim</button>
@@ -549,9 +720,13 @@ function BinaBul() {
                   )}
 
                   <div className="bb-field" style={{ marginTop: 6 }}>
-                    <label>Konum doğrulama (haritada gör)</label>
-                    <div className="bb-mapwrap"><iframe title="konum" loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={bbMap(managerMapQ || `${il} ${ilce}`)} /></div>
-                    <p className="bb-hint">Adresini il/ilçe ve bina adına göre gösteriyoruz — yanlışsa mahalle/sokağı netleştir.</p>
+                    <label>Bina konumu — haritada işaretle</label>
+                    <LocationPicker key={`${il}|${ilce}`} value={picked} geocodeQuery={[ad.trim(), ilce, il, "Türkiye"].filter(Boolean).join(", ")} onPick={(lat, lng, addr) => { setPicked({ lat, lng }); setPickedAddr(addr); }} />
+                    {picked ? (
+                      <div className="bb-addr">{pickedAddr || "Seçilen konum"}<span className="bb-coord">{picked.lat.toFixed(6)}, {picked.lng.toFixed(6)}</span></div>
+                    ) : (
+                      <div className="bb-addr empty">Haritada binanın üstüne dokun — iğne düşsün, adres ve koordinat otomatik alınır. İğneyi sürükleyerek ince ayar yapabilirsin.</div>
+                    )}
                   </div>
 
                   <div className="bb-pricebox">
