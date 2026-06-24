@@ -24,6 +24,7 @@ type Building = {
   requireApproval: boolean;
   locationCheckEnabled: boolean;
   locationCheckRadius: number;
+  securityMode: string;
   flatCount: number;
   residentCount: number;
   flats: Flat[];
@@ -265,7 +266,20 @@ export default function YoneticiPanel() {
       else setError(data.message || "Güncellenemedi");
     } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
   }
-
+async function setSecurityMode(buildingId: string, mode: string, radius: number) {
+    if (!token) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const res = await fetch(`${API}/buildings/set-security-mode`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ buildingId, mode, radius }),
+      });
+      const data = await res.json();
+      if (data.success) { setInfo("Güvenlik modu güncellendi."); await loadOverview(token); }
+      else setError(data.message || "Güncellenemedi");
+    } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
+  }
   async function loadDoors(buildingId: string) {
     if (!token) return;
     try {
@@ -529,22 +543,41 @@ export default function YoneticiPanel() {
                                 {b.imageUrl ? "Resmi Değiştir" : "Bina Resmi Yükle"}
                               </button>
                             </div>
-                            <div className="adm-loccheck" style={{ gridColumn: "1 / -1", padding: "12px", background: "#f7f7f9", borderRadius: "10px", marginBottom: "10px" }}>
-                              <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontWeight: 600 }}>
-                                <input type="checkbox" checked={b.locationCheckEnabled}
-                                  onChange={(e) => setLocationCheck(b.id, e.target.checked, b.locationCheckRadius)}
-                                  disabled={loading} />
-                                Konum doğrulama {b.locationCheckEnabled ? "açık" : "kapalı"}
-                              </label>
-                              <div style={{ fontSize: "13px", color: "#666", margin: "6px 0 10px" }}>
-                                Açıkken ziyaretçi yalnızca binanın yakınındayken arayabilir (taciz önleme). Kapalıyken QR yeterli.
+                      <div className="adm-loccheck" style={{ gridColumn: "1 / -1", padding: "12px", background: "#f7f7f9", borderRadius: "10px", marginBottom: "10px" }}>
+                              <div style={{ fontWeight: 600, marginBottom: 8 }}>🔒 Güvenlik Modu</div>
+                              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: 8 }}>
+                                {[
+                                  { key: "qr", label: "Sadece QR", desc: "Listede gizli, QR ile aranır" },
+                                  { key: "location", label: "Sadece Konum", desc: "Yakındakiler listesinde görünür" },
+                                  { key: "both", label: "QR + Konum", desc: "Listede görünür, aramak için QR gerekir" },
+                                ].map((m) => {
+                                  const active = (b.securityMode || "qr") === m.key;
+                                  return (
+                                    <button key={m.key}
+                                      onClick={() => setSecurityMode(b.id, m.key, b.locationCheckRadius)}
+                                      disabled={loading}
+                                      style={{
+                                        flex: "1 1 30%", minWidth: 100, padding: "10px", borderRadius: "8px", cursor: "pointer",
+                                        border: active ? "2px solid #e63946" : "1px solid #ccc",
+                                        background: active ? "#fdeef0" : "#fff",
+                                        fontWeight: active ? 700 : 500, color: active ? "#c0283a" : "#333",
+                                      }}>
+                                      {m.label}
+                                    </button>
+                                  );
+                                })}
                               </div>
-                              {b.locationCheckEnabled && (
+                              <div style={{ fontSize: "13px", color: "#666", marginBottom: 10 }}>
+                                {(b.securityMode || "qr") === "qr" && "Bina yakındakiler listesinde görünmez. Ziyaretçi sadece QR okutarak arar."}
+                                {(b.securityMode || "qr") === "location" && "Bina yakındakiler listesinde görünür. Ziyaretçi yakındaysa QR'sız arayabilir."}
+                                {(b.securityMode || "qr") === "both" && "Bina listede görünür ama aramak için QR okutmak gerekir (en güvenli)."}
+                              </div>
+                              {((b.securityMode || "qr") === "location" || (b.securityMode || "qr") === "both") && (
                                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                  <span style={{ fontSize: "13px" }}>Mesafe:</span>
+                                  <span style={{ fontSize: "13px" }}>Görünme mesafesi:</span>
                                   <input type="number" min={20} max={2000} step={10} defaultValue={b.locationCheckRadius}
                                     style={{ width: "90px", padding: "6px", borderRadius: "6px", border: "1px solid #ccc" }}
-                                    onBlur={(e) => { const v = Number(e.target.value); if (v >= 20 && v <= 2000 && v !== b.locationCheckRadius) setLocationCheck(b.id, true, v); }}
+                                    onBlur={(e) => { const v = Number(e.target.value); if (v >= 20 && v <= 2000 && v !== b.locationCheckRadius) setSecurityMode(b.id, b.securityMode || "qr", v); }}
                                     disabled={loading} />
                                   <span style={{ fontSize: "13px", color: "#666" }}>metre</span>
                                 </div>
