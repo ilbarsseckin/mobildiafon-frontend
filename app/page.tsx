@@ -18,10 +18,10 @@ const T = {
     nav: { add: "Binanı Ekle", how: "Nasıl Çalışır", features: "Özellikler", pricing: "Fiyatlandırma", digitalize: "Binanı Dijitalleştir" },
     callLabel: "Gelen Çağrı",
     slides: [
-      { eye: "QR + Konum tabanlı diafon", ta: "Diafonu binadan çıkarıp ", em: "telefonunuza taşıyoruz", tb: "", sub: "Apartman, site ve işletmeler için panelsiz, görüntülü kapı iletişimi. Ziyaretçi QR’ı okutur, siz neredeyseniz oradan açarsınız.", c1: "Binanı Dijitalleştir", c2: "▷ Nasıl çalışır?", b1: "QR ile bina bulma", b2: "Görüntülü arama", tlH: "Konum alanı", tlTag: "120 m", tlP: "Bina çevresinde liste açılır", brH: "Yıldız Sitesi · A Blok", brP: "48 daire · 92 sakin", pT: "Apartman Girişi", pM: "Daire 12 · Ziyaretçi", pD: "🔓 Tuya ile kapıyı aç" },
-      { eye: "Villa & müstakil", ta: "Villanızın kapısı artık ", em: "cebinizde", tb: "", sub: "Tek birim, dakikalar içinde kurulum. Bahçe kapısındaki QR’ı okutan ziyaretçiyi görüntülü karşılayın, kapıyı uzaktan açın.", c1: "Hemen Başla", c2: "Örneği gör", b1: "Panelsiz, kablosuz", b2: "Uzaktan kapı açma", trH: "Villa QR", trTag: "✓ Doğrulandı", pT: "Bahçe Kapısı", pM: "Ziyaretçi geldi", pD: "🔓 Kapıyı aç" },
-      { eye: "Otel · AVM · Kampüs", ta: "Oda QR’ından ", em: "doğru birime tek dokunuş", tb: "", sub: "Resepsiyon, havuz, restoran… her birim kendi QR’ıyla. Misafir aradığı yere saniyeler içinde ulaşır, talebini iletir.", c1: "Çözümü İncele", c2: "Demo iste", b1: "Kategorili birimler", b2: "Sipariş / talep notu", tlH: "Oda 312", tlTag: "QR ✓", tlP: "Misafir araması", units: "Birimler", u1: "Resepsiyon", u2: "Havuz", u3: "Restoran", pT: "Resepsiyon", pM: "Oda 312 arıyor", pD: "📝 “Oda 312’ye çay” notu" },
-      { eye: "Akıllı kapı", ta: "Görüntülü gör, ", em: "uzaktan kapıyı aç", tb: "", sub: "Tuya ve Zigbee entegrasyonu ile kapı, bariyer ve turnikeyi tek dokunuşla açın. Anahtara, panele, kabloya son.", c1: "Binanı Dijitalleştir", c2: "Entegrasyonlar", b1: "Tuya / Zigbee", b2: "Kapı · bariyer · turnike", trH: "Akıllı Cihazlar", d1: "Bina kapısı", d2: "Otopark bariyeri", pStatus: "Bağlandı · 00:12", pT: "Apartman Girişi", pM: "Görüntülü görüşme", pD: "🔓 Kapıyı Aç" },
+      { eye: "QR + Konum Tabanlı Diafon", ta: "Diafon artık binada değil, ", em: "cebinizde", tb: "", sub: "Ziyaretçi QR kodu okutur, bina doğrulanır ve doğru daireye görüntülü arama başlar. Panelsiz, hızlı ve modern bir giriş deneyimi sunar.", c1: "Binanı Dijitalleştir", c2: "Nasıl Çalışır?", b1: "QR ile bina bulma", b2: "Görüntülü arama", tlH: "Konum doğrulandı", tlTag: "120 m", tlP: "Bina çevresinde kayıtlı liste açılır", brH: "Yıldız Sitesi · A Blok", brP: "48 daire · 92 sakin", pT: "Apartman Girişi", pM: "Daire 12 aranıyor", pD: "Görüntülü çağrı başlatıldı" },
+      { eye: "Apartman & Site Yönetimi", ta: "Apartman ve siteler için ", em: "panelsiz dijital diafon", tb: "", sub: "Yönetici daireleri yönetir, sakinleri onaylar, güvenlik ve çağrı süreçlerini tek panelden takip eder. Kurulum hızlı, kullanım sade, yönetim kontrollüdür.", c1: "Çözümü İncele", c2: "Özellikleri Gör", b1: "Yönetici paneli", b2: "Daire yönetimi", trH: "Yönetici Paneli", trTag: "Aktif", d1: "Daire listesi", d2: "Sakin onayı", pT: "Daire Listesi", pM: "Ziyaretçi doğru daireyi seçer", pD: "Çağrı kaydı oluşturuldu" },
+      { eye: "Otel · AVM · Kampüs", ta: "Misafir doğru birime ", em: "tek dokunuşla ulaşsın", tb: "", sub: "Resepsiyon, restoran, havuz, güvenlik veya teknik servis için ayrı QR akışları oluşturun. Misafir talebini saniyeler içinde iletsin.", c1: "Kurumsal Çözümü İncele", c2: "Demo Talep Et", b1: "Kategorili birimler", b2: "Talep / sipariş notu", tlH: "Oda 312", tlTag: "QR ✓", tlP: "Misafir araması", units: "Birimler", u1: "Resepsiyon", u2: "Havuz", u3: "Restoran", pT: "Resepsiyon", pM: "Oda 312 arıyor", pD: "Oda 312’ye çay notu iletildi" },
+      { eye: "Tuya Uyumlu Kapı Açma", ta: "Görüntülü görüş, ", em: "kapıyı uzaktan aç", tb: "", sub: "Tuya uyumlu röle ile kapı açma desteği sayesinde bina kapısı, bariyer ve turnike yetki kontrollü olarak tek dokunuşla yönetilebilir.", c1: "Entegrasyonları İncele", c2: "Nasıl Çalışır?", b1: "Tuya uyumlu röle", b2: "Kapı · bariyer · turnike", trH: "Akıllı Kapı Modülü", chip: "Tuya Uyumlu", d1: "Bina kapısı", d2: "Otopark bariyeri", relay: "Tuya uyumlu röle", flow1: "MobilDiafon", flow2: "Yetki kontrolü", flow3: "Röle tetikleme", pStatus: "Bağlandı · Yetki doğrulandı", pT: "Apartman Girişi", pM: "Görüntülü görüşme aktif", pD: "Kapıyı Aç" },
     ],
     bina: {
       eye: "Binanı Ekle", title: "Haritada bul, dakikada katıl",
@@ -69,16 +69,16 @@ const T = {
     steps: [
       { no: "01", title: "QR veya konumla binayı bulun", text: "Ziyaretçi bina girişindeki QR kodu okutur ya da uygulamada konumuna yakın kayıtlı binayı seçer." },
       { no: "02", title: "Daire listesinden kişiyi arayın", text: "Yetkili daire ve sakin listesi açılır. Ziyaretçi doğru daireye tek dokunuşla görüntülü çağrı başlatır." },
-      { no: "03", title: "Telefon çalar, kapı yönetilir", text: "Ev sahibi çağrıyı telefondan yanıtlar. Uygun yapılarda Tuya entegrasyonu ile kapı açma desteklenir." },
+      { no: "03", title: "Telefon çalar, kapı yönetilir", text: "Ev sahibi çağrıyı telefondan yanıtlar. Uygun yapılarda Tuya uyumlu röle ile kapı açma desteği devreye alınır." },
     ],
     feat: { eye: "Kurumsal Altyapı", title: "Apartman yönetimi, güvenlik ve sakinler aynı sistemde.", lead: "Marka algısını sade tutan, güven veren ve mobilde hızlı çalışan bir ürün deneyimi." },
     features: [
-      { title: "Panelsiz dijital diafon", text: "Ayrı kapı paneli şartı olmadan QR ve mobil arama akışıyla bina iletişimini dijitale taşır." },
-      { title: "Konum kontrollü erişim", text: "Bina yöneticisi isterse konum yarıçapı tanımlar; liste yalnızca bina çevresinde görünür." },
+      { title: "Panelsiz dijital diafon", text: "Ayrı kapı paneli şartı olmadan QR, konum ve mobil arama akışıyla bina iletişimini dijitale taşır." },
+      { title: "Konum kontrollü erişim", text: "Bina yöneticisi isterse konum yarıçapı tanımlar; daire listesi yalnızca bina çevresinde görünür." },
       { title: "Yönetici ve güvenlik paneli", text: "Sakin onayı, daire yönetimi, güvenlik görevlisi ekleme, çağrı kayıtları ve not bırakma ekranları hazırdır." },
-      { title: "Apartman, site ve işletme uyumlu", text: "Tek bloktan çoklu site yapısına kadar ölçeklenebilir. Villa, ofis ve işletme girişleri için de uygundur." },
-      { title: "QR ile hızlı kurulum", text: "Her bina için QR kod üretilebilir; apartman girişine asılan afiş üzerinden hızlı erişim sağlanır." },
-      { title: "Kurumsal abonelik altyapısı", text: "Başlangıç, profesyonel ve kurumsal planlarla satış, deneme ve yönetim süreci sadeleşir." },
+      { title: "Apartman, site ve işletme uyumlu", text: "Tek bloktan çoklu site yapısına, villa, otel, AVM ve kampüs girişlerine kadar ölçeklenebilir." },
+      { title: "Tuya uyumlu kapı açma", text: "Uygun yapılarda Tuya uyumlu röle ile bina kapısı, bariyer ve turnike tek dokunuşla yönetilebilir." },
+      { title: "Yetki ve işlem kayıtları", text: "Kapı açma, çağrı ve yönetim işlemleri yetki kontrolüyle ilerler; kurumsal takip için kayıt altına alınır." },
     ],
     price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Başlangıç için hızlı deneme, büyüyen siteler için profesyonel yönetim, büyük yapılar için kurumsal teklif.", choose: "Planı Seç" },
     plans: [
@@ -87,7 +87,7 @@ const T = {
       { name: "Kurumsal", price: "Teklif", detail: "Çoklu site ve işletmeler", href: "/satin-al?plan=kurumsal", featured: false },
     ],
     recommended: "Önerilen",
-    finalCta: { eye: "MobilDiafon", h2: "Binanızın dijital giriş deneyimini bugün başlatın.", p: "QR afiş, konum doğrulama, yönetici onayı ve güvenlik paneliyle kurumsal bir kapı iletişim sistemi kurun.", btn: "Başvuru Oluştur" },
+    finalCta: { eye: "MobilDiafon", h2: "Binanızın dijital giriş deneyimini bugün başlatın.", p: "QR afiş, konum doğrulama, yönetici onayı, güvenlik paneli ve Tuya uyumlu kapı açma desteğiyle kurumsal bir giriş sistemi kurun.", btn: "Başvuru Oluştur" },
     footer: { about: "QR ve konum tabanlı dijital diafon platformu. Apartman, site ve işletmeler için modern iletişim çözümü.", product: "Ürün", panels: "Paneller", superadmin: "Süper Admin", copy: "© 2026 MobilDiafon", slogan: "Diafon artık cebinizde." },
     aria: { theme: "Açık/koyu tema", menu: "Menüyü aç/kapat", prev: "Önceki", next: "Sonraki", slide: (n: number) => `${n}. slayt` },
   },
@@ -100,10 +100,10 @@ const T = {
     nav: { add: "Add Building", how: "How It Works", features: "Features", pricing: "Pricing", digitalize: "Digitalize Your Building" },
     callLabel: "Incoming Call",
     slides: [
-      { eye: "QR + location-based intercom", ta: "We move the intercom off the wall ", em: "and into your phone", tb: "", sub: "Panel-free video door communication for apartments, complexes and businesses. Visitors scan the QR; you answer from wherever you are.", c1: "Digitalize Your Building", c2: "▷ How it works", b1: "Find building by QR", b2: "Video calling", tlH: "Location zone", tlTag: "120 m", tlP: "List opens around the building", brH: "Star Complex · Block A", brP: "48 flats · 92 residents", pT: "Building Entrance", pM: "Flat 12 · Visitor", pD: "🔓 Open door via Tuya" },
-      { eye: "Villas & detached homes", ta: "Your villa’s gate is now ", em: "in your pocket", tb: "", sub: "Single unit, set up in minutes. Greet the visitor scanning the gate QR over video and open the gate remotely.", c1: "Get Started", c2: "See example", b1: "Panel-free, wireless", b2: "Remote door opening", trH: "Villa QR", trTag: "✓ Verified", pT: "Garden Gate", pM: "Visitor arrived", pD: "🔓 Open gate" },
-      { eye: "Hotel · Mall · Campus", ta: "From the room QR ", em: "to the right unit in one tap", tb: "", sub: "Reception, pool, restaurant… each unit with its own QR. Guests reach the right place in seconds and send their request.", c1: "Explore Solution", c2: "Request demo", b1: "Categorized units", b2: "Order / request note", tlH: "Room 312", tlTag: "QR ✓", tlP: "Guest call", units: "Units", u1: "Reception", u2: "Pool", u3: "Restaurant", pT: "Reception", pM: "Room 312 calling", pD: "📝 “Tea to room 312” note" },
-      { eye: "Smart door", ta: "See on video, ", em: "open the door remotely", tb: "", sub: "Open doors, barriers and turnstiles in one tap with Tuya and Zigbee integration. No keys, no panels, no wiring.", c1: "Digitalize Your Building", c2: "Integrations", b1: "Tuya / Zigbee", b2: "Door · barrier · turnstile", trH: "Smart Devices", d1: "Building door", d2: "Parking barrier", pStatus: "Connected · 00:12", pT: "Building Entrance", pM: "Video call", pD: "🔓 Open Door" },
+      { eye: "QR + Location-Based Intercom", ta: "Your intercom is no longer on the wall, ", em: "it’s in your phone", tb: "", sub: "Visitors scan the QR code, the building is verified, and a video call starts with the correct resident. A panel-free, modern entry experience.", c1: "Digitalize Your Building", c2: "How It Works", b1: "Find building by QR", b2: "Video calling", tlH: "Location verified", tlTag: "120 m", tlP: "Registered building list opens around the location", brH: "Star Complex · Block A", brP: "48 flats · 92 residents", pT: "Building Entrance", pM: "Calling Flat 12", pD: "Video call started" },
+      { eye: "Apartment & Complex Management", ta: "A panel-free digital intercom for ", em: "apartments and complexes", tb: "", sub: "Managers control flats, approve residents, and monitor security and call flows from one panel. Fast setup, simple use, controlled management.", c1: "Explore Solution", c2: "See Features", b1: "Manager panel", b2: "Flat management", trH: "Manager Panel", trTag: "Active", d1: "Flat directory", d2: "Resident approval", pT: "Flat Directory", pM: "Visitor selects the correct flat", pD: "Call log created" },
+      { eye: "Hotel · Mall · Campus", ta: "Let guests reach the right unit ", em: "in one tap", tb: "", sub: "Create separate QR flows for reception, restaurant, pool, security, or technical service. Guests send requests in seconds.", c1: "Explore Enterprise Solution", c2: "Request Demo", b1: "Categorized units", b2: "Order / request note", tlH: "Room 312", tlTag: "QR ✓", tlP: "Guest call", units: "Units", u1: "Reception", u2: "Pool", u3: "Restaurant", pT: "Reception", pM: "Room 312 calling", pD: "Tea to room 312 note sent" },
+      { eye: "Tuya-Compatible Door Opening", ta: "See on video, ", em: "open the door remotely", tb: "", sub: "With Tuya-compatible relay support, building doors, parking barriers, and turnstiles can be controlled in one tap with access verification.", c1: "Explore Integrations", c2: "How It Works", b1: "Tuya-compatible relay", b2: "Door · barrier · turnstile", trH: "Smart Door Module", chip: "Tuya compatible", d1: "Building door", d2: "Parking barrier", relay: "Tuya-compatible relay", flow1: "MobilDiafon", flow2: "Access check", flow3: "Relay trigger", pStatus: "Connected · Access verified", pT: "Building Entrance", pM: "Video call active", pD: "Open Door" },
     ],
     bina: {
       eye: "Add Building", title: "Find it on the map, join in a minute",
@@ -151,16 +151,16 @@ const T = {
     steps: [
       { no: "01", title: "Find the building by QR or location", text: "The visitor scans the QR at the entrance, or picks a nearby registered building in the app." },
       { no: "02", title: "Call the right person from the list", text: "The authorized flat and resident list opens. The visitor starts a video call to the right flat in one tap." },
-      { no: "03", title: "Phone rings, door is managed", text: "The resident answers from their phone. Where supported, door opening works via Tuya integration." },
+      { no: "03", title: "Phone rings, door is managed", text: "The resident answers from their phone. Where supported, door opening can work through a Tuya-compatible relay." },
     ],
     feat: { eye: "Enterprise Infrastructure", title: "Building management, security and residents in one system.", lead: "A product experience that keeps the brand clean, builds trust and runs fast on mobile." },
     features: [
-      { title: "Panel-free digital intercom", text: "Brings building communication into the digital world via QR and mobile calling — no separate door panel required." },
-      { title: "Location-controlled access", text: "The manager can define a location radius; the list appears only around the building." },
-      { title: "Manager and security panels", text: "Resident approval, flat management, adding security staff, call logs and note-leaving screens are ready." },
-      { title: "Apartment, complex and business ready", text: "Scales from a single block to multi-building complexes. Suitable for villas, offices and businesses too." },
-      { title: "Quick setup with QR", text: "A QR code can be generated per building; a poster at the entrance provides quick access." },
-      { title: "Built-in subscription system", text: "Sales, trial and management are streamlined with starter, professional and enterprise plans." },
+      { title: "Panel-free digital intercom", text: "Moves building communication into the digital world with QR, location and mobile calling — no separate door panel required." },
+      { title: "Location-controlled access", text: "Managers can define a location radius; the flat directory appears only around the building." },
+      { title: "Manager and security panels", text: "Resident approval, flat management, security staff, call logs and request notes are ready in one platform." },
+      { title: "Apartment, complex and business ready", text: "Scales from a single block to complexes, villas, hotels, malls and campus entrances." },
+      { title: "Tuya-compatible door opening", text: "Where supported, Tuya-compatible relays can control building doors, barriers and turnstiles in one tap." },
+      { title: "Access and activity logs", text: "Door opening, calls and management actions run through access control and can be tracked for enterprise use." },
     ],
     price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "A quick trial to start, professional management for growing complexes, an enterprise quote for large structures.", choose: "Choose Plan" },
     plans: [
@@ -169,7 +169,7 @@ const T = {
       { name: "Enterprise", price: "Quote", detail: "Multi-complex and businesses", href: "/satin-al?plan=kurumsal", featured: false },
     ],
     recommended: "Recommended",
-    finalCta: { eye: "MobilDiafon", h2: "Start your building’s digital entry experience today.", p: "Set up an enterprise door-communication system with QR posters, location verification, manager approval and a security panel.", btn: "Get Started" },
+    finalCta: { eye: "MobilDiafon", h2: "Start your building’s digital entry experience today.", p: "Set up an enterprise entry system with QR posters, location verification, manager approval, a security panel and Tuya-compatible door opening support.", btn: "Get Started" },
     footer: { about: "QR and location-based digital intercom platform. A modern communication solution for apartments, complexes and businesses.", product: "Product", panels: "Panels", superadmin: "Super Admin", copy: "© 2026 MobilDiafon", slogan: "Your intercom, now in your pocket." },
     aria: { theme: "Light/dark theme", menu: "Toggle menu", prev: "Previous", next: "Next", slide: (n: number) => `Slide ${n}` },
   },
@@ -194,6 +194,16 @@ function IconGrid() { return (<svg width="16" height="16" viewBox="0 0 24 24" fi
 function IconLines() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>); }
 function IconLock() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.8" /><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" /></svg>); }
 function IconArrows() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h12M4 10l4-4M4 10l4 4M20 14H8m12 0-4 4m4-4-4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>); }
+
+function IconDoorLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 21h10V3H7v18Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M10 12h.01" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"/></svg>); }
+function IconBarrierLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20h16M7 20V9m10 11v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M6 9h14l-2 4H4l2-4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>); }
+function IconRelayLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="6" width="14" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10h8M8 14h5M9 3v3m6-3v3M9 18v3m6-3v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>); }
+function IconReceptionLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18h16M7 18v-3a5 5 0 0 1 10 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M9 9a3 3 0 1 1 6 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>); }
+function IconPoolLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 17c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1M4 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1M8 13V5a3 3 0 0 1 6 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>); }
+function IconRestaurantLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3v8m3-8v8M5 3v5a4 4 0 0 0 8 0V3M9 11v10m8-18v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>); }
+function IconApartmentLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 21V4h14v17M9 8h2m2 0h2M9 12h2m2 0h2M9 16h2m2 0h2M3 21h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>); }
+function IconUserCheckLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 19a6 6 0 0 0-12 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="9" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/><path d="m16 12 2 2 4-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>); }
+function IconUnlockLine() { return (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.9"/><path d="M8 10V7a4 4 0 0 1 7.7-1.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"/><path d="M12 14v2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"/></svg>); }
 function IconSun() { return (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" /></svg>); }
 function IconMoon() { return (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>); }
 function PhoneNo() { return (<i className="no"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M21 15.46l-5.27-.61-2.52 2.52a15.05 15.05 0 0 1-6.59-6.59l2.53-2.53L8.54 3H3.03C2.45 13.18 10.82 21.55 21 20.97v-5.51z" /></svg></i>); }
@@ -300,7 +310,7 @@ function HeroCarousel() {
   const cls = (n: number) => `hc-slide ${index === n ? "is-active" : ""}`;
 
   return (
-    <section className={`hero ${paused ? "paused" : ""}`} aria-label="Hero"
+    <section className={`hero hero-pro ${paused ? "paused" : ""}`} aria-label="Hero"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
       onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
       <button className="hc-arrow hc-prev" onClick={prev} aria-label={t.aria.prev}>
@@ -358,10 +368,14 @@ function HeroCarousel() {
                 </div>
               </div>
               <div className="stage anim" aria-hidden="true">
-                <div className="fcard f-tr"><h5>{s[1].trH} <span className="tag">{s[1].trTag}</span></h5><div className="qrbox" /></div>
+                <div className="fcard f-tr manager-card"><h5>{s[1].trH} <span className="tag">{s[1].trTag}</span></h5>
+                  <div className="mini"><span className="ic svg"><IconApartmentLine /></span><b>{s[1].d1}</b></div>
+                  <div className="mini"><span className="ic svg"><IconUserCheckLine /></span><b>{s[1].d2}</b></div>
+                  <div className="qrbox professional"><IconQr /></div>
+                </div>
                 <div className="phone"><div className="phone-notch" /><div className="screen">
                   <span className="label">{t.callLabel}</span>
-                  <div className="ring">🏡</div>
+                  <div className="ring">A1</div>
                   <h4>{s[1].pT}</h4><span className="meta">{s[1].pM}</span>
                   <CallActions />
                   <span className="door">{s[1].pD}</span>
@@ -389,13 +403,13 @@ function HeroCarousel() {
                 <div className="fcard f-tl"><h5>{s[2].tlH} <span className="tag">{s[2].tlTag}</span></h5><p>{s[2].tlP}</p></div>
                 <div className="fcard f-br" style={{ width: 218 }}>
                   <h5 style={{ marginBottom: 6 }}>{s[2].units}</h5>
-                  <div className="mini"><span className="ic">🛎️</span><b>{s[2].u1}</b></div>
-                  <div className="mini"><span className="ic">🏊</span><b>{s[2].u2}</b></div>
-                  <div className="mini"><span className="ic">🍽️</span><b>{s[2].u3}</b></div>
+                  <div className="mini"><span className="ic svg"><IconReceptionLine /></span><b>{s[2].u1}</b></div>
+                  <div className="mini"><span className="ic svg"><IconPoolLine /></span><b>{s[2].u2}</b></div>
+                  <div className="mini"><span className="ic svg"><IconRestaurantLine /></span><b>{s[2].u3}</b></div>
                 </div>
                 <div className="phone"><div className="phone-notch" /><div className="screen">
                   <span className="label">{t.callLabel}</span>
-                  <div className="ring">🛎️</div>
+                  <div className="ring">312</div>
                   <h4>{s[2].pT}</h4><span className="meta">{s[2].pM}</span>
                   <CallActions />
                   <span className="door">{s[2].pD}</span>
@@ -420,13 +434,17 @@ function HeroCarousel() {
                 </div>
               </div>
               <div className="stage anim" aria-hidden="true">
-                <div className="fcard f-tr"><h5>{s[3].trH}</h5>
-                  <div className="mini"><span className="ic">🚪</span><b>{s[3].d1}</b></div>
-                  <div className="mini"><span className="ic">🚧</span><b>{s[3].d2}</b></div>
+                <div className="fcard f-tr smart-card">
+                  <div className="tuya-chip">{s[3].chip}</div>
+                  <h5>{s[3].trH}</h5>
+                  <div className="mini"><span className="ic svg"><IconDoorLine /></span><b>{s[3].d1}</b></div>
+                  <div className="mini"><span className="ic svg"><IconBarrierLine /></span><b>{s[3].d2}</b></div>
+                  <div className="relay-card"><span className="ic svg"><IconRelayLine /></span><b>{s[3].relay}</b></div>
+                  <div className="flow-line"><span>{s[3].flow1}</span><i /> <span>{s[3].flow2}</span><i /> <span>{s[3].flow3}</span></div>
                 </div>
                 <div className="phone"><div className="phone-notch" /><div className="screen">
                   <span className="label">{s[3].pStatus}</span>
-                  <div className="ring green">🔓</div>
+                  <div className="ring green"><IconUnlockLine /></div>
                   <h4>{s[3].pT}</h4><span className="meta">{s[3].pM}</span>
                   <span className="door open">{s[3].pD}</span>
                 </div></div>
