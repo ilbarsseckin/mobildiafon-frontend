@@ -93,22 +93,7 @@ const T = {
     price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Villa ve işyerinden büyük sitelere, her yapıya uygun esnek fiyatlandırma.", choose: "Planı Seç" },
     recommended: "Önerilen",
     finalCta: { eye: "MobilDiafon", h2: "Binanızın dijital giriş deneyimini bugün başlatın.", p: "QR afiş, konum doğrulama, yönetici onayı, güvenlik paneli ve Tuya uyumlu kapı açma desteğiyle kurumsal bir giriş sistemi kurun.", btn: "Başvuru Oluştur" },
- footer: {
-  about: "QR ve konum tabanlı dijital diafon platformu. Apartman, site ve işletmeler için modern iletişim çözümü.",
-  product: "Ürün",
-  panels: "Paneller",
-  superadmin: "Süper Admin",
-  legal: "Yasal",
-  privacy: "Gizlilik Politikası",
-  terms: "Kullanım Şartları",
-  distanceSales: "Mesafeli Satış Sözleşmesi",
-  contact: "İletişim",
-  contactTitle: "İletişim",
-  addrTR: "İstanbul, Türkiye",
-  addrBE: "Brussels, Belgium",
-  copy: "© 2026 MobilDiafon",
-  slogan: "Diafon artık cebinizde.",
-},
+    footer: { about: "QR ve konum tabanlı dijital diafon platformu. Apartman, site ve işletmeler için modern iletişim çözümü.", product: "Ürün", panels: "Paneller", superadmin: "Süper Admin", copy: "© 2026 MobilDiafon", slogan: "Diafon artık cebinizde." },
     aria: { theme: "Açık/koyu tema", menu: "Menüyü aç/kapat", prev: "Önceki", next: "Sonraki", slide: (n: number) => `${n}. slayt` },
   },
 
@@ -184,22 +169,7 @@ const T = {
     price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "From single units to large complexes, flexible pricing for every structure.", choose: "Choose Plan" },
     recommended: "Recommended",
     finalCta: { eye: "MobilDiafon", h2: "Start your building's digital entry experience today.", p: "Set up an enterprise entry system with QR posters, location verification, manager approval, a security panel and Tuya-compatible door opening support.", btn: "Get Started" },
- footer: {
-  about: "QR and location-based digital intercom platform. A modern communication solution for apartments, complexes and businesses.",
-  product: "Product",
-  panels: "Panels",
-  superadmin: "Super Admin",
-  legal: "Legal",
-  privacy: "Privacy Policy",
-  terms: "Terms of Use",
-  distanceSales: "Distance Sales Agreement",
-  contact: "Contact",
-  contactTitle: "Contact",
-  addrTR: "Istanbul, Turkey",
-  addrBE: "Brussels, Belgium",
-  copy: "© 2026 MobilDiafon",
-  slogan: "Your intercom, now in your pocket.",
-},
+    footer: { about: "QR and location-based digital intercom platform. A modern communication solution for apartments, complexes and businesses.", product: "Product", panels: "Panels", superadmin: "Super Admin", copy: "© 2026 MobilDiafon", slogan: "Your intercom, now in your pocket." },
     aria: { theme: "Light/dark theme", menu: "Toggle menu", prev: "Previous", next: "Next", slide: (n: number) => `Slide ${n}` },
   },
 };
@@ -489,9 +459,9 @@ function HeroCarousel() {
 /* ============================================================
    BİNANI BUL — yardımcılar
    ============================================================ */
-type Bldg = { il: string; ilce: string; ad: string; daire: number; lat: number; lng: number; id?: string };
+type Bldg = { il: string; ilce: string; ad: string; daire: number; lat: number; lng: number };
 
-const DEMO_MODE = false;
+const DEMO_MODE = true;
 
 const REGISTERED: Bldg[] = [
   { il: "İstanbul", ilce: "Kadıköy", ad: "yıldız apartmanı", daire: 48, lat: 40.9901, lng: 29.0289 },
@@ -568,14 +538,9 @@ async function searchNear(center: LatLng): Promise<Bldg[]> {
     return [...REGISTERED].map((b) => ({ b, d: haversine(center, b) })).filter((x) => x.d <= FOUND_RADIUS).sort((x, y) => x.d - y.d).map((x) => x.b);
   }
   try {
-    const res = await fetch(`https://mobildiafon.com/api/buildings/nearby-list?lat=${center.lat}&lng=${center.lng}`);
+    const res = await fetch(`/api/buildings/near?lat=${center.lat}&lng=${center.lng}&r=${FOUND_RADIUS}`);
     if (!res.ok) return [];
-    const arr = await res.json();
-    return (Array.isArray(arr) ? arr : []).map((b: any) => ({
-      il: b.il || "", ilce: b.ilce || "", ad: b.buildingName ?? "Bina",
-      daire: b.unitCount ?? b.daire ?? 0, lat: b.latitude ?? center.lat,
-      lng: b.longitude ?? center.lng, id: b.id,
-    }));
+    return (await res.json()) as Bldg[];
   } catch { return []; }
 }
 
@@ -674,29 +639,6 @@ function BinaBul() {
   function backToMap() { setScanned(false); setFound(null); setFoundList([]); setResidentOpen(false); setManagerOpen(false); setJoinDone(false); }
   function backFromSub() { setResidentOpen(false); setManagerOpen(false); setJoinDone(false); }
   function openResident() { setResidentOpen(true); setManagerOpen(false); setResDaire("1"); setJoinDone(false); }
-  const [joinError, setJoinError] = useState("");
-  const [joining, setJoining] = useState(false);
-  async function sendWebJoin() {
-    setJoinError("");
-    const phone = resTel.replace(/\s/g, "");
-    if (!/^0?5\d{9}$/.test(phone)) { setJoinError("Geçerli bir telefon numarası girin."); return; }
-    if (!found?.id) { setJoinError("Bina seçimi geçersiz."); return; }
-    setJoining(true);
-    try {
-      const res = await fetch("https://mobildiafon.com/api/buildings/web-join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ buildingId: found.id, flatNo: resDaire, phone }),
-      });
-      const data = await res.json();
-      if (data.success) { setJoinDone(true); }
-      else { setJoinError(data.message || "İstek gönderilemedi."); }
-    } catch {
-      setJoinError("Bağlantı hatası. Tekrar deneyin.");
-    } finally {
-      setJoining(false);
-    }
-  }
   function openManager(tp: "apartman" | "villa" | "isletme") { setTip(tp); setManagerOpen(true); setResidentOpen(false); }
 
   const unitCount = tip === "villa" ? 1 : tip === "isletme" ? Math.max(1, islCount || 0) : yapi === "duz" ? Math.max(1, duzCount || 0) : Math.max(1, blokCount || 0) * Math.max(1, blokPer || 0);
@@ -816,17 +758,12 @@ function BinaBul() {
               {!joinDone ? (
                 <>
                   <div className="bb-field"><label>{tb.yourFlat}</label>
-                    {(found?.daire || 0) > 0 ? (
-                      <select value={resDaire} onChange={(e) => setResDaire(e.target.value)}>
-                        {Array.from({ length: found?.daire || 1 }, (_, i) => i + 1).map((d) => (<option key={d} value={String(d)}>{tb.flat(d)}</option>))}
-                      </select>
-                    ) : (
-                      <input value={resDaire} onChange={(e) => setResDaire(e.target.value)} placeholder={tb.flat(1)} autoComplete="off" />
-                    )}
+                    <select value={resDaire} onChange={(e) => setResDaire(e.target.value)}>
+                      {Array.from({ length: found?.daire || 1 }, (_, i) => i + 1).map((d) => (<option key={d} value={String(d)}>{tb.flat(d)}</option>))}
+                    </select>
                   </div>
                   <div className="bb-field"><label>{tb.phone}</label><input value={resTel} onChange={(e) => setResTel(e.target.value)} placeholder={tb.phonePh} autoComplete="off" /></div>
-                  {joinError && <div className="bb2-note">{joinError}</div>}
-                  <button className="btn btn-primary btn-block" onClick={sendWebJoin} disabled={joining}>{joining ? "Gönderiliyor..." : tb.sendJoin}</button>
+                  <button className="btn btn-primary btn-block" onClick={() => setJoinDone(true)}>{tb.sendJoin}</button>
                 </>
               ) : (
                 <div className="bb-success"><b>{tb.joinDoneBold}</b>{tb.joinDone(bbTitle(found?.ad || ""))}</div>
@@ -1022,85 +959,30 @@ export default function HomePage() {
           <Link href="/satin-al" className="md-btn md-btn-primary">{t.finalCta.btn}</Link>
         </section>
 
-  {/* ====== FOOTER ====== */}
-<footer className="md-footer">
-  <div className="md-wrap md-foot-grid">
-    {/* Marka + açıklama + sosyal */}
-    <div className="md-foot-brand">
-      <div className="md-foot-logo">Mobil<span className="d">Diafon</span></div>
-      <p className="md-foot-about">{t.footer.about}</p>
-      <div className="md-foot-social">
-        <a href="#" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <rect x="2" y="2" width="20" height="20" rx="5.5" />
-            <circle cx="12" cy="12" r="4" />
-            <circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none" />
-          </svg>
-        </a>
-        <a href="#" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14zM8.34 18V10H5.67v8h2.67zM7 8.8a1.55 1.55 0 1 0 0-3.1 1.55 1.55 0 0 0 0 3.1zM18.34 18v-4.4c0-2.36-1.26-3.46-2.94-3.46-1.36 0-1.96.75-2.3 1.28V10h-2.67v8h2.67v-4.42c0-.23.02-.47.09-.64.18-.47.61-.96 1.33-.96.94 0 1.32.72 1.32 1.77V18h2.5z" />
-          </svg>
-        </a>
-      </div>
-    </div>
-
-    {/* Ürün */}
-    <div className="md-foot-col">
-      <h4>{t.footer.product}</h4>
-      <a href="#nasil">{t.nav.how}</a>
-      <a href="#ozellikler">{t.nav.features}</a>
-      <a href="#fiyat">{t.nav.pricing}</a>
-      <a href="#bina">{t.nav.add}</a>
-    </div>
-
-    {/* Paneller */}
-    <div className="md-foot-col">
-      <h4>{t.footer.panels}</h4>
-      <Link href="/yonetici">{t.managerLogin}</Link>
-      <Link href="/guvenlik">{t.securityLogin}</Link>
-      <Link href="/superadmin">{t.footer.superadmin}</Link>
-    </div>
-
-    {/* Yasal */}
-    <div className="md-foot-col">
-      <h4>{t.footer.legal}</h4>
-      <Link href="/gizlilik">{t.footer.privacy}</Link>
-      <Link href="/kullanim-sartlari">{t.footer.terms}</Link>
-      <Link href="/mesafeli-satis">{t.footer.distanceSales}</Link>
-      <Link href="/iletisim">{t.footer.contact}</Link>
-    </div>
-
-    {/* İletişim + mağazalar */}
-    <div className="md-foot-col md-foot-contact">
-      <h4>{t.footer.contactTitle}</h4>
-      <a href="mailto:info@mobildiafon.com" className="md-foot-mail">info@mobildiafon.com</a>
-      <div className="md-foot-addr">
-        <strong>Türkiye</strong>
-        <span>{t.footer.addrTR}</span>
-      </div>
-      <div className="md-foot-addr">
-        <strong>Belçika</strong>
-        <span>{t.footer.addrBE}</span>
-      </div>
-      <div className="md-foot-stores">
-        <a href="#" aria-label="App Store" className="md-store">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.02-2.05 1.68-3.03 1.76-3.08-.96-1.4-2.45-1.59-2.98-1.61-1.27-.13-2.48.75-3.12.75-.64 0-1.64-.73-2.69-.71-1.38.02-2.66.8-3.37 2.04-1.44 2.49-.37 6.17 1.03 8.19.69.99 1.51 2.1 2.58 2.06 1.04-.04 1.43-.67 2.69-.67 1.25 0 1.61.67 2.71.65 1.12-.02 1.83-1 2.51-2 .79-1.15 1.12-2.26 1.13-2.32-.03-.01-2.17-.83-2.19-3.3l.01.01zM15.1 6.07c.57-.69.95-1.65.85-2.6-.82.03-1.81.54-2.4 1.23-.53.61-.99 1.59-.86 2.52.91.07 1.84-.46 2.41-1.15z" /></svg>
-          <div><small>İndir</small><b>App Store</b></div>
-        </a>
-        <a href="#" aria-label="Google Play" className="md-store">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 2.3c-.3.3-.5.7-.5 1.3v16.8c0 .6.2 1 .5 1.3l.1.1L13 12.6v-.2L3.7 2.2l-.1.1zM16.3 15.9l-3-3v-.2l3-3 .1.1 3.6 2c1 .6 1 1.5 0 2.1l-3.6 2-.1.1zM14.8 14.4l-3.1-3.1L4.3 18.7c.3.4.9.4 1.5.1l9-5.1-.1.7zM5.8 5.2c-.6-.3-1.2-.3-1.5.1l7.4 7.4 3.1-3.1-9-5.1z" /></svg>
-          <div><small>İndir</small><b>Google Play</b></div>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <div className="md-wrap md-foot-bottom">
-    <span>{t.footer.copy}</span>
-    <span>{t.footer.slogan}</span>
-  </div>
-</footer>
+        <footer className="md-footer">
+          <div className="md-wrap md-foot-grid">
+            <div>
+              <div className="md-foot-logo">Mobil<span className="d">Diafon</span></div>
+              <p className="md-foot-about">{t.footer.about}</p>
+            </div>
+            <div className="md-foot-col">
+              <h4>{t.footer.product}</h4>
+              <a href="#nasil">{t.nav.how}</a>
+              <a href="#ozellikler">{t.nav.features}</a>
+              <a href="#fiyat">{t.nav.pricing}</a>
+            </div>
+            <div className="md-foot-col">
+              <h4>{t.footer.panels}</h4>
+              <Link href="/yonetici">{t.managerLogin}</Link>
+              <Link href="/guvenlik">{t.securityLogin}</Link>
+              <Link href="/superadmin">{t.footer.superadmin}</Link>
+            </div>
+          </div>
+          <div className="md-wrap md-foot-bottom">
+            <span>{t.footer.copy}</span>
+            <span>{t.footer.slogan}</span>
+          </div>
+        </footer>
       </main>
     </UICtx.Provider>
   );
