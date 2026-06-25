@@ -9,6 +9,17 @@ import Link from "next/link";
 type Lang = "tr" | "en";
 type Theme = "light" | "dark";
 
+type Plan = {
+  id: string;
+  name: string;
+  minUnits: number;
+  maxUnits: number | null;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  isActive: boolean;
+  sortOrder: number;
+};
+
 const T = {
   tr: {
     tagline: "Dijital Diafon Platformu",
@@ -20,7 +31,7 @@ const T = {
     slides: [
       { eye: "QR + Konum Tabanlı Diafon", ta: "Diafon artık binada değil, ", em: "cebinizde", tb: "", sub: "Ziyaretçi QR kodu okutur, bina doğrulanır ve doğru daireye görüntülü arama başlar. Panelsiz, hızlı ve modern bir giriş deneyimi sunar.", c1: "Binanı Dijitalleştir", c2: "Nasıl Çalışır?", b1: "QR ile bina bulma", b2: "Görüntülü arama", tlH: "Konum doğrulandı", tlTag: "120 m", tlP: "Bina çevresinde kayıtlı liste açılır", brH: "Yıldız Sitesi · A Blok", brP: "48 daire · 92 sakin", pT: "Apartman Girişi", pM: "Daire 12 aranıyor", pD: "Görüntülü çağrı başlatıldı" },
       { eye: "Apartman & Site Yönetimi", ta: "Apartman ve siteler için ", em: "panelsiz dijital diafon", tb: "", sub: "Yönetici daireleri yönetir, sakinleri onaylar, güvenlik ve çağrı süreçlerini tek panelden takip eder. Kurulum hızlı, kullanım sade, yönetim kontrollüdür.", c1: "Çözümü İncele", c2: "Özellikleri Gör", b1: "Yönetici paneli", b2: "Daire yönetimi", trH: "Yönetici Paneli", trTag: "Aktif", d1: "Daire listesi", d2: "Sakin onayı", pT: "Daire Listesi", pM: "Ziyaretçi doğru daireyi seçer", pD: "Çağrı kaydı oluşturuldu" },
-      { eye: "Otel · AVM · Kampüs", ta: "Misafir doğru birime ", em: "tek dokunuşla ulaşsın", tb: "", sub: "Resepsiyon, restoran, havuz, güvenlik veya teknik servis için ayrı QR akışları oluşturun. Misafir talebini saniyeler içinde iletsin.", c1: "Kurumsal Çözümü İncele", c2: "Demo Talep Et", b1: "Kategorili birimler", b2: "Talep / sipariş notu", tlH: "Oda 312", tlTag: "QR ✓", tlP: "Misafir araması", units: "Birimler", u1: "Resepsiyon", u2: "Havuz", u3: "Restoran", pT: "Resepsiyon", pM: "Oda 312 arıyor", pD: "Oda 312’ye çay notu iletildi" },
+      { eye: "Otel · AVM · Kampüs", ta: "Misafir doğru birime ", em: "tek dokunuşla ulaşsın", tb: "", sub: "Resepsiyon, restoran, havuz, güvenlik veya teknik servis için ayrı QR akışları oluşturun. Misafir talebini saniyeler içinde iletsin.", c1: "Kurumsal Çözümü İncele", c2: "Demo Talep Et", b1: "Kategorili birimler", b2: "Talep / sipariş notu", tlH: "Oda 312", tlTag: "QR ✓", tlP: "Misafir araması", units: "Birimler", u1: "Resepsiyon", u2: "Havuz", u3: "Restoran", pT: "Resepsiyon", pM: "Oda 312 arıyor", pD: "Oda 312'ye çay notu iletildi" },
       { eye: "Tuya Uyumlu Kapı Açma", ta: "Görüntülü görüş, ", em: "kapıyı uzaktan aç", tb: "", sub: "Tuya uyumlu röle ile kapı açma desteği sayesinde bina kapısı, bariyer ve turnike yetki kontrollü olarak tek dokunuşla yönetilebilir.", c1: "Entegrasyonları İncele", c2: "Nasıl Çalışır?", b1: "Tuya uyumlu röle", b2: "Kapı · bariyer · turnike", trH: "Akıllı Kapı Modülü", chip: "Tuya Uyumlu", d1: "Bina kapısı", d2: "Otopark bariyeri", relay: "Tuya uyumlu röle", flow1: "MobilDiafon", flow2: "Yetki kontrolü", flow3: "Röle tetikleme", pStatus: "Bağlandı · Yetki doğrulandı", pT: "Apartman Girişi", pM: "Görüntülü görüşme aktif", pD: "Kapıyı Aç" },
     ],
     bina: {
@@ -59,7 +70,6 @@ const T = {
       sumBuilding: "Bina", sumType: "Tip", sumUnit: "Birim", unit1: "1 birim", unitsW: "birim", flatsW: "daire",
       estAmount: "Tahmini Tutar", corpQuote: "Kurumsal Teklif", perMonth: "/ay", perYear: "/yıl",
       calcCorp: "Otel/AVM/işletme için size özel teklif.", priceFlat: "Tek birim sabit tarife",
-      priceLine: (n: string, r: number) => `${n} daire × ₺${r}/daire`,
       yearSuffix: " · 12 ay yerine 10 ay",
       billMonthly: "Aylık", billYearly: "Yıllık",
       saveYear: "Yıllık ödemede 2 ay bedava", saveAmt: (x: string) => `₺${x} tasarruf`,
@@ -80,12 +90,7 @@ const T = {
       { title: "Tuya uyumlu kapı açma", text: "Uygun yapılarda Tuya uyumlu röle ile bina kapısı, bariyer ve turnike tek dokunuşla yönetilebilir." },
       { title: "Yetki ve işlem kayıtları", text: "Kapı açma, çağrı ve yönetim işlemleri yetki kontrolüyle ilerler; kurumsal takip için kayıt altına alınır." },
     ],
-    price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Başlangıç için hızlı deneme, büyüyen siteler için profesyonel yönetim, büyük yapılar için kurumsal teklif.", choose: "Planı Seç" },
-    plans: [
-      { name: "Başlangıç", price: "₺499/ay", detail: "30 daireye kadar", href: "/satin-al?plan=baslangic", featured: false },
-      { name: "Profesyonel", price: "₺1.299/ay", detail: "150 daireye kadar", href: "/satin-al?plan=profesyonel", featured: true },
-      { name: "Kurumsal", price: "Teklif", detail: "Çoklu site ve işletmeler", href: "/satin-al?plan=kurumsal", featured: false },
-    ],
+    price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Villa ve işyerinden büyük sitelere, her yapıya uygun esnek fiyatlandırma.", choose: "Planı Seç" },
     recommended: "Önerilen",
     finalCta: { eye: "MobilDiafon", h2: "Binanızın dijital giriş deneyimini bugün başlatın.", p: "QR afiş, konum doğrulama, yönetici onayı, güvenlik paneli ve Tuya uyumlu kapı açma desteğiyle kurumsal bir giriş sistemi kurun.", btn: "Başvuru Oluştur" },
     footer: { about: "QR ve konum tabanlı dijital diafon platformu. Apartman, site ve işletmeler için modern iletişim çözümü.", product: "Ürün", panels: "Paneller", superadmin: "Süper Admin", copy: "© 2026 MobilDiafon", slogan: "Diafon artık cebinizde." },
@@ -100,23 +105,23 @@ const T = {
     nav: { add: "Add Building", how: "How It Works", features: "Features", pricing: "Pricing", digitalize: "Digitalize Your Building" },
     callLabel: "Incoming Call",
     slides: [
-      { eye: "QR + Location-Based Intercom", ta: "Your intercom is no longer on the wall, ", em: "it’s in your phone", tb: "", sub: "Visitors scan the QR code, the building is verified, and a video call starts with the correct resident. A panel-free, modern entry experience.", c1: "Digitalize Your Building", c2: "How It Works", b1: "Find building by QR", b2: "Video calling", tlH: "Location verified", tlTag: "120 m", tlP: "Registered building list opens around the location", brH: "Star Complex · Block A", brP: "48 flats · 92 residents", pT: "Building Entrance", pM: "Calling Flat 12", pD: "Video call started" },
+      { eye: "QR + Location-Based Intercom", ta: "Your intercom is no longer on the wall, ", em: "it's in your phone", tb: "", sub: "Visitors scan the QR code, the building is verified, and a video call starts with the correct resident. A panel-free, modern entry experience.", c1: "Digitalize Your Building", c2: "How It Works", b1: "Find building by QR", b2: "Video calling", tlH: "Location verified", tlTag: "120 m", tlP: "Registered building list opens around the location", brH: "Star Complex · Block A", brP: "48 flats · 92 residents", pT: "Building Entrance", pM: "Calling Flat 12", pD: "Video call started" },
       { eye: "Apartment & Complex Management", ta: "A panel-free digital intercom for ", em: "apartments and complexes", tb: "", sub: "Managers control flats, approve residents, and monitor security and call flows from one panel. Fast setup, simple use, controlled management.", c1: "Explore Solution", c2: "See Features", b1: "Manager panel", b2: "Flat management", trH: "Manager Panel", trTag: "Active", d1: "Flat directory", d2: "Resident approval", pT: "Flat Directory", pM: "Visitor selects the correct flat", pD: "Call log created" },
       { eye: "Hotel · Mall · Campus", ta: "Let guests reach the right unit ", em: "in one tap", tb: "", sub: "Create separate QR flows for reception, restaurant, pool, security, or technical service. Guests send requests in seconds.", c1: "Explore Enterprise Solution", c2: "Request Demo", b1: "Categorized units", b2: "Order / request note", tlH: "Room 312", tlTag: "QR ✓", tlP: "Guest call", units: "Units", u1: "Reception", u2: "Pool", u3: "Restaurant", pT: "Reception", pM: "Room 312 calling", pD: "Tea to room 312 note sent" },
       { eye: "Tuya-Compatible Door Opening", ta: "See on video, ", em: "open the door remotely", tb: "", sub: "With Tuya-compatible relay support, building doors, parking barriers, and turnstiles can be controlled in one tap with access verification.", c1: "Explore Integrations", c2: "How It Works", b1: "Tuya-compatible relay", b2: "Door · barrier · turnstile", trH: "Smart Door Module", chip: "Tuya compatible", d1: "Building door", d2: "Parking barrier", relay: "Tuya-compatible relay", flow1: "MobilDiafon", flow2: "Access check", flow3: "Relay trigger", pStatus: "Connected · Access verified", pT: "Building Entrance", pM: "Video call active", pD: "Open Door" },
     ],
     bina: {
       eye: "Add Building", title: "Find it on the map, join in a minute",
-      lead: "Enable your location, place the pin on your building and scan. If it’s registered you join as a resident or business; if not, you’re the first to add it. No app required.",
+      lead: "Enable your location, place the pin on your building and scan. If it's registered you join as a resident or business; if not, you're the first to add it. No app required.",
       startEye: "Find by location", startH: "Find your building on the map",
       startP: "The pin stays at the center of the map. Drag the map to center your building, then scan.",
       locate: "Use my location", locating: "Getting location…", scan: "Scan this location",
       findToggle: "Or type a city / district / neighborhood", findPh: "e.g. Soho, London", go: "Go",
       hint: "On desktop, location may be approximate — drag the map to center if needed.",
       loadMap: "Loading map…", mapErr: "Map failed to load. Check your internet connection.",
-      noGeo: "Your browser doesn’t support location. Drag the map or type an address.",
+      noGeo: "Your browser doesn't support location. Drag the map or type an address.",
       denied: "permission denied", noSignal: "no signal",
-      locErr: (r: string) => `Couldn’t access location (${r}). Drag the map or type an address below.`,
+      locErr: (r: string) => `Couldn't access location (${r}). Drag the map or type an address below.`,
       notFoundAddr: "Address not found, try being more specific.",
       tagOk: "✓ Registered building at this location", unitsWord: "units", single: "single unit",
       matched: "Matched address", unresolved: "Address not resolved",
@@ -129,7 +134,7 @@ const T = {
       yourFlat: "Your flat", flat: (n: number) => `Flat ${n}`, phone: "Phone", phonePh: "05xx xxx xx xx",
       sendJoin: "Send join request to manager",
       joinDoneBold: "Your request has been sent.",
-      joinDone: (ad: string) => ` Once the ${ad} manager approves, you’ll be connected. Install the MobilDiafon app to receive calls — you’ll be linked automatically with this sign-up.`,
+      joinDone: (ad: string) => ` Once the ${ad} manager approves, you'll be connected. Install the MobilDiafon app to receive calls — you'll be linked automatically with this sign-up.`,
       newBuilding: "Add new building", bldName: "Building / Complex name", bldNamePh: "e.g. Riverside Apartments",
       bldType: "Building type", typeApart: "Apartment / Complex", typeVilla: "Villa / Detached", typeBiz: "Hotel / Mall / Business",
       flatStructure: "Flat structure", structFlat: "Flat (1…N)", structBlock: "Blocks (A/B/C)",
@@ -141,7 +146,6 @@ const T = {
       sumBuilding: "Building", sumType: "Type", sumUnit: "Units", unit1: "1 unit", unitsW: "units", flatsW: "flats",
       estAmount: "Estimated amount", corpQuote: "Custom Quote", perMonth: "/mo", perYear: "/yr",
       calcCorp: "Custom quote for hotels/malls/businesses.", priceFlat: "Single-unit flat rate",
-      priceLine: (n: string, r: number) => `${n} flats × ₺${r}/flat`,
       yearSuffix: " · 10 months instead of 12",
       billMonthly: "Monthly", billYearly: "Yearly",
       saveYear: "2 months free on annual billing", saveAmt: (x: string) => `₺${x} saved`,
@@ -162,14 +166,9 @@ const T = {
       { title: "Tuya-compatible door opening", text: "Where supported, Tuya-compatible relays can control building doors, barriers and turnstiles in one tap." },
       { title: "Access and activity logs", text: "Door opening, calls and management actions run through access control and can be tracked for enterprise use." },
     ],
-    price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "A quick trial to start, professional management for growing complexes, an enterprise quote for large structures.", choose: "Choose Plan" },
-    plans: [
-      { name: "Starter", price: "₺499/mo", detail: "Up to 30 flats", href: "/satin-al?plan=baslangic", featured: false },
-      { name: "Professional", price: "₺1,299/mo", detail: "Up to 150 flats", href: "/satin-al?plan=profesyonel", featured: true },
-      { name: "Enterprise", price: "Quote", detail: "Multi-complex and businesses", href: "/satin-al?plan=kurumsal", featured: false },
-    ],
+    price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "From single units to large complexes, flexible pricing for every structure.", choose: "Choose Plan" },
     recommended: "Recommended",
-    finalCta: { eye: "MobilDiafon", h2: "Start your building’s digital entry experience today.", p: "Set up an enterprise entry system with QR posters, location verification, manager approval, a security panel and Tuya-compatible door opening support.", btn: "Get Started" },
+    finalCta: { eye: "MobilDiafon", h2: "Start your building's digital entry experience today.", p: "Set up an enterprise entry system with QR posters, location verification, manager approval, a security panel and Tuya-compatible door opening support.", btn: "Get Started" },
     footer: { about: "QR and location-based digital intercom platform. A modern communication solution for apartments, complexes and businesses.", product: "Product", panels: "Panels", superadmin: "Super Admin", copy: "© 2026 MobilDiafon", slogan: "Your intercom, now in your pocket." },
     aria: { theme: "Light/dark theme", menu: "Toggle menu", prev: "Previous", next: "Next", slide: (n: number) => `Slide ${n}` },
   },
@@ -177,8 +176,8 @@ const T = {
 
 type Dict = typeof T["tr"];
 
-const UICtx = createContext<{ lang: Lang; theme: Theme; setLang: (l: Lang) => void; setTheme: (t: Theme) => void; t: Dict }>({
-  lang: "tr", theme: "light", setLang: () => {}, setTheme: () => {}, t: T.tr,
+const UICtx = createContext<{ lang: Lang; theme: Theme; setLang: (l: Lang) => void; setTheme: (t: Theme) => void; t: Dict; plans: Plan[] }>({
+  lang: "tr", theme: "light", setLang: () => {}, setTheme: () => {}, t: T.tr, plans: [],
 });
 function useUI() { return useContext(UICtx); }
 
@@ -194,7 +193,6 @@ function IconGrid() { return (<svg width="16" height="16" viewBox="0 0 24 24" fi
 function IconLines() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>); }
 function IconLock() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.8" /><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" /></svg>); }
 function IconArrows() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10h12M4 10l4-4M4 10l4 4M20 14H8m12 0-4 4m4-4-4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>); }
-
 function IconDoorLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 21h10V3H7v18Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M10 12h.01" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"/></svg>); }
 function IconBarrierLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20h16M7 20V9m10 11v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M6 9h14l-2 4H4l2-4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>); }
 function IconRelayLine() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="6" width="14" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.8"/><path d="M8 10h8M8 14h5M9 3v3m6-3v3M9 18v3m6-3v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>); }
@@ -229,7 +227,6 @@ function Header() {
           </div>
         </div>
       </div>
-
       <header className="header">
         <div className="wrap nav">
           <Link href="/" className="logo" aria-label="MobilDiafon">
@@ -250,7 +247,7 @@ function Header() {
               <button className={lang === "tr" ? "on" : ""} onClick={() => setLang("tr")}>TR</button>
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
             </div>
-            <Link href="/satin-al?plan=profesyonel" className="btn btn-primary btn-sm">{t.nav.digitalize}</Link>
+            <Link href="/satin-al" className="btn btn-primary btn-sm">{t.nav.digitalize}</Link>
             <button className="burger" onClick={() => setOpen((v) => !v)} aria-label={t.aria.menu}>☰</button>
           </div>
         </div>
@@ -319,10 +316,8 @@ function HeroCarousel() {
       <button className="hc-arrow hc-next" onClick={next} aria-label={t.aria.next}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
-
       <div className="hc-viewport">
         <div className="hc-track" style={{ transform: `translateX(-${index * 100}%)` }}>
-
           <div className={cls(0)}>
             <div className="wrap hc-grid">
               <div>
@@ -330,7 +325,7 @@ function HeroCarousel() {
                 <h1 className="h1 anim">{s[0].ta}<em>{s[0].em}</em>{s[0].tb}</h1>
                 <p className="sub anim">{s[0].sub}</p>
                 <div className="cta-row anim">
-                  <Link href="/satin-al?plan=profesyonel" className="btn btn-primary">{s[0].c1}</Link>
+                  <Link href="/satin-al" className="btn btn-primary">{s[0].c1}</Link>
                   <a href="#nasil" className="btn btn-ghost">{s[0].c2}</a>
                 </div>
                 <div className="badges anim">
@@ -351,7 +346,6 @@ function HeroCarousel() {
               </div>
             </div>
           </div>
-
           <div className={cls(1)}>
             <div className="wrap hc-grid">
               <div>
@@ -359,7 +353,7 @@ function HeroCarousel() {
                 <h1 className="h1 anim">{s[1].ta}<em>{s[1].em}</em>{s[1].tb}</h1>
                 <p className="sub anim">{s[1].sub}</p>
                 <div className="cta-row anim">
-                  <Link href="/satin-al?plan=baslangic" className="btn btn-primary">{s[1].c1}</Link>
+                  <Link href="/satin-al" className="btn btn-primary">{s[1].c1}</Link>
                   <a href="#nasil" className="btn btn-ghost">{s[1].c2}</a>
                 </div>
                 <div className="badges anim">
@@ -383,7 +377,6 @@ function HeroCarousel() {
               </div>
             </div>
           </div>
-
           <div className={cls(2)}>
             <div className="wrap hc-grid">
               <div>
@@ -391,7 +384,7 @@ function HeroCarousel() {
                 <h1 className="h1 anim">{s[2].ta}<em>{s[2].em}</em>{s[2].tb}</h1>
                 <p className="sub anim">{s[2].sub}</p>
                 <div className="cta-row anim">
-                  <Link href="/satin-al?plan=kurumsal" className="btn btn-primary">{s[2].c1}</Link>
+                  <Link href="/satin-al" className="btn btn-primary">{s[2].c1}</Link>
                   <a href="#fiyat" className="btn btn-ghost">{s[2].c2}</a>
                 </div>
                 <div className="badges anim">
@@ -417,7 +410,6 @@ function HeroCarousel() {
               </div>
             </div>
           </div>
-
           <div className={cls(3)}>
             <div className="wrap hc-grid">
               <div>
@@ -425,7 +417,7 @@ function HeroCarousel() {
                 <h1 className="h1 anim">{s[3].ta}<em>{s[3].em}</em>{s[3].tb}</h1>
                 <p className="sub anim">{s[3].sub}</p>
                 <div className="cta-row anim">
-                  <Link href="/satin-al?plan=profesyonel" className="btn btn-primary">{s[3].c1}</Link>
+                  <Link href="/satin-al" className="btn btn-primary">{s[3].c1}</Link>
                   <a href="#ozellikler" className="btn btn-ghost">{s[3].c2}</a>
                 </div>
                 <div className="badges anim">
@@ -451,10 +443,8 @@ function HeroCarousel() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
-
       <div className="hc-dots" role="tablist" aria-label="Slides">
         {[0, 1, 2, 3].map((k) => (
           <button key={k} className={`hc-dot ${index === k ? "is-active" : ""}`} onClick={() => go(k)} aria-label={t.aria.slide(k + 1)}>
@@ -467,7 +457,7 @@ function HeroCarousel() {
 }
 
 /* ============================================================
-   BİNANI BUL — veri + harita yardımcıları
+   BİNANI BUL — yardımcılar
    ============================================================ */
 type Bldg = { il: string; ilce: string; ad: string; daire: number; lat: number; lng: number };
 
@@ -486,7 +476,6 @@ const REGISTERED: Bldg[] = [
 
 const bbTitle = (s: string) => s.replace(/\S+/g, (w) => w.charAt(0).toLocaleUpperCase("tr") + w.slice(1));
 const bbFmt = (n: number) => n.toLocaleString("tr-TR");
-const bbRate = (n: number) => (n <= 20 ? 15 : n <= 60 ? 13 : n <= 150 ? 11 : 9);
 
 type LatLng = { lat: number; lng: number };
 
@@ -532,7 +521,7 @@ async function forwardGeocode(q: string): Promise<LatLng | null> {
     const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=tr&q=${encodeURIComponent(q)}`);
     const d: any = await r.json();
     if (d && d[0]) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
-  } catch { /* yoksay */ }
+  } catch { }
   return null;
 }
 
@@ -556,10 +545,10 @@ async function searchNear(center: LatLng): Promise<Bldg[]> {
 }
 
 /* ============================================================
-   BİNANI BUL — harita-önce akış
+   BİNANI BUL — bileşen
    ============================================================ */
 function BinaBul() {
-  const { t } = useUI();
+  const { t, plans } = useUI();
   const tb = t.bina;
   const mapEl = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -575,15 +564,12 @@ function BinaBul() {
   const [locateMsg, setLocateMsg] = useState("");
   const [findOpen, setFindOpen] = useState(false);
   const [findText, setFindText] = useState("");
-
   const [il, setIl] = useState("");
   const [ilce, setIlce] = useState("");
-
   const [residentOpen, setResidentOpen] = useState(false);
   const [joinDone, setJoinDone] = useState(false);
   const [resDaire, setResDaire] = useState("1");
   const [resTel, setResTel] = useState("");
-
   const [managerOpen, setManagerOpen] = useState(false);
   const [ad, setAd] = useState("");
   const [tip, setTip] = useState<"apartman" | "villa" | "isletme">("apartman");
@@ -615,7 +601,6 @@ function BinaBul() {
       window.removeEventListener("resize", onResize);
       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function doScan() {
@@ -659,19 +644,24 @@ function BinaBul() {
   const unitCount = tip === "villa" ? 1 : tip === "isletme" ? Math.max(1, islCount || 0) : yapi === "duz" ? Math.max(1, duzCount || 0) : Math.max(1, blokCount || 0) * Math.max(1, blokPer || 0);
   const blockLetter = String.fromCharCode(64 + Math.min(Math.max(1, blokCount || 0), 26));
   const unitsPreview = yapi === "duz" ? tb.previewFlat(Math.max(1, duzCount || 0)) : tb.previewBlock(Math.max(1, blokCount || 0), Math.max(1, blokPer || 0), blockLetter);
-
-  const isTeklif = tip === "isletme";
-  const monthly = tip === "villa" ? 49 : unitCount * bbRate(unitCount);
-  const priceLine = tip === "villa" ? tb.priceFlat : tb.priceLine(bbFmt(unitCount), bbRate(unitCount));
-  const amount = isTeklif ? tb.corpQuote : bill === "ay" ? `₺${bbFmt(monthly)}` : `₺${bbFmt(monthly * 10)}`;
-  const amountUnit = isTeklif ? "" : bill === "ay" ? tb.perMonth : tb.perYear;
-  const calc = isTeklif ? tb.calcCorp : bill === "ay" ? priceLine : `${priceLine}${tb.yearSuffix}`;
-  const save = isTeklif ? "" : bill === "ay" ? tb.saveYear : tb.saveAmt(bbFmt(monthly * 2));
-  const typeName = tip === "apartman" ? tb.typeApart : tip === "villa" ? tb.typeVilla : tb.typeBiz;
   const coordTxt = scanCenter ? `${scanCenter.lat.toFixed(6)}, ${scanCenter.lng.toFixed(6)}` : "";
+  const typeName = tip === "apartman" ? tb.typeApart : tip === "villa" ? tb.typeVilla : tb.typeBiz;
+
+  // Backend planlardan fiyat hesabı
+  const matchedPlan = plans.find(p => p.minUnits <= unitCount && (p.maxUnits === null || p.maxUnits >= unitCount));
+  const isTeklif = tip === "isletme" || !matchedPlan || matchedPlan.monthlyPrice === 0;
+  const monthly = matchedPlan?.monthlyPrice || 0;
+  const yearly = matchedPlan?.yearlyPrice || 0;
+  const amount = isTeklif ? tb.corpQuote : bill === "ay" ? `₺${bbFmt(monthly)}` : `₺${bbFmt(yearly)}`;
+  const amountUnit = isTeklif ? "" : bill === "ay" ? tb.perMonth : tb.perYear;
+  const calc = isTeklif ? tb.calcCorp : bill === "ay"
+    ? `${matchedPlan?.name} Planı`
+    : `${matchedPlan?.name} Planı${tb.yearSuffix}`;
+  const save = isTeklif ? "" : bill === "ay" ? tb.saveYear : tb.saveAmt(bbFmt(monthly * 2));
 
   function onPay() {
     const fields: Record<string, string> = { tip, il, ilce, ad: ad.trim(), birim: String(unitCount), yapi, bill };
+    if (matchedPlan) fields.plan = matchedPlan.id;
     if (scanCenter) { fields.lat = scanCenter.lat.toFixed(6); fields.lng = scanCenter.lng.toFixed(6); }
     const p = new URLSearchParams(fields);
     window.location.href = `/satin-al?${p.toString()}`;
@@ -684,7 +674,6 @@ function BinaBul() {
         <h2 className="md-title">{tb.title}</h2>
         <p className="md-lead md-lead-center">{tb.lead}</p>
       </div>
-
       <div className="bb2-wrap">
         <div className={`bb2-stage${scanning ? " scanning" : ""}${dragging ? " dragging" : ""}`}>
           <div ref={mapEl} className="bb2-map" />
@@ -698,7 +687,6 @@ function BinaBul() {
           </div>
           {!mapReady && <div className="bb2-load">{tb.loadMap}</div>}
         </div>
-
         <aside className="bb2-panel">
           {managerOpen ? (
             <>
@@ -714,7 +702,6 @@ function BinaBul() {
                   ))}
                 </div>
               </div>
-
               {tip === "apartman" && (
                 <>
                   <div className="bb-field"><label>{tb.flatStructure}</label>
@@ -734,22 +721,22 @@ function BinaBul() {
                   <div className="bb-preview">{unitsPreview}</div>
                 </>
               )}
-
               {tip === "isletme" && (
                 <div className="bb-field"><label>{tb.unitCountLbl}</label><input type="number" min={1} value={islCount} onChange={(e) => setIslCount(parseInt(e.target.value) || 0)} /></div>
               )}
-
               <div className="bb2-loc">
                 <div className="bb2-loc-t">{tb.selectedLoc}</div>
                 <div className="bb2-loc-s">{scanAddr || (il && ilce ? `${ilce} / ${il}` : tb.fromMap)}</div>
                 {coordTxt && <div className="bb2-loc-c">{coordTxt}</div>}
                 <button className="bb2-link" onClick={backToMap}>{tb.changeOnMap}</button>
               </div>
-
               <div className="bb-pricebox">
                 <div className="bb-summary"><span className="k">{tb.sumBuilding}</span><span className="v">{ad.trim() || "—"}</span></div>
                 <div className="bb-summary"><span className="k">{tb.sumType}</span><span className="v">{typeName}</span></div>
                 <div className="bb-summary"><span className="k">{tb.sumUnit}</span><span className="v">{tip === "villa" ? tb.unit1 : `${bbFmt(unitCount)} ${tip === "isletme" ? tb.unitsW : tb.flatsW}`}</span></div>
+                {matchedPlan && !isTeklif && (
+                  <div className="bb-summary"><span className="k">Plan</span><span className="v">{matchedPlan.name}</span></div>
+                )}
                 <div className="bb-plbl" style={{ marginTop: 12 }}>{tb.estAmount}</div>
                 <div className="bb-amt">{amount} {amountUnit && <small>{amountUnit}</small>}</div>
                 <div className="bb-calc">{calc}</div>
@@ -761,7 +748,6 @@ function BinaBul() {
                 )}
                 <div className="bb-save">{save}</div>
               </div>
-
               <button className="btn btn-primary btn-block" style={{ marginTop: 16 }} onClick={onPay}>{isTeklif ? tb.reqQuote : tb.payNow}</button>
               <p className="bb-hint" style={{ textAlign: "center", marginTop: 10 }}>{tb.trialNote}</p>
             </>
@@ -856,6 +842,7 @@ function BinaBul() {
 export default function HomePage() {
   const [lang, setLang] = useState<Lang>("tr");
   const [theme, setTheme] = useState<Theme>("light");
+  const [plans, setPlans] = useState<Plan[]>([]);
 
   useEffect(() => {
     try {
@@ -864,15 +851,26 @@ export default function HomePage() {
       if (sl === "tr" || sl === "en") setLang(sl);
       if (st === "light" || st === "dark") setTheme(st);
       else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setTheme("dark");
-    } catch { /* yoksay */ }
+    } catch { }
   }, []);
+
   useEffect(() => { try { localStorage.setItem("md_lang", lang); } catch {} }, [lang]);
   useEffect(() => { try { localStorage.setItem("md_theme", theme); } catch {} }, [theme]);
 
+  useEffect(() => {
+    fetch("https://mobildiafon.com/api/plans")
+      .then(r => r.json())
+      .then(d => setPlans(d.plans || []))
+      .catch(() => {});
+  }, []);
+
   const t = T[lang];
 
+  // Önerilen plan: Orta veya ortadaki plan
+  const featuredPlan = plans.find(p => p.name === "Orta") || plans[Math.floor(plans.length / 2)];
+
   return (
-    <UICtx.Provider value={{ lang, theme, setLang, setTheme, t }}>
+    <UICtx.Provider value={{ lang, theme, setLang, setTheme, t, plans }}>
       <main className={`md-site mdland${theme === "dark" ? " dark" : ""}`}>
         <Header />
         <HeroCarousel />
@@ -921,15 +919,33 @@ export default function HomePage() {
               <p className="md-lead md-lead-center">{t.price.lead}</p>
             </div>
             <div className="md-pricing-grid">
-              {t.plans.map((p) => (
-                <article className={`md-price-card ${p.featured ? "featured" : ""}`} key={p.name}>
-                  {p.featured && <span className="md-price-ribbon">{t.recommended}</span>}
-                  <h3>{p.name}</h3>
-                  <div className="md-price">{p.price}</div>
-                  <p>{p.detail}</p>
-                  <Link href={p.href} className={p.featured ? "md-btn md-btn-primary" : "md-btn md-btn-ghost"}>{t.price.choose}</Link>
-                </article>
-              ))}
+              {plans.length === 0 ? (
+                <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#888", padding: "40px 0" }}>Planlar yükleniyor...</div>
+              ) : plans.map((p) => {
+                const isFeatured = p.id === featuredPlan?.id;
+                const isFree = p.monthlyPrice === 0;
+                const detailText = p.minUnits === p.maxUnits
+                  ? `${p.minUnits} birim`
+                  : p.maxUnits
+                  ? `${p.minUnits}–${p.maxUnits} daire`
+                  : `${p.minUnits}+ daire`;
+                return (
+                  <article className={`md-price-card ${isFeatured ? "featured" : ""}`} key={p.id}>
+                    {isFeatured && <span className="md-price-ribbon">{t.recommended}</span>}
+                    <h3>{p.name}</h3>
+                    <div className="md-price">
+                      {isFree ? t.price.choose === "Choose Plan" ? "Quote" : "Teklif" : `₺${bbFmt(p.monthlyPrice)}/ay`}
+                    </div>
+                    <p>{detailText}</p>
+                    <Link
+                      href={`/satin-al?plan=${p.id}`}
+                      className={isFeatured ? "md-btn md-btn-primary" : "md-btn md-btn-ghost"}
+                    >
+                      {t.price.choose}
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -940,7 +956,7 @@ export default function HomePage() {
             <h2>{t.finalCta.h2}</h2>
             <p>{t.finalCta.p}</p>
           </div>
-          <Link href="/satin-al?plan=profesyonel" className="md-btn md-btn-primary">{t.finalCta.btn}</Link>
+          <Link href="/satin-al" className="md-btn md-btn-primary">{t.finalCta.btn}</Link>
         </section>
 
         <footer className="md-footer">

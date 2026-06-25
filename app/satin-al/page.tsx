@@ -3,44 +3,47 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const API = "/api";
-// DEMO_MODE=true: ödeme/sipariş ucu olmadan akışı simüle eder (anında demo).
-// Gerçek backend hazır olunca false yapın; POST /api/orders/start çağrılır.
-const DEMO_MODE = true;
+const API = process.env.NEXT_PUBLIC_API_URL || "https://mobildiafon.com/api";
+const DEMO_MODE = false;
 
-type PlanId = "baslangic" | "profesyonel" | "kurumsal";
-
-const PLANS: Record<PlanId, { name: string; monthly: number; tagline: string; flats: string; features: string[] }> = {
-  baslangic: {
-    name: "Başlangıç",
-    monthly: 499,
-    tagline: "Küçük apartmanlar",
-    flats: "30 daireye kadar",
-    features: ["Tek bina / blok", "QR ve konum ile erişim", "Yönetici paneli", "Görüntülü arama"],
-  },
-  profesyonel: {
-    name: "Profesyonel",
-    monthly: 1299,
-    tagline: "Siteler ve çok bloklu yapılar",
-    flats: "150 daireye kadar",
-    features: ["Çoklu blok / bina", "Tuya kapı açma", "Güvenlik paneli & çağrı kayıtları", "Öncelikli destek"],
-  },
-  kurumsal: {
-    name: "Kurumsal",
-    monthly: 0,
-    tagline: "Çoklu site, otel ve işletmeler",
-    flats: "Sınırsız daire",
-    features: ["Özel entegrasyonlar", "Çoklu yönetici & rol", "SLA & adanmış destek", "Kurumsal raporlama"],
-  },
+type Plan = {
+  id: string;
+  name: string;
+  minUnits: number;
+  maxUnits: number | null;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  isActive: boolean;
+  sortOrder: number;
 };
 
 const fmt = (n: number) => "₺" + n.toLocaleString("tr-TR");
 
+const PLAN_FEATURES: Record<string, string[]> = {
+  Tekil:     ["1 bina / birim", "QR ve konum ile erişim", "Görüntülü arama", "Yönetici paneli"],
+  Mini:      ["2-5 daire", "QR ve konum ile erişim", "Görüntülü arama", "Yönetici paneli"],
+  Küçük:    ["6-20 daire", "QR ve konum ile erişim", "Görüntülü arama", "Yönetici paneli"],
+  Orta:      ["21-50 daire", "Çoklu blok desteği", "Tuya kapı açma", "Güvenlik paneli"],
+  Büyük:    ["51-150 daire", "Çoklu blok desteği", "Tuya kapı açma", "Öncelikli destek"],
+  Kurumsal:  ["150+ daire", "Özel entegrasyonlar", "Çoklu yönetici & rol", "SLA & adanmış destek"],
+};
+
+const PLAN_TAGLINES: Record<string, string> = {
+  Tekil:    "Villa, iş yeri, muayenehane",
+  Mini:     "Küçük apartmanlar",
+  Küçük:   "Orta büyüklükte apartmanlar",
+  Orta:     "Siteler ve çok bloklu yapılar",
+  Büyük:   "Büyük siteler",
+  Kurumsal: "Çoklu site, otel ve işletmeler",
+};
+
 export default function SatinAl() {
-  const [plan, setPlan] = useState<PlanId>("profesyonel");
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [step, setStep] = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
+  const [plansLoading, setPlansLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -54,17 +57,45 @@ export default function SatinAl() {
     cvc: "",
   });
 
-  // URL'den plan seçimi (?plan=profesyonel)
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search).get("plan");
-    if (p === "baslangic" || p === "profesyonel" || p === "kurumsal") setPlan(p);
+    fetch(`${API}/plans`)
+      .then(r => r.json())
+      .then(d => {
+        const ps: Plan[] = d.plans || [];
+        setPlans(ps);
+        setPlansLoading(false);
+
+        // URL'den plan seçimi
+        const params = new URLSearchParams(window.location.search);
+        const planParam = params.get("plan");
+        const unitCount = parseInt(params.get("birim") || "0");
+
+        if (planParam) {
+          // ID ile eşleş
+          const byId = ps.find(p => p.id === planParam);
+          if (byId) { setSelectedPlanId(byId.id); return; }
+          // İsim ile eşleş (kurumsal, profesyonel vs)
+          const byName = ps.find(p => p.name.toLowerCase().includes(planParam.toLowerCase()));
+          if (byName) { setSelectedPlanId(byName.id); return; }
+        }
+
+        // Daire sayısına göre otomatik seç
+        if (unitCount > 0) {
+          const auto = ps.find(p => p.minUnits <= unitCount && (p.maxUnits === null || p.maxUnits >= unitCount));
+          if (auto) { setSelectedPlanId(auto.id); return; }
+        }
+
+        // Varsayılan: Orta plan
+        const orta = ps.find(p => p.name === "Orta") || ps[2];
+        if (orta) setSelectedPlanId(orta.id);
+      })
+      .catch(() => setPlansLoading(false));
   }, []);
 
-  const p = PLANS[plan];
-  const isEnterprise = plan === "kurumsal";
+  const plan = plans.find(p => p.id === selectedPlanId);
+  const isEnterprise = plan?.monthlyPrice === 0;
   const yearly = billing === "yearly";
-  const monthlyPrice = p.monthly;
-  const total = isEnterprise ? 0 : yearly ? monthlyPrice * 10 : monthlyPrice; // yıllık: 2 ay bedava
+  const total = isEnterprise ? 0 : yearly ? (plan?.yearlyPrice || 0) : (plan?.monthlyPrice || 0);
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   function validate(): string | null {
@@ -80,7 +111,6 @@ export default function SatinAl() {
   async function submit() {
     setError("");
     if (isEnterprise) {
-      // Kurumsal: ödeme yok, teklif talebi
       if (!form.siteName.trim() || !form.fullName.trim() || !form.email.trim()) {
         setError("Lütfen bina, yetkili ve e-posta alanlarını doldurun.");
         return;
@@ -99,13 +129,13 @@ export default function SatinAl() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            plan, billing,
+            planId: selectedPlanId,
+            billing,
             siteName: form.siteName.trim(),
             flatCount: Number(form.flatCount) || null,
             fullName: form.fullName.trim(),
             phone: form.phone.trim(),
             email: form.email.trim(),
-            // Kart bilgisi backend'e gönderilmez; ödeme sağlayıcı (iyzico/Stripe) token'ı kullanılır.
           }),
         });
         const data = await res.json();
@@ -118,6 +148,9 @@ export default function SatinAl() {
       setLoading(false);
     }
   }
+
+  const planFeatures = plan ? (PLAN_FEATURES[plan.name] || []) : [];
+  const planTagline = plan ? (PLAN_TAGLINES[plan.name] || "") : "";
 
   return (
     <main className="ck">
@@ -151,26 +184,44 @@ export default function SatinAl() {
             <h1>Aboneliğinizi başlatın</h1>
             <p className="ck-sub">İlk 14 gün ücretsiz. Deneme bitmeden iptal ederseniz ücret alınmaz.</p>
 
-            {/* Plan seçimi */}
+            {/* Plan Seçimi */}
             <div className="ck-block">
-              <div className="ck-block-title">1. Plan seçin</div>
-              <div className="ck-plan-row">
-                {(Object.keys(PLANS) as PlanId[]).map((id) => (
-                  <button key={id} className={`ck-plan ${plan === id ? "active" : ""}`} onClick={() => setPlan(id)}>
-                    <div className="ck-plan-name">{PLANS[id].name}</div>
-                    <div className="ck-plan-flats">{PLANS[id].flats}</div>
-                    <div className="ck-plan-price">{PLANS[id].monthly ? fmt(PLANS[id].monthly) + "/ay" : "Teklif"}</div>
-                  </button>
-                ))}
-              </div>
+              <div className="ck-block-title">Plan Seçin</div>
+              {plansLoading ? (
+                <div className="ck-loading">Planlar yükleniyor...</div>
+              ) : (
+                <div className="ck-plan-row">
+                  {plans.map((p) => (
+                    <button
+                      key={p.id}
+                      className={`ck-plan ${selectedPlanId === p.id ? "active" : ""}`}
+                      onClick={() => setSelectedPlanId(p.id)}
+                    >
+                      <div className="ck-plan-name">{p.name}</div>
+                      <div className="ck-plan-flats">
+                        {p.minUnits === p.maxUnits
+                          ? `${p.minUnits} birim`
+                          : p.maxUnits
+                          ? `${p.minUnits}–${p.maxUnits} daire`
+                          : `${p.minUnits}+ daire`}
+                      </div>
+                      <div className="ck-plan-price">
+                        {p.monthlyPrice === 0 ? "Teklif" : `${fmt(p.monthlyPrice)}/ay`}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Faturalama */}
-            {!isEnterprise && (
+            {/* Fatura Dönemi */}
+            {!isEnterprise && plan && (
               <div className="ck-block">
-                <div className="ck-block-title">2. Faturalama döngüsü</div>
+                <div className="ck-block-title">Fatura Dönemi</div>
                 <div className="ck-billing">
-                  <button className={billing === "monthly" ? "active" : ""} onClick={() => setBilling("monthly")}>Aylık</button>
+                  <button className={billing === "monthly" ? "active" : ""} onClick={() => setBilling("monthly")}>
+                    Aylık
+                  </button>
                   <button className={billing === "yearly" ? "active" : ""} onClick={() => setBilling("yearly")}>
                     Yıllık <span className="ck-save">2 ay bedava</span>
                   </button>
@@ -178,31 +229,38 @@ export default function SatinAl() {
               </div>
             )}
 
-            {/* Bina bilgisi */}
+            {/* Bina Bilgileri */}
             <div className="ck-block">
-              <div className="ck-block-title">{isEnterprise ? "2." : "3."} Bina bilgileri</div>
+              <div className="ck-block-title">Bina Bilgileri</div>
               <div className="ck-fields">
                 <label className="ck-field full">
-                  <span>Bina / Site adı</span>
-                  <input value={form.siteName} onChange={(e) => set("siteName", e.target.value)} placeholder="Örn: Yıldız Sitesi A Blok" />
+                  <span>Bina / Site Adı</span>
+                  <input value={form.siteName} onChange={(e) => set("siteName", e.target.value)} placeholder="örn. Yıldız Apartmanı" />
                 </label>
                 {!isEnterprise && (
-                  <label className="ck-field">
-                    <span>Daire sayısı</span>
-                    <input value={form.flatCount} onChange={(e) => set("flatCount", e.target.value)} inputMode="numeric" placeholder="48" />
+                  <label className="ck-field full">
+                    <span>Daire / Birim Sayısı</span>
+                    <input value={form.flatCount} onChange={(e) => set("flatCount", e.target.value)} inputMode="numeric" placeholder="örn. 24" />
                   </label>
                 )}
-                <label className="ck-field">
-                  <span>Yetkili ad soyad</span>
-                  <input value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Ad Soyad" />
+              </div>
+            </div>
+
+            {/* Yetkili Bilgileri */}
+            <div className="ck-block">
+              <div className="ck-block-title">Yetkili Bilgileri</div>
+              <div className="ck-fields">
+                <label className="ck-field full">
+                  <span>Ad Soyad</span>
+                  <input value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Yetkili kişinin adı" autoComplete="name" />
                 </label>
                 <label className="ck-field">
                   <span>Telefon</span>
-                  <input value={form.phone} onChange={(e) => set("phone", e.target.value)} type="tel" placeholder="05XX XXX XX XX" />
+                  <input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="05xx xxx xx xx" inputMode="tel" autoComplete="tel" />
                 </label>
                 <label className="ck-field">
                   <span>E-posta</span>
-                  <input value={form.email} onChange={(e) => set("email", e.target.value)} type="email" placeholder="ornek@site.com" />
+                  <input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="ornek@mail.com" type="email" autoComplete="email" />
                 </label>
               </div>
             </div>
@@ -210,7 +268,7 @@ export default function SatinAl() {
             {/* Ödeme */}
             {!isEnterprise && (
               <div className="ck-block">
-                <div className="ck-block-title">4. Ödeme yöntemi</div>
+                <div className="ck-block-title">Ödeme Bilgileri</div>
                 <div className="ck-pay-note">
                   Deneme süresince ücret alınmaz. Kart bilgileriniz güvenli ödeme sağlayıcısı üzerinden saklanır.
                 </div>
@@ -237,34 +295,52 @@ export default function SatinAl() {
           {/* SAĞ: ÖZET */}
           <aside className="ck-summary">
             <div className="ck-summary-card">
-              <div className="ck-summary-plan">
-                <span>{p.name} planı</span>
-                <small>{p.tagline}</small>
-              </div>
-              <ul className="ck-summary-feats">
-                {p.features.map((f) => (
-                  <li key={f}>
-                    <svg viewBox="0 0 20 20" width="14" height="14" fill="none"><path d="M5 10.5l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              {!isEnterprise ? (
+              {plan ? (
                 <>
-                  <div className="ck-summary-line"><span>{yearly ? "Yıllık tutar" : "Aylık tutar"}</span><span>{fmt(total)}</span></div>
-                  <div className="ck-summary-line trial"><span>İlk 14 gün</span><span>Ücretsiz</span></div>
-                  <div className="ck-summary-total">
-                    <span>Bugün ödenecek</span>
-                    <strong>₺0</strong>
+                  <div className="ck-summary-plan">
+                    <span>{plan.name} Planı</span>
+                    <small>{planTagline}</small>
                   </div>
-                  <div className="ck-summary-after">Deneme sonrası {fmt(total)}{yearly ? "/yıl" : "/ay"}</div>
+                  <ul className="ck-summary-feats">
+                    {planFeatures.map((f) => (
+                      <li key={f}>
+                        <svg viewBox="0 0 20 20" width="14" height="14" fill="none"><path d="M5 10.5l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {!isEnterprise ? (
+                    <>
+                      <div className="ck-summary-line">
+                        <span>{yearly ? "Yıllık tutar" : "Aylık tutar"}</span>
+                        <span>{fmt(total)}</span>
+                      </div>
+                      {yearly && (
+                        <div className="ck-summary-line">
+                          <span>Tasarruf</span>
+                          <span style={{color: "#2bb673", fontWeight: 700}}>{fmt(plan.monthlyPrice * 2)}</span>
+                        </div>
+                      )}
+                      <div className="ck-summary-line trial">
+                        <span>İlk 14 gün</span>
+                        <span>Ücretsiz</span>
+                      </div>
+                      <div className="ck-summary-total">
+                        <span>Bugün ödenecek</span>
+                        <strong>₺0</strong>
+                      </div>
+                      <div className="ck-summary-after">Deneme sonrası {fmt(total)}{yearly ? "/yıl" : "/ay"}</div>
+                    </>
+                  ) : (
+                    <div className="ck-summary-enterprise">Fiyatlandırma ihtiyacınıza göre belirlenir. Talebiniz sonrası size özel teklif sunulur.</div>
+                  )}
                 </>
               ) : (
-                <div className="ck-summary-enterprise">Fiyatlandırma ihtiyacınıza göre belirlenir. Talebiniz sonrası size özel teklif sunulur.</div>
+                <div className="ck-loading">Plan seçin...</div>
               )}
 
-              <button className="ck-btn primary full" onClick={submit} disabled={loading}>
+              <button className="ck-btn primary full" onClick={submit} disabled={loading || !plan}>
                 {loading ? "İşleniyor..." : isEnterprise ? "Teklif Al" : "Denemeyi Başlat"}
               </button>
               <div className="ck-secure">
@@ -299,14 +375,15 @@ export default function SatinAl() {
 
         .ck-block { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-top: 18px; }
         .ck-block-title { font-size: 15px; font-weight: 700; color: var(--navy-deep); margin-bottom: 16px; }
+        .ck-loading { color: var(--gray); font-size: 14px; padding: 12px 0; }
 
-        .ck-plan-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .ck-plan { text-align: left; background: var(--soft); border: 2px solid var(--line); border-radius: 13px; padding: 16px; cursor: pointer; transition: all .15s; font-family: inherit; }
+        .ck-plan-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .ck-plan { text-align: left; background: var(--soft); border: 2px solid var(--line); border-radius: 13px; padding: 14px; cursor: pointer; transition: all .15s; font-family: inherit; }
         .ck-plan:hover { border-color: #c3ccdd; }
         .ck-plan.active { border-color: var(--red); background: var(--red-soft); }
-        .ck-plan-name { font-weight: 700; color: var(--navy-deep); font-size: 16px; }
-        .ck-plan-flats { color: var(--gray); font-size: 12.5px; margin: 3px 0 8px; }
-        .ck-plan-price { font-weight: 700; color: var(--navy); font-size: 14px; }
+        .ck-plan-name { font-weight: 700; color: var(--navy-deep); font-size: 15px; }
+        .ck-plan-flats { color: var(--gray); font-size: 11.5px; margin: 3px 0 8px; }
+        .ck-plan-price { font-weight: 700; color: var(--navy); font-size: 13px; }
 
         .ck-billing { display: flex; gap: 10px; }
         .ck-billing button { flex: 1; padding: 14px; border: 2px solid var(--line); background: var(--soft); border-radius: 12px; font-weight: 700; color: var(--gray); cursor: pointer; font-family: inherit; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .15s; }
@@ -357,8 +434,11 @@ export default function SatinAl() {
         @media (max-width: 880px) {
           .ck-grid { grid-template-columns: 1fr; }
           .ck-summary { position: static; }
-          .ck-plan-row { grid-template-columns: 1fr; }
+          .ck-plan-row { grid-template-columns: repeat(2, 1fr); }
           .ck-fields { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+          .ck-plan-row { grid-template-columns: 1fr; }
         }
       `}</style>
     </main>
