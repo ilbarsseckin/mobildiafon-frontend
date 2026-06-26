@@ -1716,3 +1716,11 @@ button, input, select, textarea { font: inherit; }
 @media (max-width: 560px) {
   .blog-grid { grid-template-columns: 1fr; }
 }
+
+.md-partners { padding: 44px 0; border-top: 1px solid #eef1f6; border-bottom: 1px solid #eef1f6; background: #fafbfd; }
+.dark .md-partners { background: rgba(255,255,255,.02); border-color: rgba(255,255,255,.06); }
+.md-partners-label { text-align: center; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9aa3b5; margin: 0 0 24px; }
+.md-partners-logos { display: flex; align-items: center; justify-content: center; gap: 48px; flex-wrap: wrap; }
+.md-partner-logo { height: 30px; width: auto; object-fit: contain; opacity: .65; filter: grayscale(100%); transition: all .25s; }
+.md-partner-logo:hover { opacity: 1; filter: grayscale(0%); }
+@media (max-width: 640px) { .md-partners-logos { gap: 28px; } .md-partner-logo { height: 24px; } }

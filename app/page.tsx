@@ -92,6 +92,7 @@ const T = {
     ],
     price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Villa ve işyerinden büyük sitelere, her yapıya uygun esnek fiyatlandırma.", choose: "Planı Seç" },
     recommended: "Önerilen",
+    partnersLabel: "Teknoloji Altyapımız",
     finalCta: { eye: "MobilDiafon", h2: "Binanızın dijital giriş deneyimini bugün başlatın.", p: "QR afiş, konum doğrulama, yönetici onayı, güvenlik paneli ve Tuya uyumlu kapı açma desteğiyle kurumsal bir giriş sistemi kurun.", btn: "Başvuru Oluştur" },
  footer: {
   about: "QR ve konum tabanlı dijital diafon platformu. Apartman, site ve işletmeler için modern iletişim çözümü.",
@@ -183,6 +184,7 @@ const T = {
     ],
     price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "From single units to large complexes, flexible pricing for every structure.", choose: "Choose Plan" },
     recommended: "Recommended",
+    partnersLabel: "Trusted Technology & Infrastructure Partners",
     finalCta: { eye: "MobilDiafon", h2: "Start your building's digital entry experience today.", p: "Set up an enterprise entry system with QR posters, location verification, manager approval, a security panel and Tuya-compatible door opening support.", btn: "Get Started" },
  footer: {
   about: "QR and location-based digital intercom platform. A modern communication solution for apartments, complexes and businesses.",
@@ -939,7 +941,17 @@ export default function HomePage() {
         <Header />
         <HeroCarousel />
         <BinaBul />
-
+<section className="md-partners">
+  <div className="md-wrap">
+    <p className="md-partners-label">{t.partnersLabel}</p>
+    <div className="md-partners-logos">
+      <img src="/tuya-logo.png" alt="Tuya uyumlu" className="md-partner-logo" />
+      <img src="/iyzico-logo.png" alt="iyzico ile güvenli ödeme" className="md-partner-logo" />
+      <img src="/hetzner-logo.png" alt="Hetzner Cloud" className="md-partner-logo" />
+      <img src="/aws-logo.png" alt="Amazon Web Services" className="md-partner-logo" />
+    </div>
+  </div>
+</section>
         <section id="nasil" className="md-section">
           <div className="md-wrap">
             <div className="md-center">
