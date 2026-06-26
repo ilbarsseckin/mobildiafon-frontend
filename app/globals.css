@@ -1820,3 +1820,12 @@ button, input, select, textarea { font: inherit; }
 .adm-flat-qr-btn:hover { background: #e63946; color: #fff; }
 .adm-flat-qr-btn.ghost { border-color: #ddd; background: #f7f7f9; color: #666; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adm-flat-qr-btn.ghost:hover { background: #eee; color: #333; border-color: #ccc; }
+
+/* Birey QR butonu */
+.adm-mini-qr {
+  font-size: 12px; font-weight: 600;
+  padding: 5px 12px; border-radius: 7px;
+  border: 1px solid #1a2a4a; background: #eef1f6; color: #1a2a4a;
+  cursor: pointer; transition: all .15s;
+}
+.adm-mini-qr:hover { background: #1a2a4a; color: #fff; }

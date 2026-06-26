@@ -249,7 +249,7 @@ export default function YoneticiPanel() {
 
   function printQrPoster(b: Building) {
     if (!b.qrToken) return;
-    const url = "https://mobildiafon.com/?qr=" + b.qrToken;
+    const url = "https://mobildiafon.com/web/ara.html?token=" + b.qrToken;
     const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(url)}`;
     const title = buildingLabel(b);
     const w = window.open("", "_blank", "width=800,height=1000");
@@ -292,8 +292,8 @@ export default function YoneticiPanel() {
 
   // Daire QR afisi yazdir
   function printFlatQr(b: Building, f: Flat) {
-    if (!f.qrToken) return;
-    const url = "https://mobildiafon.com/?fqr=" + f.qrToken;
+    if (!b.qrToken) return;
+    const url = `https://mobildiafon.com/web/ara.html?token=${b.qrToken}&flat=${encodeURIComponent(f.flatNo)}`;
     const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(url)}`;
     const label = f.qrLabel || `Daire ${f.flatNo}`;
     const sub = buildingLabel(b);
@@ -320,6 +320,43 @@ export default function YoneticiPanel() {
         <div class="label">${label}</div>
         <div class="qr"><img src="${qrImg}" alt="QR"></div>
         <div class="desc">Bu QR kodu okutarak dogrudan bu daireyi goruntulu arayabilirsiniz.</div>
+        <div class="foot">mobildiafon.com</div>
+      </div>
+      <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
+      </body></html>`);
+    w.document.close();
+  }
+
+  // Birey/sakin QR afisi yazdir
+  function printPersonQr(b: Building, f: Flat, r: Resident) {
+    if (!b.qrToken) return;
+    const url = `https://mobildiafon.com/web/ara.html?token=${b.qrToken}&flat=${encodeURIComponent(f.flatNo)}&user=${r.userId}`;
+    const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(url)}`;
+    const label = r.name || "Sakin";
+    const sub = `${buildingLabel(b)} · Daire ${f.flatNo}`;
+    const w = window.open("", "_blank", "width=800,height=1000");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>QR - ${label}</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:40px; }
+        .poster { text-align:center; border:3px solid #1a2a4a; border-radius:24px; padding:48px 40px; max-width:480px; width:100%; }
+        .brand { font-size:24px; font-weight:800; color:#1a2a4a; letter-spacing:-1px; margin-bottom:4px; }
+        .brand span { color:#e63946; }
+        .sub { font-size:13px; color:#888; margin-bottom:28px; }
+        .label { font-size:30px; font-weight:800; color:#1a2a4a; margin-bottom:24px; }
+        .qr { width:260px; height:260px; margin:0 auto 24px; border:1px solid #eee; border-radius:16px; padding:12px; }
+        .qr img { width:100%; height:100%; }
+        .desc { font-size:15px; color:#555; line-height:1.5; }
+        .foot { margin-top:24px; font-size:13px; color:#aaa; }
+        @media print { body { padding:0; } }
+      </style></head><body>
+      <div class="poster">
+        <div class="brand">Mobil<span>Diafon</span></div>
+        <div class="sub">${sub}</div>
+        <div class="label">${label}</div>
+        <div class="qr"><img src="${qrImg}" alt="QR"></div>
+        <div class="desc">Bu QR kodu okutarak dogrudan ${label} kisisini goruntulu arayabilirsiniz.</div>
         <div class="foot">mobildiafon.com</div>
       </div>
       <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
@@ -649,7 +686,7 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
                               {b.qrToken ? (
                                 <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
                                   <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent("https://mobildiafon.com/?qr=" + b.qrToken)}`}
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent("https://mobildiafon.com/web/ara.html?token=" + b.qrToken)}`}
                                     alt="QR"
                                     width={140} height={140}
                                     style={{ borderRadius: "8px", border: "1px solid #eee", background: "#fff" }}
@@ -657,7 +694,7 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
                                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     
                                       <a
-                                      href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20&data=${encodeURIComponent("https://mobildiafon.com/?qr=" + b.qrToken)}`}
+                                      href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20&data=${encodeURIComponent("https://mobildiafon.com/web/ara.html?token=" + b.qrToken)}`}
                                       download={`qr-${b.qrToken}.png`}
                                       target="_blank" rel="noopener noreferrer"
                                       style={{ padding: "9px 16px", background: "#e63946", color: "#fff", borderRadius: "8px", fontWeight: 600, fontSize: "14px", textDecoration: "none", textAlign: "center" }}
@@ -765,6 +802,7 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
                                         </div>
                                         <div className="adm-res-actions">
                                           {!r.approved && <button className="adm-mini-approve" onClick={() => approve(r.residentId)} disabled={loading}>Onayla</button>}
+                                          {r.approved && <button className="adm-mini-qr" onClick={() => printPersonQr(b, f, r)} disabled={loading} title="Kişiye özel QR afişi">QR</button>}
                                           <button className="adm-mini-remove" onClick={() => remove(r.residentId, r.name)} disabled={loading} title="Çıkar">Çıkar</button>
                                         </div>
                                       </div>
