@@ -1808,3 +1808,15 @@ button, input, select, textarea { font: inherit; }
 @media (max-width: 880px) {
   .hc-photo { min-height: 260px; order: -1; margin-bottom: 8px; }
 }
+/* Daire QR butonları */
+.adm-flat-qr { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.adm-flat-qr-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600;
+  padding: 5px 10px; border-radius: 7px;
+  border: 1px solid #e63946; background: #fdeef0; color: #c0283a;
+  cursor: pointer; transition: all .15s;
+}
+.adm-flat-qr-btn:hover { background: #e63946; color: #fff; }
+.adm-flat-qr-btn.ghost { border-color: #ddd; background: #f7f7f9; color: #666; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-flat-qr-btn.ghost:hover { background: #eee; color: #333; border-color: #ccc; }

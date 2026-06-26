@@ -12,11 +12,12 @@ type Resident = {
   photoUrl: string | null;
   approved: boolean;
 };
-type Flat = { apartmentId: string; flatNo: string; floor: number | null; listingStatus: string; residents: Resident[] };
+type Flat = { apartmentId: string; flatNo: string; floor: number | null; listingStatus: string; residents: Resident[]; qrToken: string | null; qrLabel: string | null };
 
 const LISTING_LABELS: Record<string, string> = { none: "", sale: "Satılık", rent: "Kiralık" };
 type Building = {
   id: string;
+  qrToken: string | null;
   buildingName: string;
   siteName: string | null;
   blockName: string | null;
@@ -244,6 +245,103 @@ export default function YoneticiPanel() {
       if (data.success) { setInfo("Blok eklendi."); await loadOverview(token); }
       else setError(data.message || "Eklenemedi");
     } catch { setError("Eklenemedi"); } finally { setLoading(false); }
+  }
+
+  function printQrPoster(b: Building) {
+    if (!b.qrToken) return;
+    const url = "https://mobildiafon.com/?qr=" + b.qrToken;
+    const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(url)}`;
+    const title = buildingLabel(b);
+    const w = window.open("", "_blank", "width=800,height=1000");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>QR Afis - ${title}</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:40px; }
+        .poster { text-align:center; border:3px solid #1a2a4a; border-radius:24px; padding:48px 40px; max-width:520px; width:100%; }
+        .brand { font-size:28px; font-weight:800; color:#1a2a4a; letter-spacing:-1px; margin-bottom:6px; }
+        .brand span { color:#e63946; }
+        .tagline { font-size:14px; color:#888; margin-bottom:32px; }
+        .bname { font-size:24px; font-weight:700; color:#1a2a4a; margin-bottom:8px; }
+        .desc { font-size:16px; color:#555; margin-bottom:28px; line-height:1.5; }
+        .qr { width:280px; height:280px; margin:0 auto 28px; border:1px solid #eee; border-radius:16px; padding:12px; }
+        .qr img { width:100%; height:100%; }
+        .steps { text-align:left; max-width:340px; margin:0 auto; }
+        .step { display:flex; align-items:flex-start; gap:12px; margin-bottom:12px; font-size:15px; color:#333; }
+        .num { background:#e63946; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
+        .foot { margin-top:28px; font-size:13px; color:#aaa; }
+        @media print { body { padding:0; } }
+      </style></head><body>
+      <div class="poster">
+        <div class="brand">Mobil<span>Diafon</span></div>
+        <div class="tagline">Dijital Diafon - Diafon artik cebinizde</div>
+        <div class="bname">${title}</div>
+        <div class="desc">Ziyaretciler bu QR kodu okutarak dogru daireye goruntulu arama baslatir.</div>
+        <div class="qr"><img src="${qrImg}" alt="QR"></div>
+        <div class="steps">
+          <div class="step"><span class="num">1</span><span>Telefon kameranizi QR koda tutun</span></div>
+          <div class="step"><span class="num">2</span><span>Acilan sayfadan daire/kisi secin</span></div>
+          <div class="step"><span class="num">3</span><span>Goruntulu arama baslasin</span></div>
+        </div>
+        <div class="foot">mobildiafon.com</div>
+      </div>
+      <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
+      </body></html>`);
+    w.document.close();
+  }
+
+  // Daire QR afisi yazdir
+  function printFlatQr(b: Building, f: Flat) {
+    if (!f.qrToken) return;
+    const url = "https://mobildiafon.com/?fqr=" + f.qrToken;
+    const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(url)}`;
+    const label = f.qrLabel || `Daire ${f.flatNo}`;
+    const sub = buildingLabel(b);
+    const w = window.open("", "_blank", "width=800,height=1000");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>QR - ${label}</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:40px; }
+        .poster { text-align:center; border:3px solid #1a2a4a; border-radius:24px; padding:48px 40px; max-width:480px; width:100%; }
+        .brand { font-size:24px; font-weight:800; color:#1a2a4a; letter-spacing:-1px; margin-bottom:4px; }
+        .brand span { color:#e63946; }
+        .sub { font-size:13px; color:#888; margin-bottom:28px; }
+        .label { font-size:30px; font-weight:800; color:#1a2a4a; margin-bottom:24px; }
+        .qr { width:260px; height:260px; margin:0 auto 24px; border:1px solid #eee; border-radius:16px; padding:12px; }
+        .qr img { width:100%; height:100%; }
+        .desc { font-size:15px; color:#555; line-height:1.5; }
+        .foot { margin-top:24px; font-size:13px; color:#aaa; }
+        @media print { body { padding:0; } }
+      </style></head><body>
+      <div class="poster">
+        <div class="brand">Mobil<span>Diafon</span></div>
+        <div class="sub">${sub}</div>
+        <div class="label">${label}</div>
+        <div class="qr"><img src="${qrImg}" alt="QR"></div>
+        <div class="desc">Bu QR kodu okutarak dogrudan bu daireyi goruntulu arayabilirsiniz.</div>
+        <div class="foot">mobildiafon.com</div>
+      </div>
+      <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
+      </body></html>`);
+    w.document.close();
+  }
+
+  // Daire QR etiketini guncelle
+  async function editFlatQrLabel(f: Flat) {
+    const current = f.qrLabel || `Daire ${f.flatNo}`;
+    const val = window.prompt("QR altinda gorunecek metin (ornek: Ahmet Yilmaz / Daire 5):", current);
+    if (val === null) return;
+    try {
+      const res = await fetch(`${API}/buildings/set-flat-qr-label`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ apartmentId: f.apartmentId, label: val.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) { loadOverview(token!); }
+      else { alert(data.message || "Guncellenemedi"); }
+    } catch { alert("Baglanti hatasi"); }
   }
 
   function logout() {
@@ -543,6 +641,41 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
                                 {b.imageUrl ? "Resmi Değiştir" : "Bina Resmi Yükle"}
                               </button>
                             </div>
+                      <div className="adm-qr" style={{ gridColumn: "1 / -1", padding: "16px", background: "#fff", border: "1px solid #eee", borderRadius: "10px", marginBottom: "10px" }}>
+                              <div style={{ fontWeight: 600, marginBottom: 8 }}>📱 QR Kod</div>
+                              <div style={{ fontSize: "13px", color: "#666", marginBottom: 12 }}>
+                                Ziyaretçiler bu QR'ı okutarak {buildingLabel(b)} binasina ulasir. Bina girisine asin.
+                              </div>
+                              {b.qrToken ? (
+                                <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+                                  <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent("https://mobildiafon.com/?qr=" + b.qrToken)}`}
+                                    alt="QR"
+                                    width={140} height={140}
+                                    style={{ borderRadius: "8px", border: "1px solid #eee", background: "#fff" }}
+                                  />
+                                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                    
+                                      <a
+                                      href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20&data=${encodeURIComponent("https://mobildiafon.com/?qr=" + b.qrToken)}`}
+                                      download={`qr-${b.qrToken}.png`}
+                                      target="_blank" rel="noopener noreferrer"
+                                      style={{ padding: "9px 16px", background: "#e63946", color: "#fff", borderRadius: "8px", fontWeight: 600, fontSize: "14px", textDecoration: "none", textAlign: "center" }}
+                                    >
+                                      PNG Indir
+                                    </a>
+                                    <button
+                                      onClick={() => printQrPoster(b)}
+                                      style={{ padding: "9px 16px", background: "#1a2a4a", color: "#fff", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: "14px", cursor: "pointer" }}
+                                    >
+                                      Afis Yazdir (PDF)
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: "13px", color: "#999" }}>QR token bulunamadi.</div>
+                              )}
+                            </div>
                       <div className="adm-loccheck" style={{ gridColumn: "1 / -1", padding: "12px", background: "#f7f7f9", borderRadius: "10px", marginBottom: "10px" }}>
                               <div style={{ fontWeight: 600, marginBottom: 8 }}>🔒 Güvenlik Modu</div>
                               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: 8 }}>
@@ -608,6 +741,17 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
                                   {f.listingStatus === "sale" && <span className="adm-listing sale">Satılık</span>}
                                   {f.listingStatus === "rent" && <span className="adm-listing rent">Kiralık</span>}
                                 </div>
+                                {f.qrToken && (
+                                  <div className="adm-flat-qr">
+                                    <button className="adm-flat-qr-btn" onClick={() => printFlatQr(b, f)} title="Daire QR afişi yazdır">
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h2v2h-2v-2Zm4 0h2v6h-6v-2h4v-4Z"/></svg>
+                                      QR Afiş
+                                    </button>
+                                    <button className="adm-flat-qr-btn ghost" onClick={() => editFlatQrLabel(f)} title="QR altı metni düzenle">
+                                      {f.qrLabel ? `"${f.qrLabel}"` : "Etiket ekle"}
+                                    </button>
+                                  </div>
+                                )}
                                 {f.residents.length === 0 ? (
                                   <div className="adm-flat-empty">Boş</div>
                                 ) : (
