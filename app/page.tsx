@@ -437,7 +437,7 @@ function HeroCarousel() {
   // Sağ taraf: gerçek fotoğraf (placeholder)
   const photo = (n: number, label: string) => (
     <div className="hc-photo anim" aria-hidden="true">
-      <img src={`https://mobildiafon.com/hero-${n + 1}.webp`} alt="" className="hc-photo-img" loading={n === 0 ? "eager" : "lazy"} />
+      <img src={`https://cdn.mobildiafon.com/hero-${n + 1}.webp`} alt="" className="hc-photo-img" loading={n === 0 ? "eager" : "lazy"} />
       <div className="hc-photo-ph">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
         <span>{label}</span>
