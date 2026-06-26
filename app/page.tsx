@@ -101,6 +101,7 @@ const T = {
     ],
     price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Villa ve işyerinden büyük sitelere, her yapıya uygun esnek fiyatlandırma.", choose: "Planı Seç" },
     recommended: "Önerilen",
+    marquee: { eye: "Uygulamadan Görünümler", title: "Cebinizdeki dijital diafon deneyimi" },
     partnersLabel: "Teknoloji Altyapımız",
     finalCta: { eye: "MobilDiafon", h2: "Binanızın dijital giriş deneyimini bugün başlatın.", p: "QR afiş, konum doğrulama, yönetici onayı, güvenlik paneli ve Tuya uyumlu kapı açma desteğiyle kurumsal bir giriş sistemi kurun.", btn: "Başvuru Oluştur" },
  footer: {
@@ -202,6 +203,7 @@ const T = {
     ],
     price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "From single units to large complexes, flexible pricing for every structure.", choose: "Choose Plan" },
     recommended: "Recommended",
+    marquee: { eye: "App Highlights", title: "The digital intercom experience in your pocket" },
     partnersLabel: "Trusted Technology & Infrastructure Partners",
     finalCta: { eye: "MobilDiafon", h2: "Start your building's digital entry experience today.", p: "Set up an enterprise entry system with QR posters, location verification, manager approval, a security panel and Tuya-compatible door opening support.", btn: "Get Started" },
  footer: {
@@ -1036,6 +1038,29 @@ export default function HomePage() {
                   <p>{f.text}</p>
                 </article>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ==== KAYAN GÖRSEL ŞERİDİ ==== */}
+        <section className="md-marquee-sec">
+          <div className="md-center" style={{ marginBottom: 28 }}>
+            <span className="md-eyebrow">{t.marquee.eye}</span>
+            <h2 className="md-title">{t.marquee.title}</h2>
+          </div>
+          <div className="md-marquee">
+            <div className="md-marquee-track">
+              {[...Array(2)].map((_, dup) =>
+                Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                  <div className="md-marquee-item" key={`${dup}-${n}`}>
+                    <img
+                      src={`https://cdn.mobildiafon.com/main${n}.webp`}
+                      alt={`MobilDiafon ekran ${n}`}
+                      loading="lazy"
+                    />
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </section>
