@@ -1724,3 +1724,87 @@ button, input, select, textarea { font: inherit; }
 .md-partner-logo { height: 30px; width: auto; object-fit: contain; opacity: .65; filter: grayscale(100%); transition: all .25s; }
 .md-partner-logo:hover { opacity: 1; filter: grayscale(0%); }
 @media (max-width: 640px) { .md-partners-logos { gap: 28px; } .md-partner-logo { height: 24px; } }
+
+/* ============================================================
+   YENİ HERO — gerçek fotoğraf + konum butonu
+   ============================================================ */
+
+/* Sağ taraf fotoğraf alanı */
+.hc-photo {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: 420px;
+  background: linear-gradient(135deg, #1b2a4a 0%, #14213d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hc-photo-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+}
+/* Foto yoksa görünen placeholder (img yüklenemezse altında kalır) */
+.hc-photo-ph {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,255,255,.45);
+  font-size: 14px;
+  text-align: center;
+}
+.hc-photo-img[src=""],
+.hc-photo-img:not([src]) { display: none; }
+
+/* Konum sonucu bildirimi */
+.hc-loc-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: hcFadeIn .3s ease;
+}
+.hc-loc-result.found { background: #e7f6ee; color: #1c7a47; }
+.hc-loc-result.none  { background: #fef3e2; color: #9a6212; }
+.hc-loc-result.error { background: #fdecee; color: #c0283a; }
+.hc-loc-result svg { flex-shrink: 0; }
+
+@keyframes hcFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Konum butonu spinner */
+.hc-loc-spin {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -3px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: hcSpin .7s linear infinite;
+}
+@keyframes hcSpin { to { transform: rotate(360deg); } }
+
+/* Dark mode sonuç kutuları */
+.dark .hc-loc-result.found { background: rgba(28,122,71,.18); color: #4ade80; }
+.dark .hc-loc-result.none  { background: rgba(154,98,18,.18); color: #fbbf24; }
+.dark .hc-loc-result.error { background: rgba(192,40,58,.18); color: #f87171; }
+
+/* Responsive — mobilde foto üstte, küçük */
+@media (max-width: 880px) {
+  .hc-photo { min-height: 260px; order: -1; margin-bottom: 8px; }
+}

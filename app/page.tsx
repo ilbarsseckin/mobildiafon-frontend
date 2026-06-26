@@ -302,6 +302,10 @@ function HeroCarousel() {
   const [paused, setPaused] = useState(false);
   const startX = useRef<number | null>(null);
 
+  // Konum bulma durumu
+  const [locating, setLocating] = useState(false);
+  const [locResult, setLocResult] = useState<{ type: "found" | "none" | "error"; text: string } | null>(null);
+
   const go = (n: number) => setIndex((n + SLIDE_COUNT) % SLIDE_COUNT);
   const next = () => go(index + 1);
   const prev = () => go(index - 1);
@@ -337,7 +341,91 @@ function HeroCarousel() {
     setPaused(false);
   };
 
+  // Konumumu kullan: konum al → backend'e sor → #bina'ya kaydır
+  function scrollToBina(lat?: number, lng?: number) {
+    if (lat != null && lng != null) {
+      try {
+        window.dispatchEvent(new CustomEvent("md:locate", { detail: { lat, lng } }));
+      } catch {}
+    }
+    const el = document.getElementById("bina");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function useMyLocation() {
+    setLocResult(null);
+    if (!navigator.geolocation) {
+      setLocResult({ type: "error", text: t.heroLoc.noGeo });
+      setTimeout(() => scrollToBina(), 600);
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        try {
+          const res = await fetch(`https://mobildiafon.com/api/buildings/nearby-list?lat=${lat}&lng=${lng}`);
+          const arr = res.ok ? await res.json() : [];
+          if (Array.isArray(arr) && arr.length > 0) {
+            const name = arr[0].buildingName || t.heroLoc.aBuilding;
+            setLocResult({ type: "found", text: t.heroLoc.found(name) });
+          } else {
+            setLocResult({ type: "none", text: t.heroLoc.none });
+          }
+        } catch {
+          setLocResult({ type: "none", text: t.heroLoc.none });
+        } finally {
+          setLocating(false);
+          setTimeout(() => scrollToBina(lat, lng), 900);
+        }
+      },
+      () => {
+        setLocating(false);
+        setLocResult({ type: "error", text: t.heroLoc.denied });
+        setTimeout(() => scrollToBina(), 900);
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  }
+
   const cls = (n: number) => `hc-slide ${index === n ? "is-active" : ""}`;
+
+  // Her slaytın CTA bloğu (konum butonu + ikinci link + sonuç)
+  const ctaBlock = (secondHref: string, secondLabel: string) => (
+    <>
+      <div className="cta-row anim">
+        <button className="btn btn-primary" onClick={useMyLocation} disabled={locating}>
+          {locating ? (
+            <span className="hc-loc-spin" />
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: 8, verticalAlign: -3 }}>
+              <circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /><circle cx="12" cy="12" r="8" />
+            </svg>
+          )}
+          {locating ? t.heroLoc.locating : t.heroLoc.cta}
+        </button>
+        <a href={secondHref} className="btn btn-ghost">{secondLabel}</a>
+      </div>
+      {locResult && (
+        <div className={`hc-loc-result ${locResult.type}`}>
+          {locResult.type === "found" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}><path d="m5 13 4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+          {locResult.type === "none" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M12 8v5M12 16h.01" strokeLinecap="round" /><circle cx="12" cy="12" r="9" /></svg>}
+          <span>{locResult.text}</span>
+        </div>
+      )}
+    </>
+  );
+
+  // Sağ taraf: gerçek fotoğraf (placeholder)
+  const photo = (n: number, label: string) => (
+    <div className="hc-photo anim" aria-hidden="true">
+      <img src={`/hero-${n + 1}.jpg`} alt="" className="hc-photo-img" loading={n === 0 ? "eager" : "lazy"} />
+      <div className="hc-photo-ph">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
+        <span>{label}</span>
+      </div>
+    </div>
+  );
 
   return (
     <section className={`hero hero-pro ${paused ? "paused" : ""}`} aria-label="Hero"
@@ -357,26 +445,13 @@ function HeroCarousel() {
                 <span className="eyebrow anim"><i /> {s[0].eye}</span>
                 <h1 className="h1 anim">{s[0].ta}<em>{s[0].em}</em>{s[0].tb}</h1>
                 <p className="sub anim">{s[0].sub}</p>
-                <div className="cta-row anim">
-                  <Link href="/satin-al" className="btn btn-primary">{s[0].c1}</Link>
-                  <a href="#nasil" className="btn btn-ghost">{s[0].c2}</a>
-                </div>
+                {ctaBlock("#nasil", s[0].c2)}
                 <div className="badges anim">
                   <span><IconQr /> {s[0].b1}</span>
                   <span><IconVideo /> {s[0].b2}</span>
                 </div>
               </div>
-              <div className="stage anim" aria-hidden="true">
-                <div className="fcard f-tl"><h5>{s[0].tlH} <span className="tag">{s[0].tlTag}</span></h5><p>{s[0].tlP}</p></div>
-                <div className="fcard f-br"><h5>{s[0].brH}</h5><p>{s[0].brP}</p></div>
-                <div className="phone"><div className="phone-notch" /><div className="screen">
-                  <span className="label">{t.callLabel}</span>
-                  <div className="ring">12</div>
-                  <h4>{s[0].pT}</h4><span className="meta">{s[0].pM}</span>
-                  <CallActions />
-                  <span className="door">{s[0].pD}</span>
-                </div></div>
-              </div>
+              {photo(0, s[0].pT)}
             </div>
           </div>
           <div className={cls(1)}>
@@ -385,29 +460,13 @@ function HeroCarousel() {
                 <span className="eyebrow anim"><i /> {s[1].eye}</span>
                 <h1 className="h1 anim">{s[1].ta}<em>{s[1].em}</em>{s[1].tb}</h1>
                 <p className="sub anim">{s[1].sub}</p>
-                <div className="cta-row anim">
-                  <Link href="/satin-al" className="btn btn-primary">{s[1].c1}</Link>
-                  <a href="#nasil" className="btn btn-ghost">{s[1].c2}</a>
-                </div>
+                {ctaBlock("#nasil", s[1].c2)}
                 <div className="badges anim">
                   <span><IconHome /> {s[1].b1}</span>
                   <span><IconGear /> {s[1].b2}</span>
                 </div>
               </div>
-              <div className="stage anim" aria-hidden="true">
-                <div className="fcard f-tr manager-card"><h5>{s[1].trH} <span className="tag">{s[1].trTag}</span></h5>
-                  <div className="mini"><span className="ic svg"><IconApartmentLine /></span><b>{s[1].d1}</b></div>
-                  <div className="mini"><span className="ic svg"><IconUserCheckLine /></span><b>{s[1].d2}</b></div>
-                  <div className="qrbox professional"><IconQr /></div>
-                </div>
-                <div className="phone"><div className="phone-notch" /><div className="screen">
-                  <span className="label">{t.callLabel}</span>
-                  <div className="ring">A1</div>
-                  <h4>{s[1].pT}</h4><span className="meta">{s[1].pM}</span>
-                  <CallActions />
-                  <span className="door">{s[1].pD}</span>
-                </div></div>
-              </div>
+              {photo(1, s[1].pT)}
             </div>
           </div>
           <div className={cls(2)}>
@@ -416,31 +475,13 @@ function HeroCarousel() {
                 <span className="eyebrow anim"><i /> {s[2].eye}</span>
                 <h1 className="h1 anim">{s[2].ta}<em>{s[2].em}</em>{s[2].tb}</h1>
                 <p className="sub anim">{s[2].sub}</p>
-                <div className="cta-row anim">
-                  <Link href="/satin-al" className="btn btn-primary">{s[2].c1}</Link>
-                  <a href="#fiyat" className="btn btn-ghost">{s[2].c2}</a>
-                </div>
+                {ctaBlock("#fiyat", s[2].c2)}
                 <div className="badges anim">
                   <span><IconGrid /> {s[2].b1}</span>
                   <span><IconLines /> {s[2].b2}</span>
                 </div>
               </div>
-              <div className="stage anim" aria-hidden="true">
-                <div className="fcard f-tl"><h5>{s[2].tlH} <span className="tag">{s[2].tlTag}</span></h5><p>{s[2].tlP}</p></div>
-                <div className="fcard f-br" style={{ width: 218 }}>
-                  <h5 style={{ marginBottom: 6 }}>{s[2].units}</h5>
-                  <div className="mini"><span className="ic svg"><IconReceptionLine /></span><b>{s[2].u1}</b></div>
-                  <div className="mini"><span className="ic svg"><IconPoolLine /></span><b>{s[2].u2}</b></div>
-                  <div className="mini"><span className="ic svg"><IconRestaurantLine /></span><b>{s[2].u3}</b></div>
-                </div>
-                <div className="phone"><div className="phone-notch" /><div className="screen">
-                  <span className="label">{t.callLabel}</span>
-                  <div className="ring">312</div>
-                  <h4>{s[2].pT}</h4><span className="meta">{s[2].pM}</span>
-                  <CallActions />
-                  <span className="door">{s[2].pD}</span>
-                </div></div>
-              </div>
+              {photo(2, s[2].pT)}
             </div>
           </div>
           <div className={cls(3)}>
@@ -449,31 +490,13 @@ function HeroCarousel() {
                 <span className="eyebrow anim"><i /> {s[3].eye}</span>
                 <h1 className="h1 anim">{s[3].ta}<em>{s[3].em}</em>{s[3].tb}</h1>
                 <p className="sub anim">{s[3].sub}</p>
-                <div className="cta-row anim">
-                  <Link href="/satin-al" className="btn btn-primary">{s[3].c1}</Link>
-                  <a href="#ozellikler" className="btn btn-ghost">{s[3].c2}</a>
-                </div>
+                {ctaBlock("#ozellikler", s[3].c2)}
                 <div className="badges anim">
                   <span><IconLock /> {s[3].b1}</span>
                   <span><IconArrows /> {s[3].b2}</span>
                 </div>
               </div>
-              <div className="stage anim" aria-hidden="true">
-                <div className="fcard f-tr smart-card">
-                  <div className="tuya-chip">{s[3].chip}</div>
-                  <h5>{s[3].trH}</h5>
-                  <div className="mini"><span className="ic svg"><IconDoorLine /></span><b>{s[3].d1}</b></div>
-                  <div className="mini"><span className="ic svg"><IconBarrierLine /></span><b>{s[3].d2}</b></div>
-                  <div className="relay-card"><span className="ic svg"><IconRelayLine /></span><b>{s[3].relay}</b></div>
-                  <div className="flow-line"><span>{s[3].flow1}</span><i /> <span>{s[3].flow2}</span><i /> <span>{s[3].flow3}</span></div>
-                </div>
-                <div className="phone"><div className="phone-notch" /><div className="screen">
-                  <span className="label">{s[3].pStatus}</span>
-                  <div className="ring green"><IconUnlockLine /></div>
-                  <h4>{s[3].pT}</h4><span className="meta">{s[3].pM}</span>
-                  <span className="door open">{s[3].pD}</span>
-                </div></div>
-              </div>
+              {photo(3, s[3].pT)}
             </div>
           </div>
         </div>
