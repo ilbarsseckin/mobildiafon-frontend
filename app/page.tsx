@@ -268,6 +268,7 @@ function Header() {
             <a href="#nasil" onClick={() => setOpen(false)}>{t.nav.how}</a>
             <a href="#ozellikler" onClick={() => setOpen(false)}>{t.nav.features}</a>
             <a href="#fiyat" onClick={() => setOpen(false)}>{t.nav.pricing}</a>
+            <a href="/blog" onClick={() => setOpen(false)}>Blog</a>
           </nav>
           <div className="nav-cta">
             <button className="ui-icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.aria.theme}>
@@ -1019,6 +1020,7 @@ export default function HomePage() {
       <a href="#ozellikler">{t.nav.features}</a>
       <a href="#fiyat">{t.nav.pricing}</a>
       <a href="#bina">{t.nav.add}</a>
+      <a href="/blog">Blog</a>
     </div>
 
     {/* Paneller */}
