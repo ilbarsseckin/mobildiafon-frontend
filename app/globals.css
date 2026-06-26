@@ -1829,3 +1829,68 @@ button, input, select, textarea { font: inherit; }
   cursor: pointer; transition: all .15s;
 }
 .adm-mini-qr:hover { background: #1a2a4a; color: #fff; }
+
+/* ============================================================
+   KAYAN GÖRSEL ŞERİDİ (MARQUEE) — tam genişlik
+   ============================================================ */
+.md-marquee-sec {
+  padding: 56px 0;
+  overflow: hidden;
+}
+
+.md-marquee {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  /* kenarlarda yumuşak solma efekti */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+
+.md-marquee-track {
+  display: flex;
+  gap: 24px;
+  width: max-content;
+  animation: md-marquee-scroll 60s linear infinite;
+}
+
+/* hover'da dur */
+.md-marquee:hover .md-marquee-track {
+  animation-play-state: paused;
+}
+
+.md-marquee-item {
+  flex: 0 0 auto;
+  width: 520px;
+  height: 340px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(20, 33, 61, 0.12);
+  background: #f0f2f6;
+}
+
+.md-marquee-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@keyframes md-marquee-scroll {
+  from { transform: translateX(0); }
+  /* track iki kopya içerdiği için %50 kaydırınca kesintisiz döngü olur */
+  to   { transform: translateX(calc(-50% - 12px)); }
+}
+
+/* hareketi azalt tercihi */
+@media (prefers-reduced-motion: reduce) {
+  .md-marquee-track { animation: none; }
+  .md-marquee { -webkit-mask-image: none; mask-image: none; overflow-x: auto; }
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .md-marquee-item { width: 320px; height: 220px; }
+  .md-marquee-track { gap: 16px; animation-duration: 40s; }
+  .md-marquee-sec { padding: 40px 0; }
+}
