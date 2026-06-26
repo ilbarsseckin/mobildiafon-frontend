@@ -945,10 +945,10 @@ export default function HomePage() {
   <div className="md-wrap">
     <p className="md-partners-label">{t.partnersLabel}</p>
     <div className="md-partners-logos">
-      <img src="/tuya-logo.png" alt="Tuya uyumlu" className="md-partner-logo" />
-      <img src="/iyzico-logo.png" alt="iyzico ile güvenli ödeme" className="md-partner-logo" />
-      <img src="/hetzner-logo.png" alt="Hetzner Cloud" className="md-partner-logo" />
-      <img src="/aws-logo.png" alt="Amazon Web Services" className="md-partner-logo" />
+    <img src="/tuya-logo.svg" alt="Tuya uyumlu" className="md-partner-logo" />
+<img src="/iyzico-logo.svg" alt="iyzico ile güvenli ödeme" className="md-partner-logo" />
+<img src="/hetzner-logo.svg" alt="Hetzner Cloud" className="md-partner-logo" />
+<img src="/aws-logo.svg" alt="Amazon Web Services" className="md-partner-logo" />
     </div>
   </div>
 </section>
