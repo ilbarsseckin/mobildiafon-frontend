@@ -28,6 +28,15 @@ const T = {
     securityLogin: "Güvenlik Girişi",
     nav: { add: "Binanı Ekle", how: "Nasıl Çalışır", features: "Özellikler", pricing: "Fiyatlandırma", digitalize: "Binanı Dijitalleştir" },
     callLabel: "Gelen Çağrı",
+    heroLoc: {
+      cta: "Konumumu Kullan",
+      locating: "Konum alınıyor…",
+      found: (ad: string) => `${ad} bulundu — haritada gösteriliyor`,
+      none: "Bu konumda kayıtlı bina yok — haritadan ekleyebilirsin",
+      denied: "Konum izni verilmedi — haritadan arayabilirsin",
+      noGeo: "Tarayıcı konumu desteklemiyor — haritadan ara",
+      aBuilding: "Bina",
+    },
     slides: [
       { eye: "QR + Konum Tabanlı Diafon", ta: "Diafon artık binada değil, ", em: "cebinizde", tb: "", sub: "Ziyaretçi QR kodu okutur, bina doğrulanır ve doğru daireye görüntülü arama başlar. Panelsiz, hızlı ve modern bir giriş deneyimi sunar.", c1: "Binanı Dijitalleştir", c2: "Nasıl Çalışır?", b1: "QR ile bina bulma", b2: "Görüntülü arama", tlH: "Konum doğrulandı", tlTag: "120 m", tlP: "Bina çevresinde kayıtlı liste açılır", brH: "Yıldız Sitesi · A Blok", brP: "48 daire · 92 sakin", pT: "Apartman Girişi", pM: "Daire 12 aranıyor", pD: "Görüntülü çağrı başlatıldı" },
       { eye: "Apartman & Site Yönetimi", ta: "Apartman ve siteler için ", em: "panelsiz dijital diafon", tb: "", sub: "Yönetici daireleri yönetir, sakinleri onaylar, güvenlik ve çağrı süreçlerini tek panelden takip eder. Kurulum hızlı, kullanım sade, yönetim kontrollüdür.", c1: "Çözümü İncele", c2: "Özellikleri Gör", b1: "Yönetici paneli", b2: "Daire yönetimi", trH: "Yönetici Paneli", trTag: "Aktif", d1: "Daire listesi", d2: "Sakin onayı", pT: "Daire Listesi", pM: "Ziyaretçi doğru daireyi seçer", pD: "Çağrı kaydı oluşturuldu" },
@@ -120,6 +129,15 @@ const T = {
     securityLogin: "Security Login",
     nav: { add: "Add Building", how: "How It Works", features: "Features", pricing: "Pricing", digitalize: "Digitalize Your Building" },
     callLabel: "Incoming Call",
+    heroLoc: {
+      cta: "Use My Location",
+      locating: "Getting location…",
+      found: (ad: string) => `${ad} found — showing on map`,
+      none: "No registered building here — you can add it from the map",
+      denied: "Location permission denied — search from the map",
+      noGeo: "Your browser doesn't support location — use the map",
+      aBuilding: "Building",
+    },
     slides: [
       { eye: "QR + Location-Based Intercom", ta: "Your intercom is no longer on the wall, ", em: "it's in your phone", tb: "", sub: "Visitors scan the QR code, the building is verified, and a video call starts with the correct resident. A panel-free, modern entry experience.", c1: "Digitalize Your Building", c2: "How It Works", b1: "Find building by QR", b2: "Video calling", tlH: "Location verified", tlTag: "120 m", tlP: "Registered building list opens around the location", brH: "Star Complex · Block A", brP: "48 flats · 92 residents", pT: "Building Entrance", pM: "Calling Flat 12", pD: "Video call started" },
       { eye: "Apartment & Complex Management", ta: "A panel-free digital intercom for ", em: "apartments and complexes", tb: "", sub: "Managers control flats, approve residents, and monitor security and call flows from one panel. Fast setup, simple use, controlled management.", c1: "Explore Solution", c2: "See Features", b1: "Manager panel", b2: "Flat management", trH: "Manager Panel", trTag: "Active", d1: "Flat directory", d2: "Resident approval", pT: "Flat Directory", pM: "Visitor selects the correct flat", pD: "Call log created" },
@@ -419,7 +437,7 @@ function HeroCarousel() {
   // Sağ taraf: gerçek fotoğraf (placeholder)
   const photo = (n: number, label: string) => (
     <div className="hc-photo anim" aria-hidden="true">
-      <img src={`/hero-${n + 1}.jpg`} alt="" className="hc-photo-img" loading={n === 0 ? "eager" : "lazy"} />
+      <img src={`https://mobildiafon.com/hero-${n + 1}.webp`} alt="" className="hc-photo-img" loading={n === 0 ? "eager" : "lazy"} />
       <div className="hc-photo-ph">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
         <span>{label}</span>
@@ -640,7 +658,19 @@ function BinaBul() {
   const [blokCount, setBlokCount] = useState(3);
   const [blokPer, setBlokPer] = useState(16);
   const [islCount, setIslCount] = useState(20);
-
+// Hero'dan gelen "konumumu kullan" olayını dinle
+  useEffect(() => {
+    const onLocate = (e: any) => {
+      const lat = e?.detail?.lat;
+      const lng = e?.detail?.lng;
+      if (lat == null || lng == null || !mapRef.current) return;
+      mapRef.current.setView([lat, lng], 17);
+      setTimeout(() => { void doScan(); }, 400);
+    };
+    window.addEventListener("md:locate", onLocate as any);
+    return () => window.removeEventListener("md:locate", onLocate as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     let cancelled = false;
     loadLeaflet().then((L: any) => {
