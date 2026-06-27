@@ -235,7 +235,12 @@ export default function SatinAl() {
         });
         const subData = await subRes.json();
         const subs = subData.subscriptions || subData || [];
-        const sub = Array.isArray(subs) ? subs[0] : null;
+        // Yeni olusturulan binanin id'si ile dogru aboneligi bul
+        const newBuildingId = createData.building?.id || createData.id || createData.buildings?.[0]?.id;
+        let sub = null;
+        if (Array.isArray(subs)) {
+          sub = subs.find((s: any) => s.scopeName === newBuildingId) || subs[subs.length - 1] || subs[0];
+        }
         if (!sub || !sub.id) throw new Error("Abonelik bulunamadi");
         const initRes = await fetch(`${API}/payment/initialize`, {
           method: "POST",

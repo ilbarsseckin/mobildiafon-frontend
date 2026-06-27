@@ -6,7 +6,7 @@ const API = "/api";
 
 type Status = "active" | "trial" | "cancelled";
 type Customer = {
-  id: string; name: string; owner: string; phone: string; status: Status;
+  id: string; name: string; owner: string; phone: string; status: Status; isFree?: boolean;
   buildings: number; flats: number; residents: number; calls: number; mrr: number; since: string;
 };
 type Overview = {
@@ -124,6 +124,20 @@ export default function SuperAdmin() {
   function authHeader() {
     const tk = sessionStorage.getItem("md_super_token");
     return { Authorization: `Bearer ${tk}` };
+  }
+
+  async function toggleFree(ownerId: string, makeFree: boolean) {
+    if (!confirm(makeFree ? "Bu hesap sınırsız ÜCRETSİZ yapılsın mı?" : "Ücretsizlik kaldırılsın mı? (14 gün deneme olur)")) return;
+    try {
+      const res = await fetch(`${API}/superadmin/set-free`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerId, free: makeFree }),
+      });
+      const d = await res.json();
+      if (d.success) { loadData(); }
+      else alert(d.message || "İşlem başarısız");
+    } catch { alert("Bağlantı hatası"); }
   }
 
   async function loadData() {
@@ -272,7 +286,7 @@ export default function SuperAdmin() {
                 <tr>
                   <th>Müşteri</th><th>Sahip</th><th>Durum</th>
                   <th className="num">Bina</th><th className="num">Daire</th><th className="num">Sakin</th>
-                  <th className="num">Çağrı</th><th className="num">MRR</th><th>Üyelik</th>
+                  <th className="num">Çağrı</th><th className="num">MRR</th><th>Üyelik</th><th>İşlem</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,9 +301,16 @@ export default function SuperAdmin() {
                     <td className="num">{c.calls.toLocaleString("tr-TR")}</td>
                     <td className="num strong">{c.mrr ? fmt(c.mrr) : "—"}</td>
                     <td className="muted">{new Date(c.since).toLocaleDateString("tr-TR")}</td>
+                    <td>
+                      {c.isFree ? (
+                        <button className="sa-free-btn active" onClick={() => toggleFree(c.id, false)} title="Ücretsizliği kaldır">★ Ücretsiz</button>
+                      ) : (
+                        <button className="sa-free-btn" onClick={() => toggleFree(c.id, true)} title="Sınırsız ücretsiz yap">Ücretsiz Yap</button>
+                      )}
+                    </td>
                   </tr>
                 ))}
-                {rows.length === 0 && <tr><td colSpan={9} className="sa-empty">Sonuç bulunamadı.</td></tr>}
+                {rows.length === 0 && <tr><td colSpan={10} className="sa-empty">Sonuç bulunamadı.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -384,6 +405,10 @@ body { margin:0; font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",
 .sa-table tr:last-child td { border-bottom:none; }
 .sa-cust-name { font-weight:700; color:var(--navy-deep); }
 .sa-cust-city { font-size:12.5px; color:var(--gray); margin-top:2px; }
+.sa-free-btn { font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; border:1px solid #e63946; background:#fff; color:#e63946; cursor:pointer; white-space:nowrap; transition:all .15s; }
+.sa-free-btn:hover { background:#e63946; color:#fff; }
+.sa-free-btn.active { background:#1a8a4a; border-color:#1a8a4a; color:#fff; }
+.sa-free-btn.active:hover { background:#fff; color:#1a8a4a; }
 .sa-table td.strong { font-weight:700; color:var(--navy-deep); }
 .sa-table td.muted { color:var(--gray); font-size:13px; }
 .sa-status { font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; }
