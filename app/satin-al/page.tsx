@@ -41,11 +41,17 @@ export default function SatinAl() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
-  const [step, setStep] = useState<"form" | "success">("form");
+  const [step, setStep] = useState<"form" | "otp" | "success">("form");
+  // OTP / auth akisi
+  const [authToken, setAuthToken] = useState<string>("");
+  const [otpCode, setOtpCode] = useState<string>("");
+  const [needName, setNeedName] = useState<boolean>(false);
+  const [otpSent, setOtpSent] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [plansLoading, setPlansLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [bldType, setBldType] = useState<string>("apartman");
   const [form, setForm] = useState({
     siteName: "",
     flatCount: "",
@@ -55,6 +61,10 @@ export default function SatinAl() {
     card: "",
     expiry: "",
     cvc: "",
+    lat: "",
+    lng: "",
+    il: "",
+    ilce: "",
   });
 
   useEffect(() => {
@@ -69,6 +79,19 @@ export default function SatinAl() {
         const params = new URLSearchParams(window.location.search);
         const planParam = params.get("plan");
         const unitCount = parseInt(params.get("birim") || "0");
+        // Taramadan gelen bilgileri forma aktar
+        const adParam = params.get("ad") || "";
+        const tipParam = params.get("tip") || "apartman";
+        setBldType(tipParam);
+        setForm((f) => ({
+          ...f,
+          siteName: adParam || f.siteName,
+          flatCount: unitCount > 0 ? String(unitCount) : f.flatCount,
+          lat: params.get("lat") || "",
+          lng: params.get("lng") || "",
+          il: params.get("il") || "",
+          ilce: params.get("ilce") || "",
+        }));
 
         if (planParam) {
           // ID ile eşleş
@@ -120,30 +143,92 @@ export default function SatinAl() {
     }
     const v = validate();
     if (v) { setError(v); return; }
+    // Telefon formatini normalize et (0 ile baslayan 11 hane)
+    const normPhone = form.phone.replace(/\D/g, "").replace(/^90/, "0").replace(/^5/, "05");
+    if (!/^0\d{10}$/.test(normPhone)) { setError("Telefon 05xx xxx xx xx formatinda olmali."); return; }
     setLoading(true);
     try {
-      if (DEMO_MODE) {
-        await new Promise((r) => setTimeout(r, 900));
+      // 1) Once login dene (kayitli mi?)
+      const loginRes = await fetch(`${API}/auth/login`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: normPhone }),
+      });
+      if (loginRes.ok) {
+        // Kayitli -> SMS gitti
+        setNeedName(false); setOtpSent(true); setStep("otp");
       } else {
-        const res = await fetch(`${API}/orders/start`, {
+        const ld = await loginRes.json();
+        if ((ld.message || "").includes("kayıtlı değil") || loginRes.status === 404) {
+          // Yeni kullanici -> register (isim formdan)
+          const regRes = await fetch(`${API}/auth/register`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: form.fullName.trim(), phone: normPhone, email: form.email.trim() || undefined }),
+          });
+          const rd = await regRes.json();
+          if (!regRes.ok) throw new Error(rd.message || "Kayit basarisiz");
+          setNeedName(false); setOtpSent(true); setStep("otp");
+        } else {
+          throw new Error(ld.message || "Giris basarisiz");
+        }
+      }
+    } catch (e: any) {
+      setError(e.message || "Bir hata olustu");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // OTP dogrula -> token al -> bina olustur -> iyzico
+  async function verifyAndPay() {
+    setError("");
+    const normPhone = form.phone.replace(/\D/g, "").replace(/^90/, "0").replace(/^5/, "05");
+    if (otpCode.trim().length !== 6) { setError("6 haneli kodu girin."); return; }
+    setLoading(true);
+    try {
+      const vRes = await fetch(`${API}/auth/verify`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: normPhone, code: otpCode.trim() }),
+      });
+      const vData = await vRes.json();
+      if (!vRes.ok || !vData.token) throw new Error(vData.message || "Kod dogrulanamadi");
+      const token = vData.token;
+      setAuthToken(token);
+      // Bina/isletme olustur
+      const lat = parseFloat(form.lat) || 0;
+      const lng = parseFloat(form.lng) || 0;
+      if (!lat || !lng) throw new Error("Konum bilgisi eksik. Lutfen ana sayfadan tarayarak ekleyin.");
+      let createRes;
+      if (bldType === "isletme") {
+        createRes = await fetch(`${API}/buildings/create-business`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({
-            planId: selectedPlanId,
-            billing,
-            siteName: form.siteName.trim(),
-            flatCount: Number(form.flatCount) || null,
-            fullName: form.fullName.trim(),
-            phone: form.phone.trim(),
-            email: form.email.trim(),
+            businessName: form.siteName.trim(),
+            latitude: lat,
+            longitude: lng,
           }),
         });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.message || "Sipariş başlatılamadı");
+      } else {
+        const flatCount = Number(form.flatCount) || 1;
+        createRes = await fetch(`${API}/buildings/create-structure`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            siteName: form.siteName.trim(),
+            latitude: lat,
+            longitude: lng,
+            blocks: [{ flatCount }],
+          }),
+        });
       }
+      const createData = await createRes.json();
+      if (!createRes.ok || createData.success === false) {
+        throw new Error(createData.message || "Bina olusturulamadi");
+      }
+      // TODO: payment/initialize (iyzico) - sonraki adim
       setStep("success");
     } catch (e: any) {
-      setError(e.message || "Bir hata oluştu");
+      setError(e.message || "Bir hata olustu");
     } finally {
       setLoading(false);
     }
@@ -175,6 +260,27 @@ export default function SatinAl() {
           <div className="ck-success-actions">
             {!isEnterprise && <Link href="/yonetici" className="ck-btn primary">Yönetici Paneline Git</Link>}
             <Link href="/" className="ck-btn ghost">Ana sayfa</Link>
+          </div>
+        </section>
+      ) : step === "otp" ? (
+        <section className="ck-wrap ck-otp">
+          <h1>Telefonunuzu doğrulayın</h1>
+          <p className="ck-sub">{form.phone} numarasına gönderdiğimiz 6 haneli kodu girin.</p>
+          {error && <div className="ck-error">{error}</div>}
+          <div className="ck-otp-box">
+            <input
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="______"
+              inputMode="numeric"
+              maxLength={6}
+              className="ck-otp-input"
+              autoFocus
+            />
+            <button className="ck-btn primary full" disabled={loading || otpCode.length !== 6} onClick={verifyAndPay}>
+              {loading ? "Doğrulanıyor..." : "Doğrula ve Devam Et"}
+            </button>
+            <button className="ck-otp-back" onClick={() => { setStep("form"); setOtpCode(""); setError(""); }}>‹ Geri dön</button>
           </div>
         </section>
       ) : (
@@ -231,15 +337,15 @@ export default function SatinAl() {
 
             {/* Bina Bilgileri */}
             <div className="ck-block">
-              <div className="ck-block-title">Bina Bilgileri</div>
+              <div className="ck-block-title">{bldType === "isletme" ? "İşletme Bilgileri" : bldType === "villa" ? "Villa Bilgileri" : "Bina Bilgileri"}</div>
               <div className="ck-fields">
                 <label className="ck-field full">
-                  <span>Bina / Site Adı</span>
-                  <input value={form.siteName} onChange={(e) => set("siteName", e.target.value)} placeholder="örn. Yıldız Apartmanı" />
+                  <span>{bldType === "isletme" ? "İşletme Adı" : bldType === "villa" ? "Villa Adı" : "Bina / Site Adı"}</span>
+                  <input value={form.siteName} onChange={(e) => set("siteName", e.target.value)} placeholder={bldType === "isletme" ? "örn. Fera Life Market" : bldType === "villa" ? "örn. Yılmaz Villası" : "örn. Yıldız Apartmanı"} />
                 </label>
                 {!isEnterprise && (
                   <label className="ck-field full">
-                    <span>Daire / Birim Sayısı</span>
+                    <span>{bldType === "isletme" ? "Birim Sayısı" : bldType === "villa" ? "Birim Sayısı" : "Daire / Birim Sayısı"}</span>
                     <input value={form.flatCount} onChange={(e) => set("flatCount", e.target.value)} inputMode="numeric" placeholder="örn. 24" />
                   </label>
                 )}

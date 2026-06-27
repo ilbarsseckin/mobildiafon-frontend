@@ -63,7 +63,7 @@ export default function YoneticiPanel() {
   const [calls, setCalls] = useState<any[]>([]);
 
   // Güvenlik yönetimi
-  const [guards, setGuards] = useState<{ id: string; phone: string; guardName: string | null }[]>([]);
+  const [guards, setGuards] = useState<{ id: string; phone: string; guardName: string | null; userId: string | null }[]>([]);
   const [newGuardPhone, setNewGuardPhone] = useState("");
   const [newGuardName, setNewGuardName] = useState("");
 
@@ -357,6 +357,49 @@ export default function YoneticiPanel() {
         <div class="label">${label}</div>
         <div class="qr"><img src="${qrImg}" alt="QR"></div>
         <div class="desc">Bu QR kodu okutarak dogrudan ${label} kisisini goruntulu arayabilirsiniz.</div>
+        <div class="foot">mobildiafon.com</div>
+      </div>
+      <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
+      </body></html>`);
+    w.document.close();
+  }
+
+  // Guvenlik QR afisi yazdir (yoneticinin ilk binasinin token'i uzerinden)
+  function printGuardQr(g: { id: string; phone: string; guardName: string | null; userId: string | null }) {
+    const firstWithToken = buildings.find((b) => b.qrToken);
+    if (!firstWithToken || !firstWithToken.qrToken) {
+      alert("QR olusturmak icin once bir bina/blok eklemelisiniz.");
+      return;
+    }
+    const guardPart = g.userId ? `&guard=${g.userId}` : "";
+    const url = `https://mobildiafon.com/web/ara.html?token=${firstWithToken.qrToken}${guardPart}`;
+    const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(url)}`;
+    const label = g.guardName || "Güvenlik / Danışma";
+    const w = window.open("", "_blank", "width=800,height=1000");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>Güvenlik QR</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:40px; }
+        .poster { text-align:center; border:3px solid #1a5fc2; border-radius:24px; padding:48px 40px; max-width:480px; width:100%; }
+        .brand { font-size:24px; font-weight:800; color:#1a2a4a; letter-spacing:-1px; margin-bottom:4px; }
+        .brand span { color:#e63946; }
+        .sub { font-size:13px; color:#888; margin-bottom:24px; }
+        .badge { display:inline-block; background:#1a5fc2; color:#fff; font-size:14px; font-weight:700; padding:6px 16px; border-radius:20px; margin-bottom:18px; }
+        .label { font-size:28px; font-weight:800; color:#1a2a4a; margin-bottom:22px; }
+        .qr { width:260px; height:260px; margin:0 auto 24px; border:1px solid #eee; border-radius:16px; padding:12px; }
+        .qr img { width:100%; height:100%; }
+        .desc { font-size:15px; color:#555; line-height:1.5; }
+        .foot { margin-top:24px; font-size:13px; color:#aaa; }
+        @media print { body { padding:0; } }
+      </style></head><body>
+      <div class="poster">
+        <div class="brand">Mobil<span>Diafon</span></div>
+        <div class="sub">${firstWithToken.buildingName || ""}</div>
+        <div class="badge">🛡️ GÜVENLİK / DANIŞMA</div>
+        <div class="label">${label}</div>
+        <div class="qr"><img src="${qrImg}" alt="QR"></div>
+        <div class="desc">Bu QR kodu okutarak güvenlik/danışma ile görüntülü görüşme başlatabilirsiniz.</div>
         <div class="foot">mobildiafon.com</div>
       </div>
       <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
@@ -855,6 +898,7 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
                               <div className="adm-item-sub">{g.phone}</div>
                             </div>
                             <div className="adm-item-actions">
+                              <button className="adm-mini-qr" onClick={() => printGuardQr(g)} disabled={loading} title="Güvenlik QR afişi">QR</button>
                               <button className="adm-reject" onClick={() => removeGuard(g.id, g.guardName || "")} disabled={loading}>Çıkar</button>
                             </div>
                           </div>

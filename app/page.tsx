@@ -62,7 +62,7 @@ const T = {
       joinResident: "Sakin olarak katıl", addCommercial: "İşletme / ticari birim olarak ekle",
       tagNo: "Burada kayıtlı bina yok", firstAdd: "İlk ekleyen sen ol", selectedLoc: "Seçilen konum",
       addApart: "Apartman / Site ekle", addVilla: "Villa / Müstakil ekle", addBiz: "İşletme / AVM ekle",
-      backScan: "‹ Konumu değiştir / yeniden tara", back: "‹ Geri",
+      backScan: "Konumu değiştir", rescan: "Yeniden tara", back: "‹ Geri",
       residentTitle: (ad: string) => `${ad} — sakin katılımı`,
       yourFlat: "Dairen", flat: (n: number) => `Daire ${n}`, phone: "Telefon", phonePh: "05xx xxx xx xx",
       sendJoin: "Yöneticiye Katılma İsteği Gönder",
@@ -164,7 +164,7 @@ const T = {
       joinResident: "Join as resident", addCommercial: "Add as business / commercial unit",
       tagNo: "No registered building here", firstAdd: "Be the first to add it", selectedLoc: "Selected location",
       addApart: "Add Apartment / Complex", addVilla: "Add Villa / Detached", addBiz: "Add Business / Mall",
-      backScan: "‹ Change location / scan again", back: "‹ Back",
+      backScan: "Change location", rescan: "Rescan", back: "‹ Back",
       residentTitle: (ad: string) => `${ad} — resident sign-up`,
       yourFlat: "Your flat", flat: (n: number) => `Flat ${n}`, phone: "Phone", phonePh: "05xx xxx xx xx",
       sendJoin: "Send join request to manager",
@@ -765,7 +765,7 @@ function BinaBul() {
 
   // Backend planlardan fiyat hesabı
   const matchedPlan = plans.find(p => p.minUnits <= unitCount && (p.maxUnits === null || p.maxUnits >= unitCount));
-  const isTeklif = tip === "isletme" || !matchedPlan || matchedPlan.monthlyPrice === 0;
+  const isTeklif = !matchedPlan || matchedPlan.monthlyPrice === 0;
   const monthly = matchedPlan?.monthlyPrice || 0;
   const yearly = matchedPlan?.yearlyPrice || 0;
   const amount = isTeklif ? tb.corpQuote : bill === "ay" ? `₺${bbFmt(monthly)}` : `₺${bbFmt(yearly)}`;
@@ -807,7 +807,7 @@ function BinaBul() {
           {managerOpen ? (
             <>
               <button className="bb2-link" onClick={backFromSub}>{tb.back}</button>
-              <h3 className="bb2-h">{tb.newBuilding}</h3>
+              <h3 className="bb2-h">{tip === "isletme" ? tb.addBiz : tip === "villa" ? tb.addVilla : tb.newBuilding}</h3>
               <div className="bb-field"><label>{tb.bldName}</label>
                 <input value={ad} onChange={(e) => setAd(e.target.value)} placeholder={tb.bldNamePh} autoComplete="off" />
               </div>
@@ -923,7 +923,10 @@ function BinaBul() {
                   </div>
                 </>
               )}
-              <button className="bb2-link center" onClick={backToMap}>{tb.backScan}</button>
+              <div className="bb2-rescan-row">
+                <button className="btn btn-soft" onClick={() => { backToMap(); setTimeout(() => doScan(), 100); }}>🔄 {tb.rescan}</button>
+                <button className="bb2-link center" onClick={backToMap}>{tb.backScan}</button>
+              </div>
             </>
           ) : (
             <>
