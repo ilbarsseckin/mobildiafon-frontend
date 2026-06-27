@@ -207,6 +207,7 @@ export default function SatinAl() {
             businessName: form.siteName.trim(),
             latitude: lat,
             longitude: lng,
+            unitCount: Number(form.flatCount) || 1,
           }),
         });
       } else {
