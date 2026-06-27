@@ -47,6 +47,7 @@ export default function SatinAl() {
   const [otpCode, setOtpCode] = useState<string>("");
   const [needName, setNeedName] = useState<boolean>(false);
   const [otpSent, setOtpSent] = useState<boolean>(false);
+  const [payMode, setPayMode] = useState<"trial" | "paynow">("trial");
   const [loading, setLoading] = useState(false);
   const [plansLoading, setPlansLoading] = useState(true);
   const [error, setError] = useState("");
@@ -127,11 +128,11 @@ export default function SatinAl() {
     if (!form.fullName.trim()) return "Yetkili adını girin.";
     if (!/^0?5\d{9}$|^\+?\d{10,13}$/.test(form.phone.replace(/\s/g, ""))) return "Geçerli bir telefon numarası girin.";
     if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Geçerli bir e-posta girin.";
-    if (!isEnterprise && form.card.replace(/\s/g, "").length < 12) return "Kart numarasını kontrol edin.";
     return null;
   }
 
-  async function submit() {
+  async function submit(mode: "trial" | "paynow" = "trial") {
+    setPayMode(mode);
     setError("");
     if (isEnterprise) {
       if (!form.siteName.trim() || !form.fullName.trim() || !form.email.trim()) {
@@ -225,7 +226,37 @@ export default function SatinAl() {
       if (!createRes.ok || createData.success === false) {
         throw new Error(createData.message || "Bina olusturulamadi");
       }
-      // TODO: payment/initialize (iyzico) - sonraki adim
+      // Hemen satin al -> iyzico odeme formu
+      if (payMode === "paynow") {
+        // Kullanicinin aboneligini bul (bina olunca olusur)
+        const subRes = await fetch(`${API}/subscription/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const subData = await subRes.json();
+        const subs = subData.subscriptions || subData || [];
+        const sub = Array.isArray(subs) ? subs[0] : null;
+        if (!sub || !sub.id) throw new Error("Abonelik bulunamadi");
+        const initRes = await fetch(`${API}/payment/initialize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ subscriptionId: sub.id, period: billing === "yearly" ? "yearly" : "monthly" }),
+        });
+        const initData = await initRes.json();
+        if (!initRes.ok || !initData.success) throw new Error(initData.message || "Odeme baslatilamadi");
+        // iyzico checkout formuna yonlendir
+        if (initData.paymentPageUrl) {
+          window.location.href = initData.paymentPageUrl;
+          return;
+        }
+        if (initData.checkoutFormContent) {
+          // Form HTML donduyse yeni sekmede ac
+          const w = window.open("", "_self");
+          w?.document.write(initData.checkoutFormContent);
+          return;
+        }
+        throw new Error("Odeme formu alinamadi");
+      }
+      // Deneme modu -> basari
       setStep("success");
     } catch (e: any) {
       setError(e.message || "Bir hata olustu");
@@ -371,29 +402,6 @@ export default function SatinAl() {
               </div>
             </div>
 
-            {/* Ödeme */}
-            {!isEnterprise && (
-              <div className="ck-block">
-                <div className="ck-block-title">Ödeme Bilgileri</div>
-                <div className="ck-pay-note">
-                  Deneme süresince ücret alınmaz. Kart bilgileriniz güvenli ödeme sağlayıcısı üzerinden saklanır.
-                </div>
-                <div className="ck-fields">
-                  <label className="ck-field full">
-                    <span>Kart numarası</span>
-                    <input value={form.card} onChange={(e) => set("card", e.target.value)} inputMode="numeric" placeholder="0000 0000 0000 0000" />
-                  </label>
-                  <label className="ck-field">
-                    <span>Son kullanma</span>
-                    <input value={form.expiry} onChange={(e) => set("expiry", e.target.value)} placeholder="AA/YY" />
-                  </label>
-                  <label className="ck-field">
-                    <span>CVC</span>
-                    <input value={form.cvc} onChange={(e) => set("cvc", e.target.value)} inputMode="numeric" placeholder="123" />
-                  </label>
-                </div>
-              </div>
-            )}
 
             {error && <div className="ck-error">{error}</div>}
           </div>
@@ -446,9 +454,20 @@ export default function SatinAl() {
                 <div className="ck-loading">Plan seçin...</div>
               )}
 
-              <button className="ck-btn primary full" onClick={submit} disabled={loading || !plan}>
-                {loading ? "İşleniyor..." : isEnterprise ? "Teklif Al" : "Denemeyi Başlat"}
-              </button>
+              {isEnterprise ? (
+                <button className="ck-btn primary full" onClick={() => submit("trial")} disabled={loading || !plan}>
+                  {loading ? "İşleniyor..." : "Teklif Al"}
+                </button>
+              ) : (
+                <div className="ck-cta-group">
+                  <button className="ck-btn primary full" onClick={() => submit("trial")} disabled={loading || !plan}>
+                    {loading ? "İşleniyor..." : "14 Gün Ücretsiz Dene"}
+                  </button>
+                  <button className="ck-btn ghost full" onClick={() => submit("paynow")} disabled={loading || !plan}>
+                    Hemen Satın Al
+                  </button>
+                </div>
+              )}
               <div className="ck-secure">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.7" /><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7" /></svg>
                 256-bit SSL ile korunur
