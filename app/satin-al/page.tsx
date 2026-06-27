@@ -262,7 +262,37 @@ export default function SatinAl() {
         }
         throw new Error("Odeme formu alinamadi");
       }
-      // Deneme modu -> basari
+      // Deneme modu: ama kullanici daha once deneme kullandiysa abonelik pending_payment olur
+      // O durumda deneme HAKKI YOK -> odemeye yonlendir
+      const checkRes = await fetch(`${API}/subscription/my`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const checkData = await checkRes.json();
+      const checkSubs = checkData.subscriptions || [];
+      const newBId = createData.building?.id || createData.id || createData.buildings?.[0]?.id;
+      const mySub = Array.isArray(checkSubs)
+        ? (checkSubs.find((s: any) => s.scopeName === newBId) || checkSubs[checkSubs.length - 1])
+        : null;
+      if (mySub && mySub.status === "pending_payment") {
+        // Deneme hakki yok -> uyari + odemeye yonlendir
+        setError("Daha önce ücretsiz deneme hakkınızı kullandınız. Devam etmek için ödeme yapmanız gerekiyor.");
+        // Otomatik odeme baslat
+        const initRes = await fetch(`${API}/payment/initialize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ subscriptionId: mySub.id, period: billing === "yearly" ? "yearly" : "monthly" }),
+        });
+        const initData = await initRes.json();
+        if (initData.success && (initData.paymentPageUrl || initData.checkoutFormContent)) {
+          if (initData.paymentPageUrl) { window.location.href = initData.paymentPageUrl; return; }
+          const w = window.open("", "_self");
+          w?.document.write(initData.checkoutFormContent);
+          return;
+        }
+        setLoading(false);
+        return;
+      }
+      // Deneme hakki var -> basari
       setStep("success");
     } catch (e: any) {
       setError(e.message || "Bir hata olustu");
