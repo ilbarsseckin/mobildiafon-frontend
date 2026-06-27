@@ -1163,6 +1163,7 @@ export default function HomePage() {
       <Link href="/gizlilik">{t.footer.privacy}</Link>
       <Link href="/kullanim-sartlari">{t.footer.terms}</Link>
       <Link href="/mesafeli-satis">{t.footer.distanceSales}</Link>
+      <Link href="/kvkk">KVKK</Link>
       <Link href="/iletisim">{t.footer.contact}</Link>
     </div>
 
