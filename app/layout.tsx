@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import WhatsAppButton from "./components/WhatsAppButton";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -62,7 +63,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" className={`${bricolage.variable} ${jakarta.variable}`}>
-      <body>{children}</body>
+      <body>{children}<WhatsAppButton /></body>
     </html>
   );
 }

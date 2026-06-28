@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef, createContext, useContext, type PointerEvent } from "react";
 import Link from "next/link";
+import Reveal from "./components/Reveal";
+import NetworkBackground from "./components/NetworkBackground";
+import JourneyScene from "./components/JourneyScene";
+import HeroPhone from "./components/HeroPhone";
 
 /* ============================================================
    DİL (i18n) + TEMA
@@ -439,11 +443,17 @@ function HeroCarousel() {
   // Sağ taraf: gerçek fotoğraf (placeholder)
   const photo = (n: number, label: string) => (
     <div className="hc-photo anim" aria-hidden="true">
+      {n === 0 ? (
+        <HeroPhone />
+      ) : (
       <img src={`https://cdn.mobildiafon.com/hero-${n + 1}.webp`} alt="" className="hc-photo-img" loading={n === 0 ? "eager" : "lazy"} />
+      )}
+      {n !== 0 && (
       <div className="hc-photo-ph">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
         <span>{label}</span>
       </div>
+      )}
     </div>
   );
 
@@ -996,9 +1006,11 @@ export default function HomePage() {
   return (
     <UICtx.Provider value={{ lang, theme, setLang, setTheme, t, plans }}>
       <main className={`md-site mdland${theme === "dark" ? " dark" : ""}`}>
+        <NetworkBackground />
         <Header />
         <HeroCarousel />
         <BinaBul />
+        <JourneyScene />
 <section className="md-partners">
   <div className="md-wrap">
     <p className="md-partners-label">{t.partnersLabel}</p>
@@ -1012,18 +1024,20 @@ export default function HomePage() {
 </section>
         <section id="nasil" className="md-section">
           <div className="md-wrap">
-            <div className="md-center">
+            <Reveal variant="fade" className="md-center">
               <span className="md-eyebrow">{t.how.eye}</span>
               <h2 className="md-title">{t.how.title}</h2>
               <p className="md-lead md-lead-center">{t.how.lead}</p>
-            </div>
+            </Reveal>
             <div className="md-steps">
-              {t.steps.map((s) => (
-                <article className="md-step" key={s.no}>
-                  <div className="md-step-num">{s.no}</div>
-                  <h3>{s.title}</h3>
-                  <p>{s.text}</p>
-                </article>
+              {t.steps.map((s, i) => (
+                <Reveal as="div" variant="up" delay={i * 130} key={s.no}>
+                  <article className="md-step">
+                    <div className="md-step-num">{s.no}</div>
+                    <h3>{s.title}</h3>
+                    <p>{s.text}</p>
+                  </article>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -1031,15 +1045,19 @@ export default function HomePage() {
 
         <section id="ozellikler" className="md-section md-features-sec">
           <div className="md-wrap">
-            <span className="md-eyebrow">{t.feat.eye}</span>
-            <h2 className="md-title">{t.feat.title}</h2>
-            <p className="md-lead">{t.feat.lead}</p>
+            <Reveal variant="fade">
+              <span className="md-eyebrow">{t.feat.eye}</span>
+              <h2 className="md-title">{t.feat.title}</h2>
+              <p className="md-lead">{t.feat.lead}</p>
+            </Reveal>
             <div className="md-features md-feature-grid-6">
-              {t.features.map((f) => (
-                <article className="md-feature" key={f.title}>
-                  <h3>{f.title}</h3>
-                  <p>{f.text}</p>
-                </article>
+              {t.features.map((f, i) => (
+                <Reveal as="div" variant="up" delay={(i % 3) * 120} key={f.title}>
+                  <article className="md-feature">
+                    <h3>{f.title}</h3>
+                    <p>{f.text}</p>
+                  </article>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -1070,11 +1088,11 @@ export default function HomePage() {
 
         <section id="fiyat" className="md-section">
           <div className="md-wrap">
-            <div className="md-center">
+            <Reveal variant="fade" className="md-center">
               <span className="md-eyebrow">{t.price.eye}</span>
               <h2 className="md-title">{t.price.title}</h2>
               <p className="md-lead md-lead-center">{t.price.lead}</p>
-            </div>
+            </Reveal>
             <div className="md-pricing-grid">
               {plans.length === 0 ? (
                 <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#888", padding: "40px 0" }}>Planlar yükleniyor...</div>
@@ -1107,14 +1125,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="md-wrap md-final-cta">
+        <Reveal as="section" variant="zoom" className="md-wrap md-final-cta">
           <div>
             <span className="md-eyebrow">{t.finalCta.eye}</span>
             <h2>{t.finalCta.h2}</h2>
             <p>{t.finalCta.p}</p>
           </div>
           <Link href="/satin-al" className="md-btn md-btn-primary">{t.finalCta.btn}</Link>
-        </section>
+        </Reveal>
 
   {/* ====== FOOTER ====== */}
 <footer className="md-footer">
