@@ -44,6 +44,14 @@ function buildingLabel(b: Building): string {
   return b.buildingName;
 }
 
+const TABS: { key: "pending" | "flats" | "security" | "calls" | "subscription"; label: string }[] = [
+  { key: "pending", label: "Bekleyenler" },
+  { key: "flats", label: "Daireler" },
+  { key: "security", label: "Güvenlik" },
+  { key: "calls", label: "Çağrılar" },
+  { key: "subscription", label: "Abonelik" },
+];
+
 export default function YoneticiPanel() {
   const [step, setStep] = useState<"phone" | "otp" | "panel">("phone");
   const [phone, setPhone] = useState("");
@@ -444,7 +452,8 @@ export default function YoneticiPanel() {
       else setError(data.message || "Güncellenemedi");
     } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
   }
-async function setSecurityMode(buildingId: string, mode: string, radius: number) {
+
+  async function setSecurityMode(buildingId: string, mode: string, radius: number) {
     if (!token) return;
     setLoading(true); setError(""); setInfo("");
     try {
@@ -458,6 +467,7 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
       else setError(data.message || "Güncellenemedi");
     } catch { setError("Güncellenemedi"); } finally { setLoading(false); }
   }
+
   async function loadDoors(buildingId: string) {
     if (!token) return;
     try {
@@ -601,97 +611,155 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
     return { text: s.status, color: "#666" };
   }
 
+  const isLogin = step !== "panel";
+
   return (
-    <div className="adm-root">
-      <div className={step === "panel" ? "adm-card adm-card-wide" : "adm-card"}>
-        <div className="adm-brand">
-          <span className="m">Mobil</span><span className="d">Diafon</span>
-          <span className="adm-tag">Yönetici</span>
-          {step === "panel" && <button className="adm-logout" onClick={logout}>Çıkış</button>}
+    <div className="mdp">
+      {/* ------------------------------------------------ GİRİŞ ------------------------------------------------ */}
+      {isLogin && (
+        <div className="mdp-login">
+          <div className="mdp-login-card">
+            <div className="mdp-logo">
+              <span className="mdp-logo-mark" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="5" y="2" width="14" height="20" rx="2" />
+                  <circle cx="12" cy="17.5" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              </span>
+              <span className="mdp-logo-text">Mobil<b>Diafon</b></span>
+            </div>
+            <div className="mdp-login-tag">Yönetici Paneli</div>
+
+            {step === "phone" && (
+              <>
+                <h1>Giriş yapın</h1>
+                <p className="mdp-desc">Bina yöneticisi telefon numaranıza tek kullanımlık kod göndereceğiz.</p>
+                <label className="mdp-label" htmlFor="mdp-phone">Telefon numarası</label>
+                <input id="mdp-phone" className="mdp-input" type="tel" placeholder="05XX XXX XX XX" autoComplete="tel"
+                  value={phone} onChange={(e) => setPhone(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendOtp()} />
+                {error && <div className="mdp-alert error">{error}</div>}
+                <button className="mdp-btn primary block" onClick={sendOtp} disabled={loading}>
+                  {loading ? "Gönderiliyor…" : "Kod Gönder"}
+                </button>
+              </>
+            )}
+
+            {step === "otp" && (
+              <>
+                <h1>Kodu girin</h1>
+                <p className="mdp-desc"><b>{phone}</b> numarasına gönderilen 6 haneli kodu girin.</p>
+                <label className="mdp-label" htmlFor="mdp-code">Doğrulama kodu</label>
+                <input id="mdp-code" className="mdp-input otp" type="text" inputMode="numeric" maxLength={6} placeholder="••••••"
+                  autoComplete="one-time-code"
+                  value={code} onChange={(e) => setCode(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && verifyOtp()} />
+                {error && <div className="mdp-alert error">{error}</div>}
+                <button className="mdp-btn primary block" onClick={verifyOtp} disabled={loading}>
+                  {loading ? "Doğrulanıyor…" : "Giriş Yap"}
+                </button>
+                <button className="mdp-linkbtn" onClick={() => { setStep("phone"); setError(""); }}>← Numarayı değiştir</button>
+              </>
+            )}
+          </div>
+          <div className="mdp-login-foot">mobildiafon.com</div>
         </div>
+      )}
 
-        {step === "phone" && (
-          <div className="adm-form">
-            <h1>Yönetici Girişi</h1>
-            <p className="adm-desc">Bina yöneticisi telefon numaranızla giriş yapın.</p>
-            <input className="adm-input" type="tel" placeholder="05XX XXX XX XX"
-              value={phone} onChange={(e) => setPhone(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendOtp()} />
-            {error && <div className="adm-error">{error}</div>}
-            <button className="adm-btn" onClick={sendOtp} disabled={loading}>
-              {loading ? "Gönderiliyor..." : "Kod Gönder"}
-            </button>
-          </div>
-        )}
+      {/* ------------------------------------------------ PANEL ------------------------------------------------ */}
+      {step === "panel" && (
+        <>
+          <header className="mdp-header">
+            <div className="mdp-header-inner">
+              <div className="mdp-logo">
+                <span className="mdp-logo-mark" aria-hidden>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" />
+                    <circle cx="12" cy="17.5" r="1" fill="currentColor" stroke="none" />
+                  </svg>
+                </span>
+                <span className="mdp-logo-text">Mobil<b>Diafon</b></span>
+                <span className="mdp-header-tag">Yönetici</span>
+              </div>
+              <div className="mdp-header-actions">
+                <button className="mdp-btn ghost sm" onClick={() => token && loadOverview(token)} disabled={loading}>
+                  {loading ? "Yükleniyor…" : "Yenile"}
+                </button>
+                <button className="mdp-btn outline sm" onClick={logout}>Çıkış</button>
+              </div>
+            </div>
+          </header>
 
-        {step === "otp" && (
-          <div className="adm-form">
-            <h1>Doğrulama</h1>
-            <p className="adm-desc">{phone} numarasına gönderilen kodu girin.</p>
-            <input className="adm-input" type="text" inputMode="numeric" placeholder="6 haneli kod"
-              value={code} onChange={(e) => setCode(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && verifyOtp()} />
-            {error && <div className="adm-error">{error}</div>}
-            <button className="adm-btn" onClick={verifyOtp} disabled={loading}>
-              {loading ? "Doğrulanıyor..." : "Giriş Yap"}
-            </button>
-            <button className="adm-link" onClick={() => { setStep("phone"); setError(""); }}>← Numarayı değiştir</button>
-          </div>
-        )}
-
-        {step === "panel" && (
-          <div className="adm-panel">
-            {loading && buildings.length === 0 && <div className="adm-muted">Yükleniyor...</div>}
+          <main className="mdp-main">
+            {loading && buildings.length === 0 && (
+              <div className="mdp-empty"><div className="mdp-spinner" /><p>Panel yükleniyor…</p></div>
+            )}
 
             {!loading && !isManager && (
-              <div className="adm-empty">
-                <p>Bu hesap bir bina yöneticisi değil.</p>
-                <p className="adm-muted">Yönetici olmak için premium üyelik ve bina kurulumu gerekir.</p>
+              <div className="mdp-empty">
+                <p><b>Bu hesap bir bina yöneticisi değil.</b></p>
+                <p className="mdp-muted">Yönetici olmak için premium üyelik ve bina kurulumu gerekir.</p>
               </div>
             )}
 
             {isManager && (
               <>
                 {/* İSTATİSTİKLER */}
-                <div className="adm-stats">
-                  <div className="adm-stat"><span className="num">{buildings.length}</span><span className="lbl">Blok / Bina</span></div>
-                  <div className="adm-stat"><span className="num">{totalFlats}</span><span className="lbl">Daire</span></div>
-                  <div className="adm-stat"><span className="num">{totalResidents}</span><span className="lbl">Sakin</span></div>
-                  <div className="adm-stat highlight"><span className="num">{pending.length}</span><span className="lbl">Bekleyen</span></div>
-                </div>
+                <section className="mdp-stats" aria-label="Özet">
+                  <div className="mdp-stat">
+                    <span className="num">{buildings.length}</span>
+                    <span className="lbl">Blok / Bina</span>
+                  </div>
+                  <div className="mdp-stat">
+                    <span className="num">{totalFlats}</span>
+                    <span className="lbl">Daire</span>
+                  </div>
+                  <div className="mdp-stat">
+                    <span className="num">{totalResidents}</span>
+                    <span className="lbl">Sakin</span>
+                  </div>
+                  <button className={pending.length > 0 ? "mdp-stat alert clickable" : "mdp-stat clickable"} onClick={() => setTab("pending")}>
+                    <span className="num">{pending.length}</span>
+                    <span className="lbl">Onay Bekleyen</span>
+                  </button>
+                </section>
 
-                {info && <div className="adm-info">{info}</div>}
-                {error && <div className="adm-error">{error}</div>}
+                {info && <div className="mdp-alert success">{info}</div>}
+                {error && <div className="mdp-alert error">{error}</div>}
 
                 {/* SEKMELER */}
-                <div className="adm-tabs">
-                  <button className={tab === "pending" ? "active" : ""} onClick={() => setTab("pending")}>
-                    Bekleyenler {pending.length > 0 && <span className="badge">{pending.length}</span>}
-                  </button>
-                  <button className={tab === "flats" ? "active" : ""} onClick={() => setTab("flats")}>Daireler</button>
-                  <button className={tab === "security" ? "active" : ""} onClick={() => setTab("security")}>Güvenlik</button>
-                  <button className={tab === "calls" ? "active" : ""} onClick={() => setTab("calls")}>Çağrılar</button>
-                  <button className={tab === "subscription" ? "active" : ""} onClick={() => setTab("subscription")}>Abonelik</button>
-                </div>
+                <nav className="mdp-tabs" aria-label="Bölümler">
+                  {TABS.map((t) => (
+                    <button key={t.key} className={tab === t.key ? "active" : ""} onClick={() => setTab(t.key)}>
+                      {t.label}
+                      {t.key === "pending" && pending.length > 0 && <span className="mdp-badge">{pending.length}</span>}
+                    </button>
+                  ))}
+                </nav>
 
                 {/* BEKLEYENLER */}
                 {tab === "pending" && (
                   pending.length === 0 ? (
-                    <div className="adm-empty"><p>Onay bekleyen sakin yok.</p><p className="adm-muted">Yeni katılımlar burada görünecek.</p></div>
+                    <div className="mdp-empty">
+                      <p><b>Onay bekleyen sakin yok.</b></p>
+                      <p className="mdp-muted">Yeni katılım talepleri burada görünecek.</p>
+                    </div>
                   ) : (
-                    <div className="adm-list">
+                    <div className="mdp-list">
                       {pending.map(({ r, flatNo, label }) => (
-                        <div key={r.residentId} className="adm-item">
-                          <div className="adm-avatar">
-                            {photoSrc(r.photoUrl) ? <img src={photoSrc(r.photoUrl)!} alt={r.name} /> : <span>{(r.name || "?").charAt(0).toUpperCase()}</span>}
+                        <div key={r.residentId} className="mdp-row">
+                          <div className="mdp-avatar">
+                            {photoSrc(r.photoUrl)
+                              ? <img src={photoSrc(r.photoUrl)!} alt={r.name} />
+                              : <span>{(r.name || "?").charAt(0).toUpperCase()}</span>}
                           </div>
-                          <div className="adm-item-info">
-                            <div className="adm-item-name">{r.name || "İsimsiz"}</div>
-                            <div className="adm-item-sub">{label} · Daire {flatNo} · {r.phone}</div>
+                          <div className="mdp-row-info">
+                            <div className="mdp-row-title">{r.name || "İsimsiz"}</div>
+                            <div className="mdp-row-sub">{label} · Daire {flatNo} · {r.phone}</div>
                           </div>
-                          <div className="adm-item-actions">
-                            <button className="adm-approve" onClick={() => approve(r.residentId)} disabled={loading}>Onayla</button>
-                            <button className="adm-reject" onClick={() => reject(r.residentId, r.name)} disabled={loading}>Reddet</button>
+                          <div className="mdp-row-actions">
+                            <button className="mdp-btn success sm" onClick={() => approve(r.residentId)} disabled={loading}>Onayla</button>
+                            <button className="mdp-btn danger-outline sm" onClick={() => reject(r.residentId, r.name)} disabled={loading}>Reddet</button>
                           </div>
                         </div>
                       ))}
@@ -701,176 +769,186 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
 
                 {/* DAİRELER */}
                 {tab === "flats" && (
-                  <div className="adm-buildings-list">
+                  <div className="mdp-buildings">
                     {buildings.map((b) => (
-                      <div key={b.id} className="adm-bld">
-                        <button className="adm-bld-head" onClick={() => { const willOpen = openBuilding !== b.id; setOpenBuilding(willOpen ? b.id : null); if (willOpen) loadDoors(b.id); }}>
-                          <div>
-                            <div className="adm-bld-name">{buildingLabel(b)}</div>
-                            <div className="adm-bld-sub">{b.flatCount} daire · {b.residentCount} sakin</div>
+                      <section key={b.id} className="mdp-bld">
+                        <button
+                          className="mdp-bld-head"
+                          aria-expanded={openBuilding === b.id}
+                          onClick={() => { const willOpen = openBuilding !== b.id; setOpenBuilding(willOpen ? b.id : null); if (willOpen) loadDoors(b.id); }}
+                        >
+                          <div className="mdp-bld-headleft">
+                            <span className="mdp-bld-icon" aria-hidden>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                <path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" /><path d="M16 8h3a1 1 0 0 1 1 1v12" /><path d="M2 21h20" />
+                                <path d="M8 7h2M8 11h2M8 15h2" />
+                              </svg>
+                            </span>
+                            <div>
+                              <div className="mdp-bld-name">{buildingLabel(b)}</div>
+                              <div className="mdp-bld-sub">{b.flatCount} daire · {b.residentCount} sakin</div>
+                            </div>
                           </div>
-                          <span className="adm-chevron">{openBuilding === b.id ? "−" : "+"}</span>
+                          <span className={openBuilding === b.id ? "mdp-chevron open" : "mdp-chevron"} aria-hidden>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m6 9 6 6 6-6" /></svg>
+                          </span>
                         </button>
+
                         {openBuilding === b.id && (
-                          <div className="adm-flats">
-                            <div className="adm-bld-image-row" style={{ gridColumn: "1 / -1" }}>
+                          <div className="mdp-bld-body">
+                            {/* Bina görseli */}
+                            <div className="mdp-bld-image-row">
                               {b.imageUrl && (
-                                <img src={b.imageUrl.startsWith("/uploads/") ? b.imageUrl : b.imageUrl} alt={buildingLabel(b)} className="adm-bld-image" />
+                                <img src={b.imageUrl.startsWith("/uploads/") ? b.imageUrl : b.imageUrl} alt={buildingLabel(b)} className="mdp-bld-image" />
                               )}
-                              <button className="adm-bld-image-btn" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
+                              <button className="mdp-btn ghost sm" onClick={() => uploadBuildingImage(b.id)} disabled={loading}>
                                 {b.imageUrl ? "Resmi Değiştir" : "Bina Resmi Yükle"}
                               </button>
                             </div>
-                      <div className="adm-qr" style={{ gridColumn: "1 / -1", padding: "16px", background: "#fff", border: "1px solid #eee", borderRadius: "10px", marginBottom: "10px" }}>
-                              <div style={{ fontWeight: 600, marginBottom: 8 }}>📱 QR Kod</div>
-                              <div style={{ fontSize: "13px", color: "#666", marginBottom: 12 }}>
-                                Ziyaretçiler bu QR'ı okutarak {buildingLabel(b)} binasina ulasir. Bina girisine asin.
-                              </div>
+
+                            {/* QR kart */}
+                            <div className="mdp-panelcard">
+                              <div className="mdp-panelcard-title">Bina QR Kodu</div>
+                              <p className="mdp-panelcard-desc">
+                                Ziyaretçiler bu kodu okutarak {buildingLabel(b)} binasına ulaşır. Çıktısını alıp bina girişine asın.
+                              </p>
                               {b.qrToken ? (
-                                <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+                                <div className="mdp-qr-row">
                                   <img
+                                    className="mdp-qr-img"
                                     src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent("https://mobildiafon.com/web/ara.html?token=" + b.qrToken)}`}
-                                    alt="QR"
-                                    width={140} height={140}
-                                    style={{ borderRadius: "8px", border: "1px solid #eee", background: "#fff" }}
+                                    alt="Bina QR kodu" width={132} height={132}
                                   />
-                                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    
-                                      <a
+                                  <div className="mdp-qr-actions">
+                                    <a
+                                      className="mdp-btn primary sm"
                                       href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20&data=${encodeURIComponent("https://mobildiafon.com/web/ara.html?token=" + b.qrToken)}`}
                                       download={`qr-${b.qrToken}.png`}
                                       target="_blank" rel="noopener noreferrer"
-                                      style={{ padding: "9px 16px", background: "#e63946", color: "#fff", borderRadius: "8px", fontWeight: 600, fontSize: "14px", textDecoration: "none", textAlign: "center" }}
-                                    >
-                                      PNG Indir
-                                    </a>
-                                    <button
-                                      onClick={() => printQrPoster(b)}
-                                      style={{ padding: "9px 16px", background: "#1a2a4a", color: "#fff", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: "14px", cursor: "pointer" }}
-                                    >
-                                      Afis Yazdir (PDF)
-                                    </button>
+                                    >PNG İndir</a>
+                                    <button className="mdp-btn navy sm" onClick={() => printQrPoster(b)}>Afiş Yazdır (PDF)</button>
                                   </div>
                                 </div>
                               ) : (
-                                <div style={{ fontSize: "13px", color: "#999" }}>QR token bulunamadi.</div>
+                                <div className="mdp-muted sm">QR token bulunamadı.</div>
                               )}
                             </div>
-                      <div className="adm-loccheck" style={{ gridColumn: "1 / -1", padding: "12px", background: "#f7f7f9", borderRadius: "10px", marginBottom: "10px" }}>
-                              <div style={{ fontWeight: 600, marginBottom: 8 }}>🔒 Güvenlik Modu</div>
-                              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: 8 }}>
+
+                            {/* Güvenlik modu */}
+                            <div className="mdp-panelcard">
+                              <div className="mdp-panelcard-title">Güvenlik Modu</div>
+                              <div className="mdp-segment">
                                 {[
-                                  { key: "qr", label: "Sadece QR", desc: "Listede gizli, QR ile aranır" },
-                                  { key: "location", label: "Sadece Konum", desc: "Yakındakiler listesinde görünür" },
-                                  { key: "both", label: "QR + Konum", desc: "Listede görünür, aramak için QR gerekir" },
+                                  { key: "qr", label: "Sadece QR" },
+                                  { key: "location", label: "Sadece Konum" },
+                                  { key: "both", label: "QR + Konum" },
                                 ].map((m) => {
                                   const active = (b.securityMode || "qr") === m.key;
                                   return (
-                                    <button key={m.key}
+                                    <button key={m.key} className={active ? "active" : ""}
                                       onClick={() => setSecurityMode(b.id, m.key, b.locationCheckRadius)}
-                                      disabled={loading}
-                                      style={{
-                                        flex: "1 1 30%", minWidth: 100, padding: "10px", borderRadius: "8px", cursor: "pointer",
-                                        border: active ? "2px solid #e63946" : "1px solid #ccc",
-                                        background: active ? "#fdeef0" : "#fff",
-                                        fontWeight: active ? 700 : 500, color: active ? "#c0283a" : "#333",
-                                      }}>
+                                      disabled={loading}>
                                       {m.label}
                                     </button>
                                   );
                                 })}
                               </div>
-                              <div style={{ fontSize: "13px", color: "#666", marginBottom: 10 }}>
+                              <p className="mdp-panelcard-desc">
                                 {(b.securityMode || "qr") === "qr" && "Bina yakındakiler listesinde görünmez. Ziyaretçi sadece QR okutarak arar."}
                                 {(b.securityMode || "qr") === "location" && "Bina yakındakiler listesinde görünür. Ziyaretçi yakındaysa QR'sız arayabilir."}
                                 {(b.securityMode || "qr") === "both" && "Bina listede görünür ama aramak için QR okutmak gerekir (en güvenli)."}
-                              </div>
+                              </p>
                               {((b.securityMode || "qr") === "location" || (b.securityMode || "qr") === "both") && (
-                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                  <span style={{ fontSize: "13px" }}>Görünme mesafesi:</span>
+                                <div className="mdp-radius">
+                                  <span>Görünme mesafesi</span>
                                   <input type="number" min={20} max={2000} step={10} defaultValue={b.locationCheckRadius}
-                                    style={{ width: "90px", padding: "6px", borderRadius: "6px", border: "1px solid #ccc" }}
                                     onBlur={(e) => { const v = Number(e.target.value); if (v >= 20 && v <= 2000 && v !== b.locationCheckRadius) setSecurityMode(b.id, b.securityMode || "qr", v); }}
                                     disabled={loading} />
-                                  <span style={{ fontSize: "13px", color: "#666" }}>metre</span>
+                                  <span className="mdp-muted sm">metre</span>
                                 </div>
                               )}
                             </div>
-                            <div className="adm-doors" style={{ gridColumn: "1 / -1", padding: "12px", background: "#f0f7ff", borderRadius: "10px", marginBottom: "10px" }}>
-                              <div style={{ fontWeight: 600, marginBottom: 8 }}>🚪 Kapılar (Tuya)</div>
-                              <div style={{ fontSize: "13px", color: "#666", marginBottom: 10 }}>
+
+                            {/* Kapılar */}
+                            <div className="mdp-panelcard">
+                              <div className="mdp-panelcard-title">Kapılar (Tuya)</div>
+                              <p className="mdp-panelcard-desc">
                                 Kapı açma için Tuya röle cihazının device ID'sini ekleyin. Bir blokta birden çok kapı olabilir.
-                              </div>
+                              </p>
                               {(doorsByBuilding[b.id] || []).map((d: any) => (
-                                <div key={d.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "#fff", borderRadius: "8px", marginBottom: 6 }}>
+                                <div key={d.id} className="mdp-door">
                                   <div>
-                                    <div style={{ fontWeight: 600 }}>{d.name}</div>
-                                    <div style={{ fontSize: "12px", color: "#999" }}>{d.deviceId}</div>
+                                    <div className="mdp-door-name">{d.name}</div>
+                                    <div className="mdp-door-id">{d.deviceId}</div>
                                   </div>
-                                  <button onClick={() => deleteDoor(d.id, b.id)} disabled={loading}
-                                    style={{ color: "#e63946", background: "none", border: "1px solid #e63946", borderRadius: "6px", padding: "4px 10px", cursor: "pointer" }}>Sil</button>
+                                  <button className="mdp-btn danger-outline sm" onClick={() => deleteDoor(d.id, b.id)} disabled={loading}>Sil</button>
                                 </div>
                               ))}
-                              <button onClick={() => addDoor(b.id)} disabled={loading}
-                                style={{ marginTop: 4, padding: "8px 14px", background: "#1a5fc2", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer" }}>+ Kapı Ekle</button>
+                              <button className="mdp-btn blue sm" onClick={() => addDoor(b.id)} disabled={loading}>+ Kapı Ekle</button>
                             </div>
-                            {b.flats.map((f) => (
-                              <div key={f.apartmentId} className={f.residents.length ? "adm-flat occupied" : "adm-flat"}>
-                                <div className="adm-flat-no">
-                                  Daire {f.flatNo}
-                                  {f.listingStatus === "sale" && <span className="adm-listing sale">Satılık</span>}
-                                  {f.listingStatus === "rent" && <span className="adm-listing rent">Kiralık</span>}
-                                </div>
-                                {f.qrToken && (
-                                  <div className="adm-flat-qr">
-                                    <button className="adm-flat-qr-btn" onClick={() => printFlatQr(b, f)} title="Daire QR afişi yazdır">
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h2v2h-2v-2Zm4 0h2v6h-6v-2h4v-4Z"/></svg>
-                                      QR Afiş
-                                    </button>
-                                    <button className="adm-flat-qr-btn ghost" onClick={() => editFlatQrLabel(f)} title="QR altı metni düzenle">
-                                      {f.qrLabel ? `"${f.qrLabel}"` : "Etiket ekle"}
-                                    </button>
+
+                            {/* Daireler grid */}
+                            <div className="mdp-flats">
+                              {b.flats.map((f) => (
+                                <div key={f.apartmentId} className={f.residents.length ? "mdp-flat occupied" : "mdp-flat"}>
+                                  <div className="mdp-flat-head">
+                                    <span className="mdp-flat-no">Daire {f.flatNo}</span>
+                                    {f.listingStatus === "sale" && <span className="mdp-chip sale">Satılık</span>}
+                                    {f.listingStatus === "rent" && <span className="mdp-chip rent">Kiralık</span>}
                                   </div>
-                                )}
-                                {f.residents.length === 0 ? (
-                                  <div className="adm-flat-empty">Boş</div>
-                                ) : (
-                                  <div className="adm-flat-residents">
-                                    {f.residents.map((r) => (
-                                      <div key={r.residentId} className="adm-res">
-                                        <div className="adm-res-info">
-                                          <span className="adm-res-name">{r.name || "İsimsiz"}</span>
-                                          {!r.approved && <span className="adm-pending-badge">beklemede</span>}
-                                          <span className="adm-res-phone">{r.phone}</span>
+
+                                  {f.qrToken && (
+                                    <div className="mdp-flat-qr">
+                                      <button className="mdp-btn ghost xs" onClick={() => printFlatQr(b, f)} title="Daire QR afişi yazdır">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h2v2h-2v-2Zm4 0h2v6h-6v-2h4v-4Z" /></svg>
+                                        QR Afiş
+                                      </button>
+                                      <button className="mdp-btn ghost xs" onClick={() => editFlatQrLabel(f)} title="QR altı metni düzenle">
+                                        {f.qrLabel ? `"${f.qrLabel}"` : "Etiket ekle"}
+                                      </button>
+                                    </div>
+                                  )}
+
+                                  {f.residents.length === 0 ? (
+                                    <div className="mdp-flat-empty">Boş</div>
+                                  ) : (
+                                    <div className="mdp-flat-residents">
+                                      {f.residents.map((r) => (
+                                        <div key={r.residentId} className="mdp-res">
+                                          <div className="mdp-res-info">
+                                            <span className="mdp-res-name">{r.name || "İsimsiz"}</span>
+                                            {!r.approved && <span className="mdp-chip pending">beklemede</span>}
+                                            <span className="mdp-res-phone">{r.phone}</span>
+                                          </div>
+                                          <div className="mdp-res-actions">
+                                            {!r.approved && <button className="mdp-btn success xs" onClick={() => approve(r.residentId)} disabled={loading}>Onayla</button>}
+                                            {r.approved && <button className="mdp-btn navy xs" onClick={() => printPersonQr(b, f, r)} disabled={loading} title="Kişiye özel QR afişi">QR</button>}
+                                            <button className="mdp-btn danger-outline xs" onClick={() => remove(r.residentId, r.name)} disabled={loading} title="Çıkar">Çıkar</button>
+                                          </div>
                                         </div>
-                                        <div className="adm-res-actions">
-                                          {!r.approved && <button className="adm-mini-approve" onClick={() => approve(r.residentId)} disabled={loading}>Onayla</button>}
-                                          {r.approved && <button className="adm-mini-qr" onClick={() => printPersonQr(b, f, r)} disabled={loading} title="Kişiye özel QR afişi">QR</button>}
-                                          <button className="adm-mini-remove" onClick={() => remove(r.residentId, r.name)} disabled={loading} title="Çıkar">Çıkar</button>
-                                        </div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  <div className="mdp-segment sm">
+                                    <button className={f.listingStatus === "none" ? "active" : ""} onClick={() => setListing(f.apartmentId, "none")} disabled={loading}>Normal</button>
+                                    <button className={f.listingStatus === "sale" ? "active sale" : ""} onClick={() => setListing(f.apartmentId, "sale")} disabled={loading}>Satılık</button>
+                                    <button className={f.listingStatus === "rent" ? "active rent" : ""} onClick={() => setListing(f.apartmentId, "rent")} disabled={loading}>Kiralık</button>
                                   </div>
-                                )}
-                                <div className="adm-listing-controls">
-                                  <button className={f.listingStatus === "none" ? "active" : ""} onClick={() => setListing(f.apartmentId, "none")} disabled={loading}>Normal</button>
-                                  <button className={f.listingStatus === "sale" ? "active sale" : ""} onClick={() => setListing(f.apartmentId, "sale")} disabled={loading}>Satılık</button>
-                                  <button className={f.listingStatus === "rent" ? "active rent" : ""} onClick={() => setListing(f.apartmentId, "rent")} disabled={loading}>Kiralık</button>
+
+                                  {f.residents.length === 0 && (
+                                    <button className="mdp-flat-delete" onClick={() => deleteFlat(f.apartmentId, f.flatNo)} disabled={loading}>Daireyi Sil</button>
+                                  )}
                                 </div>
-                                {f.residents.length === 0 && (
-                                  <button className="adm-flat-delete" onClick={() => deleteFlat(f.apartmentId, f.flatNo)} disabled={loading}>Daireyi Sil</button>
-                                )}
-                              </div>
-                            ))}
-                            <div className="adm-flat-add" onClick={() => !loading && addFlat(b.id)}>
-                              + Daire Ekle
+                              ))}
+                              <button className="mdp-flat-add" onClick={() => !loading && addFlat(b.id)}>+ Daire Ekle</button>
                             </div>
                           </div>
                         )}
-                      </div>
+                      </section>
                     ))}
                     {buildings.length > 0 && (
-                      <button className="adm-add-block" onClick={() => addBlock(buildings[0].id)} disabled={loading}>
+                      <button className="mdp-btn outline block" onClick={() => addBlock(buildings[0].id)} disabled={loading}>
                         + Yeni Blok Ekle
                       </button>
                     )}
@@ -879,27 +957,34 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
 
                 {/* GÜVENLİK */}
                 {tab === "security" && (
-                  <div className="adm-security">
-                    <p className="adm-muted" style={{ marginBottom: 16 }}>Güvenlik görevlileri sitenizin tüm bloklarını görür, dairelere not bırakabilir (örn. "kargonuz geldi").</p>
-                    <div className="adm-guard-add">
-                      <input className="adm-input" placeholder="Güvenlik telefonu (05XX...)" value={newGuardPhone} onChange={(e) => setNewGuardPhone(e.target.value)} />
-                      <input className="adm-input" placeholder="İsim (opsiyonel)" value={newGuardName} onChange={(e) => setNewGuardName(e.target.value)} />
-                      <button className="adm-btn" onClick={addGuard} disabled={loading || !newGuardPhone.trim()}>Ekle</button>
+                  <div>
+                    <p className="mdp-muted section-desc">
+                      Güvenlik görevlileri sitenizin tüm bloklarını görür, dairelere not bırakabilir (örn. "kargonuz geldi").
+                    </p>
+                    <div className="mdp-guard-add">
+                      <input className="mdp-input" placeholder="Güvenlik telefonu (05XX…)" value={newGuardPhone} onChange={(e) => setNewGuardPhone(e.target.value)} />
+                      <input className="mdp-input" placeholder="İsim (opsiyonel)" value={newGuardName} onChange={(e) => setNewGuardName(e.target.value)} />
+                      <button className="mdp-btn primary" onClick={addGuard} disabled={loading || !newGuardPhone.trim()}>Ekle</button>
                     </div>
                     {guards.length === 0 ? (
-                      <div className="adm-empty"><p>Henüz güvenlik eklenmemiş.</p><p className="adm-muted">Yukarıdan telefon numarasıyla ekleyin.</p></div>
+                      <div className="mdp-empty">
+                        <p><b>Henüz güvenlik eklenmemiş.</b></p>
+                        <p className="mdp-muted">Yukarıdan telefon numarasıyla ekleyin.</p>
+                      </div>
                     ) : (
-                      <div className="adm-list" style={{ marginTop: 18 }}>
+                      <div className="mdp-list">
                         {guards.map((g) => (
-                          <div key={g.id} className="adm-item">
-                            <div className="adm-avatar" style={{ background: "#1a5fc2" }}>🛡️</div>
-                            <div className="adm-item-info">
-                              <div className="adm-item-name">{g.guardName || "Güvenlik"}</div>
-                              <div className="adm-item-sub">{g.phone}</div>
+                          <div key={g.id} className="mdp-row">
+                            <div className="mdp-avatar guard" aria-hidden>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z" /></svg>
                             </div>
-                            <div className="adm-item-actions">
-                              <button className="adm-mini-qr" onClick={() => printGuardQr(g)} disabled={loading} title="Güvenlik QR afişi">QR</button>
-                              <button className="adm-reject" onClick={() => removeGuard(g.id, g.guardName || "")} disabled={loading}>Çıkar</button>
+                            <div className="mdp-row-info">
+                              <div className="mdp-row-title">{g.guardName || "Güvenlik"}</div>
+                              <div className="mdp-row-sub">{g.phone}</div>
+                            </div>
+                            <div className="mdp-row-actions">
+                              <button className="mdp-btn navy sm" onClick={() => printGuardQr(g)} disabled={loading} title="Güvenlik QR afişi">QR</button>
+                              <button className="mdp-btn danger-outline sm" onClick={() => removeGuard(g.id, g.guardName || "")} disabled={loading}>Çıkar</button>
                             </div>
                           </div>
                         ))}
@@ -910,26 +995,33 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
 
                 {/* ÇAĞRILAR */}
                 {tab === "calls" && (
-                  <div className="adm-calls">
+                  <div>
                     {calls.length === 0 ? (
-                      <div className="adm-empty"><p>Henüz çağrı kaydı yok.</p><p className="adm-muted">Binanızda görüşme yapıldıkça burada listelenir.</p></div>
+                      <div className="mdp-empty">
+                        <p><b>Henüz çağrı kaydı yok.</b></p>
+                        <p className="mdp-muted">Binanızda görüşme yapıldıkça burada listelenir.</p>
+                      </div>
                     ) : (
-                      <div className="adm-call-list">
+                      <div className="mdp-list">
                         {calls.map((c) => (
-                          <div key={c.id} className="adm-call-item">
-                            <div className={c.status === "ENDED" ? "adm-call-icon ended" : "adm-call-icon missed"}>
-                              {c.status === "ENDED" ? "✓" : "✕"}
+                          <div key={c.id} className="mdp-row">
+                            <div className={c.status === "ENDED" ? "mdp-callicon ended" : "mdp-callicon missed"} aria-hidden>
+                              {c.status === "ENDED" ? (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                              ) : (
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                              )}
                             </div>
-                            <div className="adm-call-info">
-                              <div className="adm-call-main">
-                                {c.callerName || c.callerPhone || "Ziyaretçi"} → {c.receiverName || "Sakin"}
+                            <div className="mdp-row-info">
+                              <div className="mdp-row-title">
+                                {c.callerName || c.callerPhone || "Ziyaretçi"} <span className="mdp-arrow">→</span> {c.receiverName || "Sakin"}
                               </div>
-                              <div className="adm-call-sub">
+                              <div className="mdp-row-sub">
                                 {c.buildingLabel}{c.flatNo ? ` · Daire ${c.flatNo}` : ""} · {new Date(c.startedAt).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                               </div>
                             </div>
-                            <div className="adm-call-dur">
-                              {c.status === "ENDED" && c.duration != null ? `${c.duration}sn` : (c.status === "MISSED" ? "Cevapsız" : c.status)}
+                            <div className="mdp-call-dur">
+                              {c.status === "ENDED" && c.duration != null ? `${c.duration} sn` : (c.status === "MISSED" ? "Cevapsız" : c.status)}
                             </div>
                           </div>
                         ))}
@@ -940,29 +1032,29 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
 
                 {/* ABONELİK */}
                 {tab === "subscription" && (
-                  <div className="adm-subscription">
-                    <p className="adm-muted" style={{ marginBottom: 16 }}>Site ve birimlerinizin abonelik durumu. Deneme süreniz bitince ödeme ile devam edebilirsiniz.</p>
+                  <div>
+                    <p className="mdp-muted section-desc">
+                      Site ve birimlerinizin abonelik durumu. Deneme süreniz bitince ödeme ile devam edebilirsiniz.
+                    </p>
                     {subs.length === 0 ? (
-                      <div className="adm-empty"><p>Abonelik bilgisi yok.</p></div>
+                      <div className="mdp-empty"><p><b>Abonelik bilgisi yok.</b></p></div>
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <div className="mdp-subs">
                         {subs.map((s) => {
                           const st = subStatusLabel(s);
                           return (
-                            <div key={s.id} style={{ border: "1px solid #eee", borderRadius: "12px", padding: "16px", background: "#fff" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                                <div style={{ fontWeight: 700, fontSize: "16px" }}>{s.label}</div>
-                                <span style={{ fontSize: "13px", fontWeight: 600, color: st.color, background: st.color + "18", padding: "4px 10px", borderRadius: "20px" }}>{st.text}</span>
+                            <div key={s.id} className="mdp-panelcard sub">
+                              <div className="mdp-sub-head">
+                                <div className="mdp-sub-title">{s.label}</div>
+                                <span className="mdp-chip" style={{ color: st.color, background: st.color + "18" }}>{st.text}</span>
                               </div>
-                              <div style={{ fontSize: "14px", color: "#555", lineHeight: 1.7 }}>
-                                <div>Tür: {s.scopeType === "site" ? "Site (toplu)" : "Bireysel birim"}</div>
-                                <div>Daire sayısı: {s.flatCount}</div>
-                                <div>Aylık tutar: <b>{s.monthlyPrice} ₺</b></div>
-                                {s.periodEnd && <div>Bitiş: {new Date(s.periodEnd).toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" })}</div>}
-                              </div>
-                              <button disabled style={{ marginTop: 12, padding: "10px 18px", background: "#1a8f3c", color: "#fff", border: "none", borderRadius: "8px", opacity: 0.6, cursor: "not-allowed", width: "100%" }}>
-                                Ödeme ile Devam Et (yakında)
-                              </button>
+                              <dl className="mdp-sub-details">
+                                <div><dt>Tür</dt><dd>{s.scopeType === "site" ? "Site (toplu)" : "Bireysel birim"}</dd></div>
+                                <div><dt>Daire sayısı</dt><dd>{s.flatCount}</dd></div>
+                                <div><dt>Aylık tutar</dt><dd><b>{s.monthlyPrice} ₺</b></dd></div>
+                                {s.periodEnd && <div><dt>Bitiş</dt><dd>{new Date(s.periodEnd).toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" })}</dd></div>}
+                              </dl>
+                              <button className="mdp-btn success block" disabled>Ödeme ile Devam Et (yakında)</button>
                             </div>
                           );
                         })}
@@ -970,13 +1062,373 @@ async function setSecurityMode(buildingId: string, mode: string, radius: number)
                     )}
                   </div>
                 )}
-
-                <button className="adm-refresh" onClick={() => token && loadOverview(token)} disabled={loading}>Yenile</button>
               </>
             )}
-          </div>
-        )}
-      </div>
+          </main>
+        </>
+      )}
+
+      {/* ------------------------------------------------ STİLLER ------------------------------------------------ */}
+      <style jsx global>{`
+        .mdp {
+          /* Tokenlar */
+          --ink: #16213a;
+          --ink-soft: #4a5570;
+          --muted: #8a93a8;
+          --line: #e4e8f0;
+          --bg: #eef1f6;
+          --surface: #ffffff;
+          --surface-2: #f7f9fc;
+          --red: #e63946;
+          --red-soft: #fdeef0;
+          --navy: #1a2a4a;
+          --blue: #1a5fc2;
+          --blue-soft: #eef4fc;
+          --green: #1a8f3c;
+          --green-soft: #e9f6ee;
+          --amber: #e6a23c;
+          --radius: 14px;
+          --radius-sm: 10px;
+          --shadow: 0 1px 2px rgba(22, 33, 58, 0.05), 0 4px 16px rgba(22, 33, 58, 0.06);
+
+          min-height: 100vh;
+          background: var(--bg);
+          color: var(--ink);
+          font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          font-size: 15px;
+          line-height: 1.45;
+          -webkit-font-smoothing: antialiased;
+        }
+        .mdp *, .mdp *::before, .mdp *::after { box-sizing: border-box; }
+        .mdp button { font: inherit; cursor: pointer; }
+        .mdp button:disabled { cursor: not-allowed; opacity: 0.55; }
+        .mdp :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+
+        /* ---------- Logo ---------- */
+        .mdp-logo { display: inline-flex; align-items: center; gap: 8px; }
+        .mdp-logo-mark {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 34px; height: 34px; border-radius: 10px;
+          background: var(--navy); color: #fff;
+        }
+        .mdp-logo-text { font-size: 19px; font-weight: 700; letter-spacing: -0.4px; color: var(--navy); }
+        .mdp-logo-text b { color: var(--red); font-weight: 800; }
+
+        /* ---------- Giriş ---------- */
+        .mdp-login {
+          min-height: 100vh; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; padding: 24px;
+          background:
+            radial-gradient(600px 300px at 15% 0%, rgba(230, 57, 70, 0.06), transparent 60%),
+            radial-gradient(700px 350px at 90% 100%, rgba(26, 42, 74, 0.08), transparent 60%),
+            var(--bg);
+        }
+        .mdp-login-card {
+          width: 100%; max-width: 400px; background: var(--surface);
+          border: 1px solid var(--line); border-radius: 20px;
+          box-shadow: var(--shadow); padding: 32px 28px;
+        }
+        .mdp-login-tag {
+          display: inline-block; margin: 14px 0 20px; padding: 4px 10px;
+          font-size: 12px; font-weight: 700; letter-spacing: 0.4px;
+          color: var(--red); background: var(--red-soft); border-radius: 20px;
+        }
+        .mdp-login-card h1 { margin: 0 0 6px; font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
+        .mdp-desc { margin: 0 0 20px; font-size: 14px; color: var(--ink-soft); }
+        .mdp-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+        .mdp-login-foot { margin-top: 20px; font-size: 12px; color: var(--muted); }
+
+        /* ---------- Girdiler ---------- */
+        .mdp-input {
+          width: 100%; padding: 12px 14px; margin-bottom: 14px;
+          font: inherit; color: var(--ink);
+          background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .mdp-input::placeholder { color: var(--muted); }
+        .mdp-input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26, 42, 74, 0.1); }
+        .mdp-input.otp { text-align: center; font-size: 22px; letter-spacing: 10px; font-weight: 700; }
+
+        /* ---------- Butonlar ---------- */
+        .mdp-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid transparent;
+          font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap;
+          transition: background 0.15s, border-color 0.15s, transform 0.05s;
+        }
+        .mdp-btn:active { transform: translateY(1px); }
+        .mdp-btn.block { width: 100%; }
+        .mdp-btn.sm { padding: 7px 13px; font-size: 13px; }
+        .mdp-btn.xs { padding: 4px 9px; font-size: 12px; border-radius: 8px; }
+        .mdp-btn.primary { background: var(--red); color: #fff; }
+        .mdp-btn.primary:hover:not(:disabled) { background: #d02c39; }
+        .mdp-btn.navy { background: var(--navy); color: #fff; }
+        .mdp-btn.navy:hover:not(:disabled) { background: #12203a; }
+        .mdp-btn.blue { background: var(--blue); color: #fff; }
+        .mdp-btn.blue:hover:not(:disabled) { background: #144e9f; }
+        .mdp-btn.success { background: var(--green); color: #fff; }
+        .mdp-btn.success:hover:not(:disabled) { background: #157a32; }
+        .mdp-btn.outline { background: var(--surface); color: var(--ink); border-color: var(--line); }
+        .mdp-btn.outline:hover:not(:disabled) { border-color: var(--ink-soft); }
+        .mdp-btn.ghost { background: var(--surface-2); color: var(--ink); border-color: var(--line); }
+        .mdp-btn.ghost:hover:not(:disabled) { background: #eef1f7; }
+        .mdp-btn.danger-outline { background: var(--surface); color: var(--red); border-color: #f3c2c7; }
+        .mdp-btn.danger-outline:hover:not(:disabled) { background: var(--red-soft); border-color: var(--red); }
+        .mdp-linkbtn {
+          display: block; margin: 12px auto 0; background: none; border: none;
+          color: var(--ink-soft); font-size: 13px; font-weight: 600;
+        }
+        .mdp-linkbtn:hover { color: var(--ink); }
+
+        /* ---------- Header ---------- */
+        .mdp-header {
+          position: sticky; top: 0; z-index: 20;
+          background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
+          border-bottom: 1px solid var(--line);
+        }
+        .mdp-header-inner {
+          max-width: 1060px; margin: 0 auto; padding: 12px 20px;
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .mdp-header-tag {
+          margin-left: 6px; padding: 3px 9px; font-size: 11px; font-weight: 700;
+          letter-spacing: 0.4px; text-transform: uppercase;
+          color: var(--red); background: var(--red-soft); border-radius: 20px;
+        }
+        .mdp-header-actions { display: flex; gap: 8px; }
+
+        /* ---------- Ana içerik ---------- */
+        .mdp-main { max-width: 1060px; margin: 0 auto; padding: 24px 20px 60px; }
+        .mdp-muted { color: var(--muted); }
+        .mdp-muted.sm { font-size: 13px; }
+        .section-desc { margin: 0 0 16px; font-size: 14px; }
+
+        /* ---------- İstatistikler ---------- */
+        .mdp-stats {
+          display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px;
+        }
+        .mdp-stat {
+          display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+          padding: 16px 18px; background: var(--surface);
+          border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+          text-align: left;
+        }
+        .mdp-stat .num { font-size: 26px; font-weight: 800; letter-spacing: -0.6px; line-height: 1.1; }
+        .mdp-stat .lbl { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+        .mdp-stat.clickable:hover { border-color: var(--ink-soft); }
+        .mdp-stat.alert { border-color: var(--red); background: var(--red-soft); }
+        .mdp-stat.alert .num, .mdp-stat.alert .lbl { color: var(--red); }
+
+        /* ---------- Uyarılar ---------- */
+        .mdp-alert {
+          padding: 10px 14px; margin-bottom: 14px; border-radius: var(--radius-sm);
+          font-size: 14px; font-weight: 500;
+        }
+        .mdp-alert.error { background: var(--red-soft); color: #b3202c; border: 1px solid #f3c2c7; }
+        .mdp-alert.success { background: var(--green-soft); color: #14672c; border: 1px solid #bfe5cc; }
+
+        /* ---------- Sekmeler ---------- */
+        .mdp-tabs {
+          display: flex; gap: 4px; padding: 4px; margin-bottom: 20px;
+          background: var(--surface); border: 1px solid var(--line);
+          border-radius: var(--radius); overflow-x: auto; scrollbar-width: none;
+        }
+        .mdp-tabs::-webkit-scrollbar { display: none; }
+        .mdp-tabs button {
+          flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          padding: 9px 14px; border: none; border-radius: var(--radius-sm);
+          background: transparent; color: var(--ink-soft); font-size: 14px; font-weight: 600;
+          transition: background 0.15s, color 0.15s;
+        }
+        .mdp-tabs button:hover { color: var(--ink); }
+        .mdp-tabs button.active { background: var(--navy); color: #fff; }
+        .mdp-badge {
+          min-width: 19px; height: 19px; padding: 0 5px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: var(--red); color: #fff; font-size: 11.5px; font-weight: 700; border-radius: 10px;
+        }
+
+        /* ---------- Liste satırları ---------- */
+        .mdp-list { display: flex; flex-direction: column; gap: 10px; }
+        .mdp-row {
+          display: flex; align-items: center; gap: 12px;
+          padding: 12px 14px; background: var(--surface);
+          border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+        }
+        .mdp-avatar {
+          width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; overflow: hidden;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--surface-2); border: 1px solid var(--line);
+          color: var(--ink-soft); font-weight: 700; font-size: 16px;
+        }
+        .mdp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .mdp-avatar.guard { background: var(--blue-soft); color: var(--blue); border-color: #cddff5; }
+        .mdp-row-info { flex: 1; min-width: 0; }
+        .mdp-row-title { font-weight: 700; font-size: 14.5px; }
+        .mdp-row-sub { font-size: 13px; color: var(--muted); }
+        .mdp-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .mdp-arrow { color: var(--muted); font-weight: 400; }
+        .mdp-call-dur { font-size: 13px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+        .mdp-callicon {
+          width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .mdp-callicon.ended { background: var(--green-soft); color: var(--green); }
+        .mdp-callicon.missed { background: var(--red-soft); color: var(--red); }
+
+        /* ---------- Boş durumlar ---------- */
+        .mdp-empty {
+          padding: 40px 20px; text-align: center;
+          background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius);
+        }
+        .mdp-empty p { margin: 0 0 4px; }
+        .mdp-spinner {
+          width: 26px; height: 26px; margin: 0 auto 12px;
+          border: 3px solid var(--line); border-top-color: var(--red); border-radius: 50%;
+          animation: mdp-spin 0.8s linear infinite;
+        }
+        @keyframes mdp-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+          .mdp-spinner { animation-duration: 2s; }
+          .mdp-btn:active { transform: none; }
+        }
+
+        /* ---------- Bina akordeonu ---------- */
+        .mdp-buildings { display: flex; flex-direction: column; gap: 12px; }
+        .mdp-bld {
+          background: var(--surface); border: 1px solid var(--line);
+          border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+        }
+        .mdp-bld-head {
+          width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+          padding: 14px 16px; background: none; border: none; text-align: left;
+        }
+        .mdp-bld-head:hover { background: var(--surface-2); }
+        .mdp-bld-headleft { display: flex; align-items: center; gap: 12px; }
+        .mdp-bld-icon {
+          width: 38px; height: 38px; border-radius: var(--radius-sm);
+          display: flex; align-items: center; justify-content: center;
+          background: var(--navy); color: #fff; flex-shrink: 0;
+        }
+        .mdp-bld-name { font-weight: 700; font-size: 15.5px; }
+        .mdp-bld-sub { font-size: 13px; color: var(--muted); }
+        .mdp-chevron { color: var(--muted); transition: transform 0.2s; display: inline-flex; }
+        .mdp-chevron.open { transform: rotate(180deg); }
+        .mdp-bld-body { padding: 0 16px 16px; border-top: 1px solid var(--line); }
+        .mdp-bld-image-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; flex-wrap: wrap; }
+        .mdp-bld-image { width: 120px; height: 80px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+
+        /* ---------- Panel içi kartlar ---------- */
+        .mdp-panelcard {
+          padding: 14px 16px; margin-bottom: 12px;
+          background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm);
+        }
+        .mdp-panelcard-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+        .mdp-panelcard-desc { margin: 0 0 12px; font-size: 13px; color: var(--ink-soft); }
+        .mdp-qr-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .mdp-qr-img { border-radius: var(--radius-sm); border: 1px solid var(--line); background: #fff; }
+        .mdp-qr-actions { display: flex; flex-direction: column; gap: 8px; }
+
+        /* ---------- Segment (güvenlik modu / ilan durumu) ---------- */
+        .mdp-segment { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .mdp-segment button {
+          flex: 1 1 auto; min-width: 90px; padding: 9px 10px;
+          background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+          font-size: 13px; font-weight: 600; color: var(--ink-soft);
+          transition: border-color 0.15s, background 0.15s, color 0.15s;
+        }
+        .mdp-segment button:hover:not(:disabled) { border-color: var(--ink-soft); }
+        .mdp-segment button.active { border-color: var(--red); background: var(--red-soft); color: #c0283a; font-weight: 700; }
+        .mdp-segment button.active.sale { border-color: var(--amber); background: #fdf4e5; color: #a8720f; }
+        .mdp-segment button.active.rent { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
+        .mdp-segment.sm { margin: 10px 0 0; }
+        .mdp-segment.sm button { min-width: 0; padding: 6px 8px; font-size: 12px; }
+        .mdp-radius { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+        .mdp-radius input {
+          width: 88px; padding: 7px 9px; font: inherit;
+          border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+        }
+
+        /* ---------- Kapılar ---------- */
+        .mdp-door {
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          padding: 9px 12px; margin-bottom: 8px;
+          background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+        }
+        .mdp-door-name { font-weight: 700; font-size: 13.5px; }
+        .mdp-door-id { font-size: 12px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+        /* ---------- Daireler grid ---------- */
+        .mdp-flats {
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;
+        }
+        .mdp-flat {
+          display: flex; flex-direction: column; gap: 8px;
+          padding: 12px; background: var(--surface);
+          border: 1px solid var(--line); border-radius: var(--radius-sm);
+        }
+        .mdp-flat.occupied { border-color: #cfd8e8; background: #fdfefe; }
+        .mdp-flat-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .mdp-flat-no { font-weight: 800; font-size: 14px; }
+        .mdp-flat-empty { font-size: 13px; color: var(--muted); font-style: italic; }
+        .mdp-flat-qr { display: flex; gap: 6px; flex-wrap: wrap; }
+        .mdp-flat-residents { display: flex; flex-direction: column; gap: 6px; }
+        .mdp-res {
+          display: flex; align-items: center; justify-content: space-between; gap: 8px;
+          padding: 7px 9px; background: var(--surface-2); border-radius: 8px;
+        }
+        .mdp-res-info { display: flex; flex-direction: column; min-width: 0; }
+        .mdp-res-name { font-weight: 700; font-size: 13px; }
+        .mdp-res-phone { font-size: 12px; color: var(--muted); }
+        .mdp-res-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .mdp-flat-delete {
+          background: none; border: none; padding: 4px 0;
+          font-size: 12.5px; font-weight: 600; color: var(--red); text-align: left;
+        }
+        .mdp-flat-delete:hover:not(:disabled) { text-decoration: underline; }
+        .mdp-flat-add {
+          display: flex; align-items: center; justify-content: center; min-height: 90px;
+          background: none; border: 2px dashed var(--line); border-radius: var(--radius-sm);
+          font-size: 14px; font-weight: 700; color: var(--muted);
+          transition: border-color 0.15s, color 0.15s;
+        }
+        .mdp-flat-add:hover { border-color: var(--red); color: var(--red); }
+
+        /* ---------- Chipler ---------- */
+        .mdp-chip {
+          display: inline-flex; align-items: center; padding: 2px 8px;
+          font-size: 11.5px; font-weight: 700; border-radius: 20px; white-space: nowrap;
+        }
+        .mdp-chip.sale { background: #fdf4e5; color: #a8720f; }
+        .mdp-chip.rent { background: var(--blue-soft); color: var(--blue); }
+        .mdp-chip.pending { background: #fdf4e5; color: #a8720f; }
+
+        /* ---------- Güvenlik ekleme formu ---------- */
+        .mdp-guard-add { display: flex; gap: 8px; flex-wrap: wrap; }
+        .mdp-guard-add .mdp-input { flex: 1 1 200px; margin-bottom: 0; }
+        .mdp-guard-add + .mdp-empty, .mdp-guard-add + .mdp-list { margin-top: 16px; }
+
+        /* ---------- Abonelik ---------- */
+        .mdp-subs { display: flex; flex-direction: column; gap: 12px; }
+        .mdp-panelcard.sub { background: var(--surface); box-shadow: var(--shadow); }
+        .mdp-sub-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+        .mdp-sub-title { font-weight: 800; font-size: 15.5px; }
+        .mdp-sub-details { margin: 0 0 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+        .mdp-sub-details div { display: flex; flex-direction: column; }
+        .mdp-sub-details dt { font-size: 12px; color: var(--muted); font-weight: 600; }
+        .mdp-sub-details dd { margin: 0; font-size: 14px; }
+
+        /* ---------- Mobil ---------- */
+        @media (max-width: 640px) {
+          .mdp-stats { grid-template-columns: repeat(2, 1fr); }
+          .mdp-row { flex-wrap: wrap; }
+          .mdp-row-actions { width: 100%; justify-content: flex-end; }
+          .mdp-flats { grid-template-columns: 1fr; }
+          .mdp-header-inner { padding: 10px 14px; }
+          .mdp-main { padding: 16px 14px 48px; }
+          .mdp-logo-text { font-size: 17px; }
+        }
+      `}</style>
     </div>
   );
 }
