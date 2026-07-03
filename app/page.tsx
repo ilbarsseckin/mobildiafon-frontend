@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, createContext, useContext, type PointerEvent } from "react";
+import { useState, useEffect, useRef, createContext, useContext } from "react";
 import Link from "next/link";
 import Reveal from "./components/Reveal";
 import NetworkBackground from "./components/NetworkBackground";
 import JourneyScene from "./components/JourneyScene";
-import HeroPhone from "./components/HeroPhone";
 
 /* ============================================================
    DİL (i18n) + TEMA
@@ -40,6 +39,19 @@ const T = {
       denied: "Konum izni verilmedi — haritadan arayabilirsin",
       noGeo: "Tarayıcı konumu desteklemiyor — haritadan ara",
       aBuilding: "Bina",
+    },
+    hero2: {
+      eye: "Konum Tabanlı Akıllı Diafon Platformu",
+      ta: "Konumunuzdaki tüm diafonlara ",
+      em: "saniyeler içinde",
+      tb: " ulaşın.",
+      sub: "Uygulamayı açın, konumunuzu tarayın; çevrenizdeki kayıtlı binalara bağlanın. Görüntülü görüşün, kapıyı uzaktan açın.",
+      c2: "Nasıl Çalışır?",
+      f1: "QR ile Bağlan",
+      f2: "Görüntülü Görüşme",
+      f3: "Kapı Açma",
+      f4: "Konumdan Bulma",
+      f5: "Tuya Uyumlu",
     },
     slides: [
       { eye: "QR + Konum Tabanlı Diafon", ta: "Diafon artık binada değil, ", em: "cebinizde", tb: "", sub: "Ziyaretçi QR kodu okutur, bina doğrulanır ve doğru daireye görüntülü arama başlar. Panelsiz, hızlı ve modern bir giriş deneyimi sunar.", c1: "Binanı Dijitalleştir", c2: "Nasıl Çalışır?", b1: "QR ile bina bulma", b2: "Görüntülü arama", tlH: "Konum doğrulandı", tlTag: "120 m", tlP: "Bina çevresinde kayıtlı liste açılır", brH: "Yıldız Sitesi · A Blok", brP: "48 daire · 92 sakin", pT: "Apartman Girişi", pM: "Daire 12 aranıyor", pD: "Görüntülü çağrı başlatıldı" },
@@ -142,6 +154,19 @@ const T = {
       denied: "Location permission denied — search from the map",
       noGeo: "Your browser doesn't support location — use the map",
       aBuilding: "Building",
+    },
+    hero2: {
+      eye: "Location-Based Smart Intercom Platform",
+      ta: "Reach every intercom around you ",
+      em: "in seconds",
+      tb: ".",
+      sub: "Open the app, scan your location, and connect to registered buildings nearby. Talk on video, open the door remotely.",
+      c2: "How It Works",
+      f1: "Connect via QR",
+      f2: "Video Calling",
+      f3: "Door Opening",
+      f4: "Find by Location",
+      f5: "Tuya Compatible",
     },
     slides: [
       { eye: "QR + Location-Based Intercom", ta: "Your intercom is no longer on the wall, ", em: "it's in your phone", tb: "", sub: "Visitors scan the QR code, the building is verified, and a video call starts with the correct resident. A panel-free, modern entry experience.", c1: "Digitalize Your Building", c2: "How It Works", b1: "Find building by QR", b2: "Video calling", tlH: "Location verified", tlTag: "120 m", tlP: "Registered building list opens around the location", brH: "Star Complex · Block A", brP: "48 flats · 92 residents", pT: "Building Entrance", pM: "Calling Flat 12", pD: "Video call started" },
@@ -314,56 +339,51 @@ function Header() {
 }
 
 /* ============================================================
-   HERO CAROUSEL
+   HERO — tek sahne: arka görsel + konum radarı (Konsept A)
    ============================================================ */
-const SLIDE_COUNT = 4;
-const AUTOPLAY_MS = 7000;
+function IconPin() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-6.5-5.4-6.5-10.8A6.5 6.5 0 0 1 12 3.5a6.5 6.5 0 0 1 6.5 6.7C18.5 15.6 12 21 12 21Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><circle cx="12" cy="10.2" r="2.4" stroke="currentColor" strokeWidth="1.8" /></svg>); }
+
+function HeroRadar() {
+  const bld = (x: number, y: number, d: string) => (
+    <g key={`${x}-${y}`} className="hr-bld" transform={`translate(${x},${y})`} style={{ animationDelay: d }}>
+      <rect className="hr-bld-body" x="-10" y="-13" width="20" height="26" rx="3" />
+      <rect x="-6" y="-8" width="4.5" height="4.5" />
+      <rect x="1.5" y="-8" width="4.5" height="4.5" />
+      <rect x="-6" y="0" width="4.5" height="4.5" />
+      <rect x="1.5" y="0" width="4.5" height="4.5" />
+    </g>
+  );
+  return (
+    <svg className="hero2-radar" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <circle className="hr-guide" cx="300" cy="300" r="65" />
+      <circle className="hr-guide" cx="300" cy="300" r="130" />
+      <circle className="hr-guide" cx="300" cy="300" r="195" />
+      <circle className="hr-guide" cx="300" cy="300" r="260" />
+      <circle className="hr-ring" cx="300" cy="300" r="260" />
+      <circle className="hr-ring" cx="300" cy="300" r="260" style={{ animationDelay: "1.4s" }} />
+      <circle className="hr-ring" cx="300" cy="300" r="260" style={{ animationDelay: "2.8s" }} />
+      {bld(432, 182, "0.5s")}
+      {bld(168, 214, "1.7s")}
+      {bld(382, 424, "2.9s")}
+      {bld(152, 388, "3.6s")}
+      {bld(468, 320, "1.1s")}
+      {bld(252, 124, "2.3s")}
+      <g>
+        <ellipse className="hr-pin-shadow" cx="300" cy="305" rx="11" ry="4" />
+        <path className="hr-pin" transform="translate(284.4,270) scale(1.3)" d="M12 2C8.13 2 5 5.13 5 8.5 5 13.75 12 22 12 22s7-8.25 7-13.5C19 5.13 15.87 2 12 2z" />
+        <circle className="hr-pin-dot" cx="300" cy="281" r="4" />
+      </g>
+    </svg>
+  );
+}
 
 function HeroCarousel() {
   const { t } = useUI();
-  const s = t.slides;
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const startX = useRef<number | null>(null);
+  const h = t.hero2;
 
   // Konum bulma durumu
   const [locating, setLocating] = useState(false);
   const [locResult, setLocResult] = useState<{ type: "found" | "none" | "error"; text: string } | null>(null);
-
-  const go = (n: number) => setIndex((n + SLIDE_COUNT) % SLIDE_COUNT);
-  const next = () => go(index + 1);
-  const prev = () => go(index - 1);
-
-  useEffect(() => {
-    if (paused) return;
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const tm = setTimeout(() => setIndex((v) => (v + 1) % SLIDE_COUNT), AUTOPLAY_MS);
-    return () => clearTimeout(tm);
-  }, [index, paused]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") setIndex((v) => (v + 1) % SLIDE_COUNT);
-      if (e.key === "ArrowLeft") setIndex((v) => (v - 1 + SLIDE_COUNT) % SLIDE_COUNT);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    const onVis = () => setPaused(document.hidden);
-    document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
-  }, []);
-
-  const onPointerDown = (e: PointerEvent) => { startX.current = e.clientX; setPaused(true); };
-  const onPointerUp = (e: PointerEvent) => {
-    if (startX.current === null) return;
-    const dx = e.clientX - startX.current;
-    startX.current = null;
-    if (Math.abs(dx) > 50) (dx < 0 ? next : prev)();
-    setPaused(false);
-  };
 
   // Konumumu kullan: konum al → backend'e sor → #bina'ya kaydır
   function scrollToBina(lat?: number, lng?: number) {
@@ -412,131 +432,45 @@ function HeroCarousel() {
     );
   }
 
-  const cls = (n: number) => `hc-slide ${index === n ? "is-active" : ""}`;
-
-  // Her slaytın CTA bloğu (konum butonu + ikinci link + sonuç)
-  const ctaBlock = (secondHref: string, secondLabel: string) => (
-    <>
-      <div className="cta-row anim">
-        <button className="btn btn-primary" onClick={useMyLocation} disabled={locating}>
-          {locating ? (
-            <span className="hc-loc-spin" />
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: 8, verticalAlign: -3 }}>
-              <circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /><circle cx="12" cy="12" r="8" />
-            </svg>
-          )}
-          {locating ? t.heroLoc.locating : t.heroLoc.cta}
-        </button>
-        <a href={secondHref} className="btn btn-ghost">{secondLabel}</a>
-      </div>
-      {locResult && (
-        <div className={`hc-loc-result ${locResult.type}`}>
-          {locResult.type === "found" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}><path d="m5 13 4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-          {locResult.type === "none" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M12 8v5M12 16h.01" strokeLinecap="round" /><circle cx="12" cy="12" r="9" /></svg>}
-          <span>{locResult.text}</span>
-        </div>
-      )}
-    </>
-  );
-
-  // Sağ taraf: gerçek fotoğraf (placeholder)
-  const photo = (n: number, label: string) => (
-    <div className="hc-photo anim" aria-hidden="true">
-      {n === 0 ? (
-        <HeroPhone />
-      ) : (
-      <img src={`https://cdn.mobildiafon.com/hero-${n + 1}.webp`} alt="" className="hc-photo-img" loading={n === 0 ? "eager" : "lazy"} />
-      )}
-      {n !== 0 && (
-      <div className="hc-photo-ph">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
-        <span>{label}</span>
-      </div>
-      )}
-    </div>
-  );
-
   return (
-    <section className={`hero hero-pro ${paused ? "paused" : ""}`} aria-label="Hero"
-      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-      onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
-      <button className="hc-arrow hc-prev" onClick={prev} aria-label={t.aria.prev}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="m15 6-6 6 6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
-      <button className="hc-arrow hc-next" onClick={next} aria-label={t.aria.next}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
-      <div className="hc-viewport">
-        <div className="hc-track" style={{ transform: `translateX(-${index * 100}%)` }}>
-          <div className={cls(0)}>
-            <div className="wrap hc-grid">
-              <div>
-                <span className="eyebrow anim"><i /> {s[0].eye}</span>
-                <h1 className="h1 anim">{s[0].ta}<em>{s[0].em}</em>{s[0].tb}</h1>
-                <p className="sub anim">{s[0].sub}</p>
-                {ctaBlock("#nasil", s[0].c2)}
-                <div className="badges anim">
-                  <span><IconQr /> {s[0].b1}</span>
-                  <span><IconVideo /> {s[0].b2}</span>
-                </div>
-              </div>
-              {photo(0, s[0].pT)}
-            </div>
+    <section className="hero2" aria-label="Hero">
+      <div className="hero2-visual" aria-hidden="true">
+        <img src="https://cdn.mobildiafon.com/hero/whero3.webp" alt="" className="hero2-img" loading="eager" fetchPriority="high" />
+        <HeroRadar />
+      </div>
+      <div className="wrap hero2-grid">
+        <div className="hero2-content">
+          <span className="eyebrow"><i /> {h.eye}</span>
+          <h1 className="h1">{h.ta}<em>{h.em}</em>{h.tb}</h1>
+          <p className="sub">{h.sub}</p>
+          <div className="cta-row">
+            <button className="btn btn-primary" onClick={useMyLocation} disabled={locating}>
+              {locating ? (
+                <span className="hc-loc-spin" />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: 8, verticalAlign: -3 }}>
+                  <circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /><circle cx="12" cy="12" r="8" />
+                </svg>
+              )}
+              {locating ? t.heroLoc.locating : t.heroLoc.cta}
+            </button>
+            <a href="#nasil" className="btn btn-ghost">{h.c2}</a>
           </div>
-          <div className={cls(1)}>
-            <div className="wrap hc-grid">
-              <div>
-                <span className="eyebrow anim"><i /> {s[1].eye}</span>
-                <h1 className="h1 anim">{s[1].ta}<em>{s[1].em}</em>{s[1].tb}</h1>
-                <p className="sub anim">{s[1].sub}</p>
-                {ctaBlock("#nasil", s[1].c2)}
-                <div className="badges anim">
-                  <span><IconHome /> {s[1].b1}</span>
-                  <span><IconGear /> {s[1].b2}</span>
-                </div>
-              </div>
-              {photo(1, s[1].pT)}
+          {locResult && (
+            <div className={`hc-loc-result ${locResult.type}`}>
+              {locResult.type === "found" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}><path d="m5 13 4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+              {locResult.type === "none" && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M12 8v5M12 16h.01" strokeLinecap="round" /><circle cx="12" cy="12" r="9" /></svg>}
+              <span>{locResult.text}</span>
             </div>
-          </div>
-          <div className={cls(2)}>
-            <div className="wrap hc-grid">
-              <div>
-                <span className="eyebrow anim"><i /> {s[2].eye}</span>
-                <h1 className="h1 anim">{s[2].ta}<em>{s[2].em}</em>{s[2].tb}</h1>
-                <p className="sub anim">{s[2].sub}</p>
-                {ctaBlock("#fiyat", s[2].c2)}
-                <div className="badges anim">
-                  <span><IconGrid /> {s[2].b1}</span>
-                  <span><IconLines /> {s[2].b2}</span>
-                </div>
-              </div>
-              {photo(2, s[2].pT)}
-            </div>
-          </div>
-          <div className={cls(3)}>
-            <div className="wrap hc-grid">
-              <div>
-                <span className="eyebrow anim"><i /> {s[3].eye}</span>
-                <h1 className="h1 anim">{s[3].ta}<em>{s[3].em}</em>{s[3].tb}</h1>
-                <p className="sub anim">{s[3].sub}</p>
-                {ctaBlock("#ozellikler", s[3].c2)}
-                <div className="badges anim">
-                  <span><IconLock /> {s[3].b1}</span>
-                  <span><IconArrows /> {s[3].b2}</span>
-                </div>
-              </div>
-              {photo(3, s[3].pT)}
-            </div>
+          )}
+          <div className="hero2-features">
+            <span><IconQr /> {h.f1}</span>
+            <span><IconVideo /> {h.f2}</span>
+            <span><IconLock /> {h.f3}</span>
+            <span><IconPin /> {h.f4}</span>
+            <span><IconGear /> {h.f5}</span>
           </div>
         </div>
-      </div>
-      <div className="hc-dots" role="tablist" aria-label="Slides">
-        {[0, 1, 2, 3].map((k) => (
-          <button key={k} className={`hc-dot ${index === k ? "is-active" : ""}`} onClick={() => go(k)} aria-label={t.aria.slide(k + 1)}>
-            <span className="fill" />
-          </button>
-        ))}
       </div>
     </section>
   );
