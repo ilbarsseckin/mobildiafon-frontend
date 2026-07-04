@@ -424,7 +424,6 @@ function HeroCarousel() {
   const heroImages = [
     "https://cdn.mobildiafon.com/hero/whero3.webp",
     "https://cdn.mobildiafon.com/hero/whero6.webp",
-    "https://cdn.mobildiafon.com/hero/whero10.webp",
   ];
   const [heroSlide, setHeroSlide] = useState(0);
   useEffect(() => {
