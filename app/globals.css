@@ -2319,10 +2319,36 @@ button, input, select, textarea { font: inherit; }
   color: rgba(255,255,255,0.92);
 }
 .hero2-features span svg { color: var(--red); }
+.hero2-video-wrap {
+  display: none;
+}
 @media (max-width: 860px) {
   .hero2 { padding: 56px 0 48px; }
   .hero2-bg { width: 100%; opacity: 0.12; -webkit-mask-image: none; mask-image: none; }
   .hero2-features { gap: 10px 20px; }
+  .hero2-img-desktop { display: none; }
+  .hero2-video-wrap {
+    display: block;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .hero2-video-mobile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vw;
+    height: 56.25vw;   /* 16:9 oranini korur */
+    min-height: 100%;
+    min-width: 177.78vh; /* 16:9 oranini korur, dikeyde tasar */
+    transform: translate(-50%, -50%);
+    border: 0;
+  }
+  .hero2::after {
+    background: linear-gradient(180deg, rgba(20,33,61,0.75) 0%, rgba(20,33,61,0.85) 60%, rgba(20,33,61,0.95) 100%);
+  }
 }
 
 /* ============ YENI HERO (hero2) ============ */

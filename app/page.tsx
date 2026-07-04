@@ -425,6 +425,7 @@ function HeroCarousel() {
     "https://cdn.mobildiafon.com/hero/whero3.webp",
     "https://cdn.mobildiafon.com/hero/whero6.webp",
     "https://cdn.mobildiafon.com/hero/whero10.webp",
+    "https://cdn.mobildiafon.com/hero/whero11.webp",
   ];
   const [heroSlide, setHeroSlide] = useState(0);
   useEffect(() => {
@@ -487,11 +488,21 @@ function HeroCarousel() {
           key={src}
           src={src}
           alt=""
-          className="hero2-img"
+          className="hero2-img hero2-img-desktop"
           aria-hidden="true"
           style={{ opacity: i === heroSlide ? 1 : 0 }}
         />
       ))}
+      <div className="hero2-video-wrap">
+        <iframe
+          className="hero2-video-mobile"
+          src="https://www.youtube.com/embed/NlLeqACEveY?autoplay=1&mute=1&loop=1&playlist=NlLeqACEveY&controls=0&showinfo=0&modestbranding=1&playsinline=1&rel=0"
+          title=""
+          aria-hidden="true"
+          allow="autoplay; encrypted-media"
+          frameBorder={0}
+        />
+      </div>
       <div className="wrap hero2-grid">
         <div className="hero2-left">
           <span className="hero2-eyebrow">
