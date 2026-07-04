@@ -991,6 +991,26 @@ export default function HomePage() {
           </div>
           <AppShowcase />
         </section>
+        <section id="nasil" className="md-section">
+          <div className="md-wrap">
+            <Reveal variant="fade" className="md-center">
+              <span className="md-eyebrow">{t.how.eye}</span>
+              <h2 className="md-title">{t.how.title}</h2>
+              <p className="md-lead md-lead-center">{t.how.lead}</p>
+            </Reveal>
+            <div className="md-steps">
+              {t.steps.map((s, i) => (
+                <Reveal as="div" variant="up" delay={i * 130} key={s.no}>
+                  <article className="md-step">
+                    <div className="md-step-num">{s.no}</div>
+                    <h3>{s.title}</h3>
+                    <p>{s.text}</p>
+                  </article>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
 <section className="md-partners">
   <div className="md-wrap">
     <p className="md-partners-label">{t.partnersLabel}</p>
@@ -1024,26 +1044,6 @@ export default function HomePage() {
         </section>
 
  <JourneyScene />
-        <section id="nasil" className="md-section">
-          <div className="md-wrap">
-            <Reveal variant="fade" className="md-center">
-              <span className="md-eyebrow">{t.how.eye}</span>
-              <h2 className="md-title">{t.how.title}</h2>
-              <p className="md-lead md-lead-center">{t.how.lead}</p>
-            </Reveal>
-            <div className="md-steps">
-              {t.steps.map((s, i) => (
-                <Reveal as="div" variant="up" delay={i * 130} key={s.no}>
-                  <article className="md-step">
-                    <div className="md-step-num">{s.no}</div>
-                    <h3>{s.title}</h3>
-                    <p>{s.text}</p>
-                  </article>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
 
         <section id="fiyat" className="md-section">
           <div className="md-wrap">
