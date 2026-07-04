@@ -2,23 +2,23 @@
 import { useEffect, useState } from "react";
 
 const STEPS = [
-  { icon: "01", label: "Kapıya geldi" },
-  { icon: "02", label: "Konum tarandı" },
-  { icon: "03", label: "Bina bulundu" },
-  { icon: "04", label: "Sakin seçildi" },
-  { icon: "05", label: "Görüşme başladı" },
+  { icon: "📍", label: "Kapıya geldi" },
+  { icon: "📡", label: "Konum tarandı" },
+  { icon: "🏢", label: "Bina bulundu" },
+  { icon: "👥", label: "Sakin seçildi" },
+  { icon: "📞", label: "Görüşme başladı" },
 ];
 
 export default function JourneyScene() {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setActive((a) => (a + 1) % STEPS.length), 2600);
+    const t = setInterval(() => setActive((a) => (a + 1) % STEPS.length), 1800);
     return () => clearInterval(t);
   }, []);
 
   return (
-    <section className="js-scene" data-step={active} aria-label="MobilDiafon nasıl çalışır animasyonu">
+    <section className="js-scene" aria-label="MobilDiafon nasıl çalışır animasyonu">
       <div className="js-head">
         <span className="js-eyebrow">CANLI DEMO</span>
         <h2 className="js-title">Bir ziyaretçinin yolculuğu</h2>
@@ -228,7 +228,7 @@ export default function JourneyScene() {
           </g>
 
           <use href="#pLinkPath" className="js-link" stroke="url(#pLine)" strokeWidth="3.5" strokeLinecap="round" />
-          <circle className="js-linkdot" r="5" fill="#e63946">
+          <circle r="5" fill="#e63946">
             <animateMotion dur="2.2s" repeatCount="indefinite">
               <mpath href="#pLinkPath" />
             </animateMotion>
@@ -272,7 +272,7 @@ export default function JourneyScene() {
               <rect x="20" y="-8" width="6" height="16" rx="3" fill="#e63946" />
               <rect x="34" y="-12" width="6" height="24" rx="3" fill="#e63946" />
             </g>
-            <text className="js-connected" x="100" y="318" textAnchor="middle" fill="#5fd38a" fontSize="12" fontWeight="700">● Bağlandı</text>
+            <text x="100" y="318" textAnchor="middle" fill="#5fd38a" fontSize="12" fontWeight="700">● Bağlandı</text>
           </g>
         </svg>
       </div>

@@ -2538,3 +2538,34 @@ button, input, select, textarea { font: inherit; }
 .md-faq-ic::after{transform:translate(-50%,-50%) rotate(90deg)}
 .md-faq-item[open] .md-faq-ic::after{transform:translate(-50%,-50%) rotate(0)}
 .md-faq-a{padding:0 20px 20px;color:var(--gray,#5B6B85);font-size:14.5px;line-height:1.65}
+
+/* ===== JourneyScene: sahne-adim senkronu ===== */
+.js-scene .js-link,.js-scene .js-linkdot,.js-scene .js-wave,
+.js-scene .js-connected,.js-scene .js-res-sel{transition:opacity .5s ease}
+
+/* baglanti cizgisi + kayan nokta: sakin secilene kadar gizli */
+.js-scene[data-step="0"] .js-link,.js-scene[data-step="0"] .js-linkdot,
+.js-scene[data-step="1"] .js-link,.js-scene[data-step="1"] .js-linkdot,
+.js-scene[data-step="2"] .js-link,.js-scene[data-step="2"] .js-linkdot{opacity:0}
+
+/* secili sakin karti: adim 4'e kadar sonuk */
+.js-scene[data-step="0"] .js-res-sel,
+.js-scene[data-step="1"] .js-res-sel,
+.js-scene[data-step="2"] .js-res-sel{opacity:.22}
+
+/* ses dalgasi + Baglandi: sadece son adimda */
+.js-scene:not([data-step="4"]) .js-wave,
+.js-scene:not([data-step="4"]) .js-connected{opacity:0}
+
+/* bina rozeti: "bina bulundu" adiminda vurgu */
+.js-scene .js-badge{transition:transform .5s ease, filter .5s ease;
+  transform-box:fill-box;transform-origin:center}
+.js-scene[data-step="2"] .js-badge{transform:scale(1.08);
+  filter:drop-shadow(0 0 10px rgba(74,217,232,.7))}
+
+/* radar: ilk adimda sonuk, konum taramasinda tam */
+.js-scene .js-radar{transition:opacity .4s ease}
+.js-scene[data-step="0"] .js-radar{opacity:.25}
+
+/* adim cipleri: numara stili */
+.js-step-dot{font-size:11px;font-weight:800;letter-spacing:.02em}
