@@ -518,7 +518,6 @@ function HeroCarousel() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 6, verticalAlign: -2 }}><path d="M8 5v14l11-7z" /></svg>
               Nasıl Çalışır?
             </a>
-            <img src="https://cdn.mobildiafon.com/tuya.webp" alt="Tuya uyumlu" className="hero2-tuya" />
           </div>
           {locResult && (
             <div className={`hc-loc-result ${locResult.type}`}>
