@@ -2431,9 +2431,10 @@ button, input, select, textarea { font: inherit; }
 .md-showcase-sec{padding:76px 0 84px;position:relative;overflow:hidden}
 
 /* sahne: section'ı kaplar, ortada 3'lü kompozisyon */
-.sc-stage{position:relative;width:100%;max-width:1100px;margin:0 auto;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  perspective:1600px;padding-bottom:8px}
+.sc-stage{position:relative;width:100%;max-width:1080px;margin:0 auto;
+  height:min(66vh,600px);min-height:460px;
+  display:flex;align-items:center;justify-content:center;
+  perspective:1600px}
 
 /* arkada marka renginde yumuşak ışık */
 .sc-glow{position:absolute;inset:0;z-index:0;pointer-events:none;
@@ -2465,7 +2466,8 @@ button, input, select, textarea { font: inherit; }
 .sc-hidden{transform:translate(-50%,-50%) scale(.68);opacity:0;z-index:1;pointer-events:none}
 
 /* alt noktalar */
-.sc-dots{position:relative;z-index:4;display:flex;gap:8px;justify-content:center;margin-top:40px;flex-wrap:wrap;width:100%}
+.sc-dots{position:relative;z-index:4;display:flex;gap:8px;justify-content:center;
+  margin-top:26px;flex-wrap:wrap}
 .sc-dot{width:8px;height:8px;border-radius:999px;border:0;cursor:pointer;padding:0;
   background:var(--line,#d9e0ec);transition:width .3s ease, background .3s ease}
 .sc-dot.is-on{width:26px;background:var(--red,#E63946)}
@@ -2478,44 +2480,6 @@ button, input, select, textarea { font: inherit; }
   .sc-left,.sc-right{opacity:0;pointer-events:none}
 }
 
-@media (prefers-reduced-motion:reduce){
-  .sc-phone{transition:opacity .4s ease}
-  .sc-left,.sc-right{opacity:0}
-}
-/* ===== APP SHOWCASE — hazir mockup gorselleri (kendi telefon kasasi var) ===== */
-.md-showcase-sec{padding:64px 0 80px;position:relative;overflow:hidden}
-.sc-stage{position:relative;width:100%;max-width:1100px;margin:0 auto;
-  height:clamp(420px,52vh,520px);
-  display:flex;align-items:center;justify-content:center;perspective:1600px}
-.sc-glow{position:absolute;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(46% 58% at 50% 50%, rgba(230,57,70,.10), transparent 70%),
-    radial-gradient(40% 48% at 50% 62%, rgba(27,42,74,.08), transparent 72%)}
-.sc-deck{position:relative;z-index:1;width:100%;height:100%;
-  display:flex;align-items:center;justify-content:center}
-.sc-phone{position:absolute;top:50%;left:50%;margin:0;
-  height:100%;width:auto;max-width:46%;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .8s cubic-bezier(.22,.61,.36,1), opacity .8s ease, filter .8s ease;
-  will-change:transform,opacity;
-  filter:drop-shadow(0 26px 46px rgba(20,33,61,.28))}
-.sc-phone img{height:100%;width:auto;max-width:100%;object-fit:contain;display:block}
-.sc-active{transform:translate(-50%,-50%) scale(1);opacity:1;z-index:3;filter:drop-shadow(0 26px 46px rgba(20,33,61,.30))}
-.sc-left{transform:translate(calc(-50% - 240px),-50%) scale(.8) rotateY(15deg);
-  opacity:.38;z-index:2;filter:saturate(.9) brightness(.95) drop-shadow(0 16px 30px rgba(20,33,61,.18))}
-.sc-right{transform:translate(calc(-50% + 240px),-50%) scale(.8) rotateY(-15deg);
-  opacity:.38;z-index:2;filter:saturate(.9) brightness(.95) drop-shadow(0 16px 30px rgba(20,33,61,.18))}
-.sc-hidden{transform:translate(-50%,-50%) scale(.66);opacity:0;z-index:1;pointer-events:none}
-.sc-dots{position:relative;z-index:4;display:flex;gap:8px;justify-content:center;
-  margin-top:22px;flex-wrap:wrap}
-.sc-dot{width:8px;height:8px;border-radius:999px;border:0;cursor:pointer;padding:0;
-  background:var(--line,#d9e0ec);transition:width .3s ease, background .3s ease}
-.sc-dot.is-on{width:26px;background:var(--red,#E63946)}
-@media (max-width:760px){
-  .sc-stage{height:clamp(380px,64vh,520px)}
-  .sc-phone{max-width:82%}
-  .sc-left,.sc-right{opacity:0;pointer-events:none}
-}
 @media (prefers-reduced-motion:reduce){
   .sc-phone{transition:opacity .4s ease}
   .sc-left,.sc-right{opacity:0}
