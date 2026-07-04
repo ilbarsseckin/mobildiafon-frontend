@@ -320,6 +320,64 @@ function Header() {
    ============================================================ */
 const SLIDE_COUNT = 4;
 const AUTOPLAY_MS = 7000;
+/* ============================================================
+   APP SHOWCASE — ekranlar tek tek belirip kaybolur (telefon çerçeveli)
+   ============================================================ */
+function AppShowcase() {
+  const shots = Array.from({ length: 10 }, (_, i) => i + 1);
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => setIdx((v) => (v + 1) % shots.length), 3200);
+    return () => clearInterval(id);
+  }, [paused, shots.length]);
+
+  const prev = (idx - 1 + shots.length) % shots.length;
+  const next = (idx + 1) % shots.length;
+
+  return (
+    <div
+      className="sc-stage"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="sc-glow" aria-hidden="true" />
+      <div className="sc-deck">
+        {shots.map((n, i) => {
+          let pos = "hidden";
+          if (i === idx) pos = "active";
+          else if (i === prev) pos = "left";
+          else if (i === next) pos = "right";
+          return (
+            <figure className={`sc-phone sc-${pos}`} key={n} aria-hidden={pos === "hidden"}>
+              <img
+                src={`https://cdn.mobildiafon.com/main${n}.webp`}
+                alt={`MobilDiafon ekran ${n}`}
+                loading="lazy"
+                draggable={false}
+              />
+            </figure>
+          );
+        })}
+      </div>
+      <div className="sc-dots" role="tablist" aria-label="Ekranlar">
+        {shots.map((n, i) => (
+          <button
+            key={n}
+            className={`sc-dot ${i === idx ? "is-on" : ""}`}
+            onClick={() => setIdx(i)}
+            aria-label={`Ekran ${n}`}
+            aria-selected={i === idx}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 
 function HeroCarousel() {
   const { t } = useUI();
@@ -964,27 +1022,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ==== KAYAN GÖRSEL ŞERİDİ ==== */}
-        <section className="md-marquee-sec">
-          <div className="md-center" style={{ marginBottom: 28 }}>
+        {/* ==== UYGULAMA VİTRİNİ (tek tek beliren ekranlar) ==== */}
+        <section className="md-showcase-sec">
+          <div className="md-center" style={{ marginBottom: 34 }}>
             <span className="md-eyebrow">{t.marquee.eye}</span>
             <h2 className="md-title">{t.marquee.title}</h2>
           </div>
-          <div className="md-marquee">
-            <div className="md-marquee-track">
-              {[...Array(2)].map((_, dup) =>
-                Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <div className="md-marquee-item" key={`${dup}-${n}`}>
-                    <img
-                      src={`https://cdn.mobildiafon.com/main${n}.webp`}
-                      alt={`MobilDiafon ekran ${n}`}
-                      loading="lazy"
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          <AppShowcase />
         </section>
 
         <section id="fiyat" className="md-section">
