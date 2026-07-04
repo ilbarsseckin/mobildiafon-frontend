@@ -108,18 +108,6 @@ const T = {
     marquee: { eye: "Uygulamadan Görünümler", title: "Cebinizdeki dijital diafon deneyimi" },
     partnersLabel: "Teknoloji Altyapımız",
     finalCta: { eye: "MobilDiafon", h2: "Binanızın dijital giriş deneyimini bugün başlatın.", p: "QR afiş, konum doğrulama, yönetici onayı, güvenlik paneli ve Tuya uyumlu kapı açma desteğiyle kurumsal bir giriş sistemi kurun.", btn: "Başvuru Oluştur" },
-    faq: {
-      eye: "SSS",
-      title: "Sıkça sorulan sorular",
-      items: [
-        { q: "MobilDiafon nedir, klasik diafondan farkı ne?", a: "MobilDiafon, bina girişini panelsiz ve bulut tabanlı yöneten dijital bir diafon platformudur. Çağrılar telefonunuza gelir; nerede olursanız olun görüntülü görüşür ve kapıyı uzaktan açarsınız." },
-        { q: "Kurulum için binada donanım veya panel değişikliği gerekiyor mu?", a: "Hayır. Girişe bir QR afiş asmanız yeterlidir; ziyaretçi kodu okutur, bina doğrulanır ve doğru daireye görüntülü arama başlar. Panel veya kablolama zorunlu değildir." },
-        { q: "Ziyaretçi uygulama indirmeden nasıl arama yapıyor?", a: "Ziyaretçi giriş QR kodunu okutur, tarayıcı üzerinden doğrudan görüntülü çağrı başlar. Ziyaretçinin uygulama indirmesine gerek yoktur." },
-        { q: "Yönetici sakinleri nasıl ekliyor ve onaylıyor?", a: "Yönetici panelinden daireleri tanımlar, katılım isteği gönderen sakinleri onaylar; güvenlik görevlisi ekleme, çağrı kayıtları ve not bırakma ekranları hazırdır." },
-        { q: "Abonelik nasıl işliyor, istediğim zaman iptal edebilir miyim?", a: "Yapı büyüklüğüne göre aylık veya yıllık esnek planlar sunulur. Aboneliğinizi dilediğiniz zaman yönetebilir veya iptal edebilirsiniz." },
-        { q: "Tuya akıllı kapı ve cihazlarla uyumlu mu?", a: "Evet. Tuya uyumlu akıllı kapı ve cihazlarla entegre çalışır; kapı açma işlemleri yetki kontrolüyle ilerler." },
-      ],
-    },
  footer: {
   about: "QR ve konum tabanlı dijital diafon platformu. Apartman, site ve işletmeler için modern iletişim çözümü.",
   product: "Ürün",
@@ -222,18 +210,6 @@ const T = {
     marquee: { eye: "App Highlights", title: "The digital intercom experience in your pocket" },
     partnersLabel: "Trusted Technology & Infrastructure Partners",
     finalCta: { eye: "MobilDiafon", h2: "Start your building's digital entry experience today.", p: "Set up an enterprise entry system with QR posters, location verification, manager approval, a security panel and Tuya-compatible door opening support.", btn: "Get Started" },
-    faq: {
-      eye: "FAQ",
-      title: "Frequently asked questions",
-      items: [
-        { q: "What is MobilDiafon and how is it different from a classic intercom?", a: "MobilDiafon is a cloud-based digital intercom platform that manages building entry without a panel. Calls reach your phone; you talk on video and open the door remotely from anywhere." },
-        { q: "Does installation require hardware or panel changes in the building?", a: "No. You just place a QR poster at the entrance; the visitor scans it, the building is verified and a video call starts to the right flat. No panel or wiring is required." },
-        { q: "How does a visitor call without installing an app?", a: "The visitor scans the entrance QR code and a video call starts directly in the browser. No app download is needed for visitors." },
-        { q: "How does a manager add and approve residents?", a: "From the manager panel you define flats and approve residents who request to join; security guard management, call logs and note-leaving screens are ready to use." },
-        { q: "How does the subscription work and can I cancel anytime?", a: "Flexible monthly or yearly plans are offered based on building size. You can manage or cancel your subscription at any time." },
-        { q: "Is it compatible with Tuya smart doors and devices?", a: "Yes. It integrates with Tuya-compatible smart doors and devices; door-opening actions run through access control." },
-      ],
-    },
  footer: {
   about: "QR and location-based digital intercom platform. A modern communication solution for apartments, complexes and businesses.",
   product: "Product",
@@ -1105,22 +1081,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="sss" className="md-section md-faq-sec">
-          <div className="md-wrap">
-            <Reveal variant="fade" className="md-center">
-              <span className="md-eyebrow">{t.faq.eye}</span>
-              <h2 className="md-title">{t.faq.title}</h2>
-            </Reveal>
-            <div className="md-faq">
-              {t.faq.items.map((it, i) => (
-                <details className="md-faq-item" key={i}>
-                  <summary>{it.q}<span className="md-faq-ic" aria-hidden="true" /></summary>
-                  <div className="md-faq-a">{it.a}</div>
-                </details>
-              ))}
-            </div>
+        <Reveal as="section" variant="zoom" className="md-wrap md-final-cta">
+          <div>
+            <span className="md-eyebrow">{t.finalCta.eye}</span>
+            <h2>{t.finalCta.h2}</h2>
+            <p>{t.finalCta.p}</p>
           </div>
-        </section>
+          <Link href="/satin-al" className="md-btn md-btn-primary">{t.finalCta.btn}</Link>
+        </Reveal>
 
   {/* ====== FOOTER ====== */}
 <footer className="md-footer">
