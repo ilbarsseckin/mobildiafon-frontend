@@ -1165,6 +1165,7 @@ export default function HomePage() {
       <h4>{t.footer.panels}</h4>
       <Link href="/yonetici">{t.managerLogin}</Link>
       <Link href="/guvenlik">{t.securityLogin}</Link>
+      <Link href="/superadmin">{t.footer.superadmin}</Link>
     </div>
 
     {/* Yasal */}
