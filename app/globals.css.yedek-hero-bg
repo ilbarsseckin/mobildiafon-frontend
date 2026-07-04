@@ -745,10 +745,7 @@ button, input, select, textarea { font: inherit; }
 .mdland .util-links a:hover{color:var(--red)}
 
 /* ---- glass header ---- */
-.mdland .header{position:sticky;top:0;z-index:50;background:rgba(20,33,61,.35);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);border-bottom:1px solid rgba(255,255,255,.12)}
-.mdland .header .nav-links a{color:rgba(255,255,255,.88)}
-.mdland .header .nav-links a:hover{color:#fff}
-.mdland .header .logo .word .m{color:#fff}
+.mdland .header{position:sticky;top:0;z-index:50;background:rgba(245,247,252,.72);backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);border-bottom:1px solid var(--line)}
 .mdland .nav{display:flex;align-items:center;justify-content:space-between;height:76px;gap:24px}
 .mdland .logo{display:flex;align-items:center;gap:12px}
 .mdland .logo img{width:40px;height:40px;border-radius:12px;display:block;box-shadow:0 8px 20px -10px rgba(22,36,63,.5)}
@@ -994,10 +991,10 @@ button, input, select, textarea { font: inherit; }
 
 .mdland .bb2{padding:70px 0 90px}
 .mdland .bb2-head{max-width:760px;margin:0 auto 26px;padding:0 20px;text-align:center}
-.mdland .bb2-wrap{position:relative;max-width:none;margin:0;padding:0}
+.mdland .bb2-wrap{position:relative;max-width:1200px;margin:0 auto;padding:0 20px}
 
-.mdland .bb2-stage{position:relative;height:min(76vh,620px);min-height:460px;border-radius:0;
-  overflow:hidden;border:0;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);box-shadow:var(--sh-xl);background:#dfe6f1}
+.mdland .bb2-stage{position:relative;height:min(76vh,620px);min-height:460px;border-radius:var(--r-lg);
+  overflow:hidden;border:1px solid var(--line-2);box-shadow:var(--sh-xl);background:#dfe6f1}
 .mdland .bb2-map{position:absolute;inset:0;width:100%;height:100%}
 .mdland .bb2-map .leaflet-container{font-family:var(--font-body)}
 .mdland .bb2-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -2237,33 +2234,26 @@ button, input, select, textarea { font: inherit; }
 .hero2 {
   position: relative;
   overflow: hidden;
-  margin-top: -76px;
-  padding: 160px 0 96px;
-  border-radius: 0 0 32px 32px;
-  background: #14213D;
-}
-.hero2::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(90deg, rgba(20,33,61,0.88) 0%, rgba(20,33,61,0.72) 45%, rgba(20,33,61,0.35) 100%),
-              linear-gradient(180deg, rgba(20,33,61,0.55) 0%, rgba(20,33,61,0.2) 40%, rgba(20,33,61,0.6) 100%);
-  pointer-events: none;
+  background: linear-gradient(180deg, #fff 0%, var(--bg-soft) 100%);
+  padding: 80px 0 64px;
 }
 .hero2-img {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center right;
+  top: -76px;
+  right: 0;
+  height: calc(100% + 76px);
+  width: auto;
+  max-width: 55%;
+  object-fit: contain;
+  object-position: right top;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 30%);
+  mask-image: linear-gradient(to right, transparent, #000 30%);
 }
 .hero2-grid {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   display: grid;
   grid-template-columns: minmax(0, 620px);
 }
@@ -2285,14 +2275,14 @@ button, input, select, textarea { font: inherit; }
   line-height: 1.08;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--navy-deep);
   margin-bottom: 22px;
 }
 .hero2-title em { color: var(--red); font-style: normal; }
 .hero2-sub {
   font-size: 18px;
   line-height: 1.7;
-  color: rgba(255,255,255,0.85);
+  color: var(--gray);
   margin-bottom: 32px;
   max-width: 540px;
 }
@@ -2308,7 +2298,7 @@ button, input, select, textarea { font: inherit; }
   gap: 12px 28px;
   margin-top: 40px;
   padding-top: 28px;
-  border-top: 1px solid rgba(255,255,255,0.18);
+  border-top: 1px solid var(--line);
 }
 .hero2-features span {
   display: inline-flex;
@@ -2316,7 +2306,7 @@ button, input, select, textarea { font: inherit; }
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255,255,255,0.92);
+  color: var(--navy);
 }
 .hero2-features span svg { color: var(--red); }
 @media (max-width: 860px) {
@@ -2329,19 +2319,8 @@ button, input, select, textarea { font: inherit; }
 .hero2 {
   position: relative;
   overflow: hidden;
-  margin-top: -76px;
-  padding: 160px 0 96px;
-  border-radius: 0 0 32px 32px;
-  background: #14213D;
-}
-.hero2::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(90deg, rgba(20,33,61,0.88) 0%, rgba(20,33,61,0.72) 45%, rgba(20,33,61,0.35) 100%),
-              linear-gradient(180deg, rgba(20,33,61,0.55) 0%, rgba(20,33,61,0.2) 40%, rgba(20,33,61,0.6) 100%);
-  pointer-events: none;
+  background: linear-gradient(180deg, #fff 0%, var(--bg-soft) 100%);
+  padding: 80px 0 64px;
 }
 .hero2-bg {
   position: absolute;
@@ -2357,7 +2336,7 @@ button, input, select, textarea { font: inherit; }
 }
 .hero2-grid {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   display: grid;
   grid-template-columns: minmax(0, 620px);
 }
@@ -2379,14 +2358,14 @@ button, input, select, textarea { font: inherit; }
   line-height: 1.08;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--navy-deep);
   margin-bottom: 22px;
 }
 .hero2-title em { color: var(--red); font-style: normal; }
 .hero2-sub {
   font-size: 18px;
   line-height: 1.7;
-  color: rgba(255,255,255,0.85);
+  color: var(--gray);
   margin-bottom: 32px;
   max-width: 540px;
 }
@@ -2402,7 +2381,7 @@ button, input, select, textarea { font: inherit; }
   gap: 12px 28px;
   margin-top: 40px;
   padding-top: 28px;
-  border-top: 1px solid rgba(255,255,255,0.18);
+  border-top: 1px solid var(--line);
 }
 .hero2-features span {
   display: inline-flex;
@@ -2410,7 +2389,7 @@ button, input, select, textarea { font: inherit; }
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255,255,255,0.92);
+  color: var(--navy);
 }
 .hero2-features span svg { color: var(--red); }
 @media (max-width: 860px) {

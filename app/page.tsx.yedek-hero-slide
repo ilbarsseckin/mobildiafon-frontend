@@ -325,17 +325,6 @@ function HeroCarousel() {
   const { t } = useUI();
   const [locating, setLocating] = useState(false);
   const [locResult, setLocResult] = useState<{ type: "found" | "none" | "error"; text: string } | null>(null);
-  const heroImages = [
-    "https://cdn.mobildiafon.com/hero/whero3.webp",
-    "https://cdn.mobildiafon.com/hero/whero6.webp",
-  ];
-  const [heroSlide, setHeroSlide] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => {
-      setHeroSlide((i) => (i + 1) % heroImages.length);
-    }, 4000);
-    return () => clearInterval(id);
-  }, []);
 
   function scrollToBina(lat?: number, lng?: number) {
     if (lat != null && lng != null) {
@@ -385,21 +374,12 @@ function HeroCarousel() {
 
   return (
     <section className="hero2" aria-label="Hero">
-      {heroImages.map((src, i) => (
-        <img
-          key={src}
-          src={src}
-          alt=""
-          className="hero2-img"
-          aria-hidden="true"
-          style={{ opacity: i === heroSlide ? 1 : 0 }}
-        />
-      ))}
+      <img src="https://cdn.mobildiafon.com/hero/whero3.webp" alt="" className="hero2-img" aria-hidden="true" />
       <div className="wrap hero2-grid">
         <div className="hero2-left">
           <span className="hero2-eyebrow">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11Z" /><circle cx="12" cy="10" r="2.5" /></svg>
-            Diafonun Dijital Hali
+            Konum Tabanlı Akıllı Diafon Platformu
           </span>
           <h1 className="hero2-title">
             Konumunuzdaki tüm diafonlara saniyeler içinde <em>ulaşın.</em>
