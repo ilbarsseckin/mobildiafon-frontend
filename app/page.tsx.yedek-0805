@@ -103,7 +103,7 @@ const T = {
       { title: "Tuya uyumlu kapı açma", text: "Uygun yapılarda Tuya uyumlu röle ile bina kapısı, bariyer ve turnike tek dokunuşla yönetilebilir." },
       { title: "Yetki ve işlem kayıtları", text: "Kapı açma, çağrı ve yönetim işlemleri yetki kontrolüyle ilerler; kurumsal takip için kayıt altına alınır." },
     ],
-    price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Villa ve işyerinden büyük sitelere, her yapıya uygun esnek fiyatlandırma.", choose: "Başla" },
+    price: { eye: "Abonelik", title: "Binanıza uygun planı seçin.", lead: "Villa ve işyerinden büyük sitelere, her yapıya uygun esnek fiyatlandırma.", choose: "Planı Seç" },
     recommended: "Önerilen",
     marquee: { eye: "Uygulamadan Görünümler", title: "Cebinizdeki dijital diafon deneyimi" },
     partnersLabel: "Teknoloji Altyapımız",
@@ -205,7 +205,7 @@ const T = {
       { title: "Tuya-compatible door opening", text: "Where supported, Tuya-compatible relays can control building doors, barriers and turnstiles in one tap." },
       { title: "Access and activity logs", text: "Door opening, calls and management actions run through access control and can be tracked for enterprise use." },
     ],
-    price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "From single units to large complexes, flexible pricing for every structure.", choose: "Get Started" },
+    price: { eye: "Subscription", title: "Choose the plan that fits your building.", lead: "From single units to large complexes, flexible pricing for every structure.", choose: "Choose Plan" },
     recommended: "Recommended",
     marquee: { eye: "App Highlights", title: "The digital intercom experience in your pocket" },
     partnersLabel: "Trusted Technology & Infrastructure Partners",
@@ -1068,12 +1068,15 @@ export default function HomePage() {
                     {isFeatured && <span className="md-price-ribbon">{t.recommended}</span>}
                     <h3>{p.name}</h3>
                     <div className="md-price">
-                      {isFree ? lang === "en" ? "Quote" : "Teklif" : `₺${bbFmt(p.monthlyPrice)}/ay`}
+                      {isFree ? t.price.choose === "Choose Plan" ? "Quote" : "Teklif" : `₺${bbFmt(p.monthlyPrice)}/ay`}
                     </div>
                     <p>{detailText}</p>
-                    <a href="#bina"
+                    <Link
+                      href={`/satin-al?plan=${p.id}`}
                       className={isFeatured ? "md-btn md-btn-primary" : "md-btn md-btn-ghost"}
-                    >{t.price.choose}</a>
+                    >
+                      {t.price.choose}
+                    </Link>
                   </article>
                 );
               })}
