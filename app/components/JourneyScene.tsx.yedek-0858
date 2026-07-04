@@ -1,0 +1,221 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+const STEP_MS = 3000;
+
+const TXT = {
+  eyebrow: "Canl\u0131 Demo",
+  title: "Bir ziyaret\u00e7inin yolculu\u011fu",
+  sub: "Kap\u0131ya geldi, konumunu taratt\u0131; saniyeler i\u00e7inde g\u00f6r\u00fcnt\u00fcl\u00fc g\u00f6r\u00fc\u015fme ba\u015flad\u0131.",
+  aria: "MobilDiafon nas\u0131l \u00e7al\u0131\u015f\u0131r animasyonu",
+  ariaSteps: "Demo ad\u0131mlar\u0131",
+  bld: "Y\u0131ld\u0131z Apartman\u0131",
+  reg: "\u2713 MOB\u0130LD\u0130AFON KAYITLI",
+  brand: "\u25CF MOB\u0130LD\u0130AFON",
+  bldCaps: "YILDIZ APARTMANI",
+  flat: "Daire 12",
+  conn: "\u25CF Ba\u011fland\u0131",
+};
+
+const STEPS = [
+  { n: "01", l: "Kap\u0131ya geldi" },
+  { n: "02", l: "Konum tarand\u0131" },
+  { n: "03", l: "Bina do\u011fruland\u0131" },
+  { n: "04", l: "Daire se\u00e7ildi" },
+  { n: "05", l: "G\u00f6r\u00fc\u015fme ba\u015flad\u0131" },
+];
+
+const WINS: Array<[number, number, number]> = [
+  [24, 84, 0], [78, 84, 1], [132, 84, 0],
+  [24, 130, 1], [78, 130, 2], [132, 130, 0],
+  [24, 176, 0], [78, 176, 0], [132, 176, 1],
+  [24, 222, 1], [78, 222, 0], [132, 222, 1],
+];
+
+export default function JourneyScene() {
+  const [step, setStep] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [inView, setInView] = useState(true);
+  const rootRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((es) => setInView(es[0].isIntersecting), { threshold: 0.2 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (paused || !inView) return;
+    const id = setInterval(() => setStep((s) => (s + 1) % STEPS.length), STEP_MS);
+    return () => clearInterval(id);
+  }, [paused, inView]);
+
+  return (
+    <section
+      ref={rootRef}
+      className={`jy-scene${paused ? " paused" : ""}`}
+      data-step={step}
+      aria-label={TXT.aria}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="jy-head">
+        <span className="jy-eyebrow">{TXT.eyebrow}</span>
+        <h2 className="jy-title">{TXT.title}</h2>
+        <p className="jy-sub">{TXT.sub}</p>
+      </div>
+
+      <div className="jy-stage">
+        <svg className="jy-canvas" viewBox="0 0 980 520" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <defs>
+            <path id="jyPath" d="M468,372 C 560,306 612,364 700,282" fill="none" />
+          </defs>
+
+          <line x1="56" y1="470" x2="924" y2="470" className="jy-ground" />
+
+          <g className="jy-far">
+            <rect x="60" y="380" width="54" height="90" rx="4" />
+            <rect x="126" y="402" width="40" height="68" rx="4" />
+            <rect x="836" y="392" width="46" height="78" rx="4" />
+            <rect x="896" y="376" width="52" height="94" rx="4" />
+          </g>
+          <circle className="jy-farpin" cx="87" cy="372" r="4" />
+          <circle className="jy-farpin d2" cx="922" cy="368" r="4" />
+
+          <g transform="translate(150,120)">
+            <ellipse cx="95" cy="352" rx="118" ry="13" className="jy-shadow" />
+            <rect x="0" y="50" width="190" height="300" rx="12" className="jy-bld" />
+            <rect x="-8" y="36" width="206" height="22" rx="10" className="jy-roof" />
+            {WINS.map(([x, y, k], i) => (
+              <rect key={i} x={x} y={y} width="36" height="28" rx="6"
+                className={`jy-win${k === 2 ? " jy-win-t" : k === 1 ? " on" : ""}`} />
+            ))}
+            <g className="jy-door" transform="translate(73,288)">
+              <rect x="0" y="0" width="44" height="62" rx="8" />
+              <circle cx="34" cy="32" r="2.5" className="jy-knob" />
+              <circle cx="22" cy="7" r="3" className="jy-led" />
+            </g>
+            <g className="jy-qr" transform="translate(134,300)">
+              <rect x="0" y="0" width="30" height="30" rx="5" className="jy-qr-bg" />
+              <rect x="4" y="4" width="7" height="7" />
+              <rect x="19" y="4" width="7" height="7" />
+              <rect x="4" y="19" width="7" height="7" />
+              <rect x="19" y="19" width="3" height="3" />
+              <rect x="24" y="22" width="3" height="3" />
+              <rect x="20" y="25" width="3" height="3" />
+            </g>
+            <g className="jy-badge" transform="translate(22,4)">
+              <line x1="75" y1="30" x2="75" y2="46" className="jy-badge-tie" />
+              <rect x="0" y="-14" width="150" height="44" rx="11" className="jy-badge-card" />
+              <circle cx="20" cy="8" r="9" fill="#1FA85C" />
+              <path d="M15.5,8 l3,3 l6,-6" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              <text x="36" y="5" className="jy-badge-name">{TXT.bld}</text>
+              <text x="36" y="19" className="jy-badge-sub">{TXT.reg}</text>
+            </g>
+          </g>
+
+          <g transform="translate(430,308)">
+            <ellipse cx="2" cy="168" rx="34" ry="6.5" className="jy-shadow" />
+            <rect x="-13" y="98" width="11" height="62" rx="5.5" className="jy-leg1" />
+            <rect x="4" y="98" width="11" height="62" rx="5.5" className="jy-leg2" />
+            <ellipse cx="-7" cy="161" rx="11" ry="4.5" className="jy-shoe" />
+            <ellipse cx="10" cy="161" rx="11" ry="4.5" className="jy-shoe" />
+            <path d="M-17,42 C-17,32 -9,27 1,27 C11,27 19,32 19,42 L17,102 L-15,102 Z" className="jy-coat" />
+            <line x1="1" y1="32" x2="1" y2="100" className="jy-zip" />
+            <rect x="-24" y="46" width="10" height="42" rx="5" className="jy-arm" transform="rotate(8 -19 46)" />
+            <rect x="15" y="48" width="10" height="32" rx="5" className="jy-arm" transform="rotate(-24 20 48)" />
+            <g transform="translate(24,58)">
+              <rect x="0" y="0" width="18" height="30" rx="4" className="jy-mini" />
+              <rect x="2.5" y="3" width="13" height="24" rx="2.5" className="jy-mini-scr" />
+              <circle cx="9" cy="15" r="3.5" className="jy-mini-glow" />
+              <ellipse cx="9" cy="31" rx="6.5" ry="3.5" className="jy-hand" />
+            </g>
+            <rect x="-4" y="30" width="10" height="12" rx="4" className="jy-skin" />
+            <circle cx="1" cy="18" r="13" className="jy-skin" />
+            <path d="M-11,15 C-11,3 13,3 13,15 C13,9 8,6 1,6 C-6,6 -11,9 -11,15 Z" className="jy-hair" />
+            <g className="jy-locus" transform="translate(1,-46)">
+              <circle className="jy-radar" cx="0" cy="0" r="22" />
+              <circle className="jy-radar d2" cx="0" cy="0" r="22" />
+              <circle className="jy-radar d3" cx="0" cy="0" r="22" />
+              <path d="M0,-16 C8,-16 14,-10 14,-2 C14,8 0,20 0,20 C0,20 -14,8 -14,-2 C-14,-10 -8,-16 0,-16 Z" className="jy-pin" />
+              <circle cx="0" cy="-3" r="4.5" fill="#fff" />
+            </g>
+          </g>
+
+          <use href="#jyPath" className="jy-link" />
+          <circle r="8" className="jy-linkdot halo">
+            <animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#jyPath" /></animateMotion>
+          </circle>
+          <circle r="4.5" className="jy-linkdot">
+            <animateMotion dur="2.4s" repeatCount="indefinite"><mpath href="#jyPath" /></animateMotion>
+          </circle>
+          <circle r="4.5" className="jy-linkdot">
+            <animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#jyPath" /></animateMotion>
+          </circle>
+
+          <g transform="translate(690,100)">
+            <ellipse cx="105" cy="370" rx="92" ry="13" className="jy-shadow" />
+            <rect x="0" y="0" width="210" height="362" rx="32" className="jy-phone" />
+            <rect x="12" y="14" width="186" height="334" rx="24" className="jy-screen" />
+            <rect x="80" y="22" width="50" height="7" rx="3.5" className="jy-notch" />
+            <text x="105" y="52" textAnchor="middle" className="jy-brand">{TXT.brand}</text>
+            <text x="105" y="72" textAnchor="middle" className="jy-bldcaps">{TXT.bldCaps}</text>
+
+            <g className="jy-list" transform="translate(24,92)">
+              {[0, 1, 2].map((r) => (
+                <g key={r} transform={`translate(0,${r * 58})`}>
+                  <rect x="0" y="0" width="162" height="46" rx="12" className={r === 1 ? "jy-row jy-selrect" : "jy-row"} />
+                  <circle cx="23" cy="23" r="13" className={r === 1 ? "jy-av jy-selav" : "jy-av"} />
+                  <rect x="44" y="14" width="86" height="8" rx="4" className={r === 1 ? "jy-bar jy-selbar" : "jy-bar"} />
+                  <rect x="44" y="27" width="56" height="7" rx="3.5" className={r === 1 ? "jy-bar2 jy-selbar2" : "jy-bar2"} />
+                </g>
+              ))}
+            </g>
+
+            <g className="jy-call" transform="translate(24,92)">
+              <rect x="0" y="0" width="162" height="252" rx="14" className="jy-call-bg" />
+              <circle cx="81" cy="62" r="30" className="jy-av" />
+              <circle cx="81" cy="54" r="10" fill="#fff" opacity="0.9" />
+              <path d="M61,84 c0,-13 40,-13 40,0" fill="#fff" opacity="0.9" />
+              <rect x="51" y="102" width="60" height="9" rx="4.5" className="jy-bar" />
+              <text x="81" y="130" textAnchor="middle" className="jy-flat">{TXT.flat}</text>
+              <g className="jy-eq" transform="translate(81,178)">
+                <rect className="b1" x="-31" y="-14" width="6" height="14" rx="3" />
+                <rect className="b2" x="-17" y="-26" width="6" height="26" rx="3" />
+                <rect className="b3" x="-3" y="-36" width="6" height="36" rx="3" />
+                <rect className="b4" x="11" y="-26" width="6" height="26" rx="3" />
+                <rect className="b5" x="25" y="-14" width="6" height="14" rx="3" />
+              </g>
+              <text x="81" y="206" textAnchor="middle" className="jy-conn">{TXT.conn}</text>
+              <circle cx="53" cy="230" r="15" className="jy-btn-mic" />
+              <rect x="50" y="222" width="6" height="10" rx="3" fill="#fff" />
+              <line x1="53" y1="234" x2="53" y2="238" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="109" cy="230" r="15" fill="#E63946" />
+              <path d="M101,231 c5,5 11,5 16,0" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            </g>
+
+            <rect x="80" y="336" width="50" height="4" rx="2" className="jy-home" />
+          </g>
+        </svg>
+      </div>
+
+      <div className="jy-steps" aria-label={TXT.ariaSteps}>
+        {STEPS.map((s, i) => (
+          <button
+            key={s.n}
+            type="button"
+            className={`jy-step${i === step ? " on" : ""}${i < step ? " done" : ""}`}
+            aria-current={i === step ? "step" : undefined}
+            onClick={() => setStep(i)}
+          >
+            <span className="jy-n">{s.n}</span>
+            <span className="jy-l">{s.l}</span>
+            <i className="jy-prog" aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
