@@ -327,7 +327,6 @@ function AppShowcase() {
   const shots = Array.from({ length: 10 }, (_, i) => i + 1);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
-  const drag = useRef<{ x: number; active: boolean }>({ x: 0, active: false });
 
   useEffect(() => {
     if (paused) return;
@@ -337,28 +336,12 @@ function AppShowcase() {
 
   const prev = (idx - 1 + shots.length) % shots.length;
   const next = (idx + 1) % shots.length;
-  const go = (dir: number) => setIdx((v) => (v + dir + shots.length) % shots.length);
-
-  // sürükleme (mouse + dokunmatik)
-  function onDown(x: number) { drag.current = { x, active: true }; setPaused(true); }
-  function onUp(x: number) {
-    if (!drag.current.active) return;
-    const dx = x - drag.current.x;
-    drag.current.active = false;
-    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); // sola çek → sonraki
-    setPaused(false);
-  }
 
   return (
     <div
       className="sc-stage"
       onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => { drag.current.active = false; setPaused(false); }}
-      onMouseDown={(e) => onDown(e.clientX)}
-      onMouseUp={(e) => onUp(e.clientX)}
-      onTouchStart={(e) => onDown(e.touches[0].clientX)}
-      onTouchEnd={(e) => onUp(e.changedTouches[0].clientX)}
-      style={{ cursor: "grab", touchAction: "pan-y" }}
+      onMouseLeave={() => setPaused(false)}
     >
       <div className="sc-glow" aria-hidden="true" />
       <div className="sc-deck">
@@ -393,6 +376,9 @@ function AppShowcase() {
     </div>
   );
 }
+
+
+
 function HeroCarousel() {
   const { t } = useUI();
   const [locating, setLocating] = useState(false);
