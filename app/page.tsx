@@ -969,7 +969,14 @@ export default function HomePage() {
         <Header />
         <HeroCarousel />
         <BinaBul />
-        <JourneyScene />
+       {/* ==== UYGULAMA VİTRİNİ (tek tek beliren ekranlar) ==== */}
+        <section className="md-showcase-sec">
+          <div className="md-center" style={{ marginBottom: 34 }}>
+            <span className="md-eyebrow">{t.marquee.eye}</span>
+            <h2 className="md-title">{t.marquee.title}</h2>
+          </div>
+          <AppShowcase />
+        </section>
 <section className="md-partners">
   <div className="md-wrap">
     <p className="md-partners-label">{t.partnersLabel}</p>
@@ -1022,14 +1029,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ==== UYGULAMA VİTRİNİ (tek tek beliren ekranlar) ==== */}
-        <section className="md-showcase-sec">
-          <div className="md-center" style={{ marginBottom: 34 }}>
-            <span className="md-eyebrow">{t.marquee.eye}</span>
-            <h2 className="md-title">{t.marquee.title}</h2>
-          </div>
-          <AppShowcase />
-        </section>
+ <JourneyScene />
 
         <section id="fiyat" className="md-section">
           <div className="md-wrap">
