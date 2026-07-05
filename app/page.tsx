@@ -330,7 +330,7 @@ function Header() {
               <button className={lang === "tr" ? "on" : ""} onClick={() => setLang("tr")}>TR</button>
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
             </div>
-            <Link href="/satin-al" className="btn btn-primary btn-sm">{t.nav.digitalize}</Link>
+            <a href="#bina" className="btn btn-primary btn-sm">{t.nav.digitalize}</a>
             <button className="burger" onClick={() => setOpen((v) => !v)} aria-label={t.aria.menu}>☰</button>
           </div>
         </div>
