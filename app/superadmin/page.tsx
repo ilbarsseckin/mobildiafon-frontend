@@ -100,18 +100,49 @@ export default function SuperAdmin() {
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<"overview" | "customers">("overview");
+  const [tab, setTab] = useState<"overview" | "customers" | "texts">("overview");
 
   const [data, setData] = useState<Customer[]>([]);
   const [ov, setOv] = useState<Overview | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | Status>("all");
   const [sortKey, setSortKey] = useState<"mrr" | "calls" | "flats">("mrr");
+  const [texts, setTexts] = useState<Record<string, { tr: string; en: string }>>({});
+  const [textsLoading, setTextsLoading] = useState(false);
+  const [textsSaving, setTextsSaving] = useState(false);
+  const [textsSaved, setTextsSaved] = useState(false);
+  async function loadTexts() {
+    setTextsLoading(true);
+    try {
+      const res = await fetch(`${API}/superadmin/site-texts`, { headers: authHeader() });
+      const d = await res.json();
+      setTexts(d || {});
+    } catch {}
+    setTextsLoading(false);
+  }
+  function setText(key: string, field: "tr" | "en", val: string) {
+    setTexts((p) => ({ ...p, [key]: { ...(p[key] || { tr: "", en: "" }), [field]: val } }));
+    setTextsSaved(false);
+  }
+  async function saveTexts() {
+    setTextsSaving(true);
+    try {
+      const items = Object.entries(texts).map(([key, v]) => ({ key, valueTr: v.tr, valueEn: v.en }));
+      const res = await fetch(`${API}/superadmin/site-texts`, {
+        method: "PATCH",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      if (res.ok) { setTextsSaved(true); setTimeout(() => setTextsSaved(false), 2500); }
+    } catch {}
+    setTextsSaving(false);
+  }
 
   useEffect(() => {
     if (typeof window !== "undefined" && sessionStorage.getItem("md_super_token")) setAuthed(true);
   }, []);
   useEffect(() => { if (authed) { loadData(); loadOverview(); } }, [authed]);
+  useEffect(() => { if (authed && tab === "texts") loadTexts(); }, [authed, tab]);
 
   async function login() {
     setError(""); setLoading(true);
@@ -245,6 +276,7 @@ export default function SuperAdmin() {
           <button className={tab === "customers" ? "active" : ""} onClick={() => setTab("customers")}>
             Müşteriler <span className="sa-badge">{data.length}</span>
           </button>
+          <button className={tab === "texts" ? "active" : ""} onClick={() => setTab("texts")}>Site Metinleri</button>
         </nav>
 
         {tab === "overview" && !ov && (
@@ -375,6 +407,47 @@ export default function SuperAdmin() {
                 </tbody>
               </table>
             </div>
+          </section>
+        )}
+        {tab === "texts" && (
+          <section className="sa-texts">
+            <div className="sa-texts-head">
+              <div>
+                <h2>Site Metinleri — Hero</h2>
+                <p>Ana sayfadaki 4 hero görselinin başlık ve açıklamalarını düzenleyin (TR / EN).</p>
+              </div>
+              <button className="sa-save-btn" onClick={saveTexts} disabled={textsSaving}>
+                {textsSaving ? "Kaydediliyor…" : textsSaved ? "✓ Kaydedildi" : "Kaydet"}
+              </button>
+            </div>
+            {textsLoading ? (
+              <p className="sa-empty">Yükleniyor…</p>
+            ) : (
+              <div className="sa-texts-grid">
+                {[1, 2, 3, 4].map((n) => (
+                  <div className="sa-text-card" key={n}>
+                    <h3>Hero {n}</h3>
+                    <label>Başlık (TR)</label>
+                    <input className="sa-input" value={texts[`hero_${n}_title`]?.tr || ""} onChange={(e) => setText(`hero_${n}_title`, "tr", e.target.value)} />
+                    <label>Başlık (EN)</label>
+                    <input className="sa-input" value={texts[`hero_${n}_title`]?.en || ""} onChange={(e) => setText(`hero_${n}_title`, "en", e.target.value)} />
+                    <label>Açıklama (TR)</label>
+                    <textarea className="sa-input" rows={2} value={texts[`hero_${n}_sub`]?.tr || ""} onChange={(e) => setText(`hero_${n}_sub`, "tr", e.target.value)} />
+                    <label>Açıklama (EN)</label>
+                    <textarea className="sa-input" rows={2} value={texts[`hero_${n}_sub`]?.en || ""} onChange={(e) => setText(`hero_${n}_sub`, "en", e.target.value)} />
+                  </div>
+                ))}
+                {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+                  <div className="sa-text-card" key={`sc${n}`}>
+                    <h3>Görsel {n} Yazısı</h3>
+                    <label>Metin (TR)</label>
+                    <input className="sa-input" value={texts[`showcase_${n}`]?.tr || ""} onChange={(e) => setText(`showcase_${n}`, "tr", e.target.value)} />
+                    <label>Metin (EN)</label>
+                    <input className="sa-input" value={texts[`showcase_${n}`]?.en || ""} onChange={(e) => setText(`showcase_${n}`, "en", e.target.value)} />
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
       </div>
@@ -655,4 +728,16 @@ const SA_CSS = `
   .sa-logo-text { font-size: 17px; }
   .sa-logo-tag { display: none; }
 }
+
+.sa-texts-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+.sa-texts-head h2 { font-size: 20px; font-weight: 800; margin: 0 0 4px; }
+.sa-texts-head p { font-size: 13px; color: #7a8398; margin: 0; }
+.sa-save-btn { background: #E63946; color: #fff; border: none; padding: 11px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.sa-save-btn:disabled { opacity: 0.7; cursor: default; }
+.sa-texts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.sa-text-card { background: #fff; border: 1px solid #e6e9f0; border-radius: 14px; padding: 16px; }
+.sa-text-card h3 { font-size: 15px; font-weight: 800; color: #E63946; margin: 0 0 12px; }
+.sa-text-card label { display: block; font-size: 11.5px; font-weight: 600; color: #7a8398; margin: 10px 0 4px; }
+.sa-text-card .sa-input { width: 100%; padding: 9px 11px; border: 1px solid #e2e6ee; border-radius: 9px; font-size: 13.5px; font-family: inherit; resize: vertical; }
+.sa-text-card .sa-input:focus { outline: none; border-color: #E63946; }
 `;

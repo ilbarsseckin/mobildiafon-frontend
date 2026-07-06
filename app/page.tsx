@@ -348,9 +348,22 @@ const AUTOPLAY_MS = 7000;
    APP SHOWCASE — ekranlar tek tek belirip kaybolur (telefon çerçeveli)
    ============================================================ */
 function AppShowcase() {
+  const { lang } = useUI();
   const shots = Array.from({ length: 10 }, (_, i) => i + 1);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [scTexts, setScTexts] = useState<Record<string, { tr: string; en: string }>>({});
+  useEffect(() => {
+    fetch("https://mobildiafon.com/api/site-texts")
+      .then((r) => r.ok ? r.json() : {})
+      .then((d) => setScTexts(d || {}))
+      .catch(() => {});
+  }, []);
+  const scText = (n: number) => {
+    const item = scTexts[`showcase_${n}`];
+    if (!item) return "";
+    return (lang === "en" ? item.en : item.tr) || "";
+  };
   const drag = useRef<{ x: number; active: boolean }>({ x: 0, active: false });
 
   useEffect(() => {
@@ -374,6 +387,8 @@ function AppShowcase() {
   }
 
   return (
+    <>
+    <div className="sc-caption" key={idx}>{scText(idx + 1)}</div>
     <div
       className="sc-stage"
       onMouseEnter={() => setPaused(true)}
@@ -415,11 +430,24 @@ function AppShowcase() {
         ))}
       </div>
     </div>
+    </>
   );
 }
 function HeroCarousel() {
-  const { t } = useUI();
+  const { t, lang } = useUI();
   const [locating, setLocating] = useState(false);
+  const [siteTexts, setSiteTexts] = useState<Record<string, { tr: string; en: string }>>({});
+  useEffect(() => {
+    fetch("https://mobildiafon.com/api/site-texts")
+      .then((r) => r.ok ? r.json() : {})
+      .then((d) => setSiteTexts(d || {}))
+      .catch(() => {});
+  }, []);
+  const heroText = (key: string, fallback: string) => {
+    const item = siteTexts[key];
+    if (!item) return fallback;
+    return (lang === "en" ? item.en : item.tr) || fallback;
+  };
   const [locResult, setLocResult] = useState<{ type: "found" | "none" | "error"; text: string } | null>(null);
   const heroImages = [
     "https://cdn.mobildiafon.com/hero/whero3.webp",
@@ -509,11 +537,11 @@ function HeroCarousel() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11Z" /><circle cx="12" cy="10" r="2.5" /></svg>
             Diafonun Dijital Hali
           </span>
-          <h1 className="hero2-title">
-            Konumunuzdaki tüm diafonlara saniyeler içinde <em>ulaşın.</em>
+          <h1 className="hero2-title" key={`t-${heroSlide}`}>
+            {heroText(`hero_${heroSlide + 1}_title`, "Konumunuzdaki tüm diafonlara saniyeler içinde ulaşın.")}
           </h1>
-          <p className="hero2-sub">
-            MobilDiafon ile bulunduğunuz konuma göre bina, iş yeri ve daire bağlantılarını listeleyin, QR okutun, görüntülü görüşün, kapınızı dijital olarak yönetin.
+          <p className="hero2-sub" key={`s-${heroSlide}`}>
+            {heroText(`hero_${heroSlide + 1}_sub`, "MobilDiafon ile bulunduğunuz konuma göre bina, iş yeri ve daire bağlantılarını listeleyin, QR okutun, görüntülü görüşün, kapınızı dijital olarak yönetin.")}
           </p>
           <div className="hero2-cta">
             <button className="btn btn-primary" onClick={useMyLocation} disabled={locating}>
@@ -986,6 +1014,18 @@ function BinaBul() {
 export default function HomePage() {
   const [lang, setLang] = useState<Lang>("tr");
   const [theme, setTheme] = useState<Theme>("light");
+  const [pageSiteTexts, setPageSiteTexts] = useState<Record<string, { tr: string; en: string }>>({});
+  useEffect(() => {
+    fetch("https://mobildiafon.com/api/site-texts")
+      .then((r) => r.ok ? r.json() : {})
+      .then((d) => setPageSiteTexts(d || {}))
+      .catch(() => {});
+  }, []);
+  const pageText = (key: string, fallback: string) => {
+    const item = pageSiteTexts[key];
+    if (!item) return fallback;
+    return (lang === "en" ? item.en : item.tr) || fallback;
+  };
   const [plans, setPlans] = useState<Plan[]>([]);
 
   useEffect(() => {
@@ -1022,10 +1062,6 @@ export default function HomePage() {
         <BinaBul />
        {/* ==== UYGULAMA VİTRİNİ (tek tek beliren ekranlar) ==== */}
         <section className="md-showcase-sec">
-          <div className="md-center" style={{ marginBottom: 34 }}>
-            <span className="md-eyebrow">{t.marquee.eye}</span>
-            <h2 className="md-title">{t.marquee.title}</h2>
-          </div>
           <AppShowcase />
         </section>
 <section className="md-partners">

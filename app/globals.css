@@ -2738,3 +2738,25 @@ button, input, select, textarea { font: inherit; }
 .hero2-tuya{height:44px;width:auto;display:inline-block;object-fit:contain;
   opacity:.9;pointer-events:none;user-select:none}
 @media (max-width:560px){ .hero2-tuya{height:38px} }
+
+/* Showcase aktif gorsel aciklamasi */
+.sc-caption {
+  text-align: center;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  color: var(--navy-deep);
+  margin: 0 auto 34px;
+  max-width: 780px;
+  min-height: 44px;
+  padding: 0 20px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  animation: scCaptionIn 0.4s ease;
+}
+@keyframes scCaptionIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 600px) {
+  .sc-caption { font-size: 15px; margin-bottom: 16px; }
+}
