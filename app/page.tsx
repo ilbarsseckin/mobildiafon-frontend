@@ -319,6 +319,7 @@ function Header() {
             <a href="#bina" onClick={() => setOpen(false)}>{t.nav.add}</a>
             <a href="#nasil" onClick={() => setOpen(false)}>{t.nav.how}</a>
             <a href="#ozellikler" onClick={() => setOpen(false)}>{t.nav.features}</a>
+            <a href="#arac" onClick={() => setOpen(false)}>{lang === "en" ? "Vehicle QR" : "Araç QR"}</a>
             <a href="#fiyat" onClick={() => setOpen(false)}>{t.nav.pricing}</a>
             <a href="/blog" onClick={() => setOpen(false)}>Blog</a>
           </nav>
@@ -455,13 +456,16 @@ function HeroCarousel() {
     "https://cdn.mobildiafon.com/hero/whero10.webp",
     "https://cdn.mobildiafon.com/hero/whero11.webp",
   ];
+  const HERO_SLIDES = heroImages.length + 1; // 4 gorsel + 1 video (masaustu)
   const [heroSlide, setHeroSlide] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => {
-      setHeroSlide((i) => (i + 1) % heroImages.length);
-    }, 4000);
-    return () => clearInterval(id);
-  }, []);
+    // Video slide'i (son) 5sn, gorseller 4sn
+    const isVideo = heroSlide === heroImages.length;
+    const id = setTimeout(() => {
+      setHeroSlide((i) => (i + 1) % HERO_SLIDES);
+    }, isVideo ? 5000 : 4000);
+    return () => clearTimeout(id);
+  }, [heroSlide]);
 
   function scrollToBina(lat?: number, lng?: number) {
     if (lat != null && lng != null) {
@@ -521,6 +525,16 @@ function HeroCarousel() {
           style={{ opacity: i === heroSlide ? 1 : 0 }}
         />
       ))}
+      {heroSlide === heroImages.length && (
+        <div className="hero2-video-desktop" aria-hidden="true">
+          <iframe
+            src="https://www.youtube.com/embed/W-SN-BksAfA?autoplay=1&mute=1&controls=0&showinfo=0&modestbranding=1&playsinline=1&rel=0&start=0"
+            title=""
+            allow="autoplay; encrypted-media"
+            frameBorder={0}
+          />
+        </div>
+      )}
       <div className="hero2-video-wrap">
         <iframe
           className="hero2-video-mobile"
@@ -568,11 +582,11 @@ function HeroCarousel() {
             </div>
           )}
           <div className="hero2-features">
-            <span><IconQr /> QR ile Hızlı Erişim</span>
-            <span><IconVideo /> Görüntülü Görüşme</span>
-            <span><IconLock /> Dijital Kapı Açma</span>
-            <span><IconPin /> Konum Tabanlı Listeleme</span>
-            <span><IconApp /> Tuya Uyumlu</span>
+            <span><IconQr /> {lang === "en" ? "Quick QR Access" : "QR ile Hızlı Erişim"}</span>
+            <span><IconVideo /> {lang === "en" ? "Video Call" : "Görüntülü Görüşme"}</span>
+            <span><IconLock /> {lang === "en" ? "Digital Door Unlock" : "Dijital Kapı Açma"}</span>
+            <span><IconPin /> {lang === "en" ? "Location-Based Listing" : "Konum Tabanlı Listeleme"}</span>
+            <span><IconApp /> {lang === "en" ? "Tuya Compatible" : "Tuya Uyumlu"}</span>
           </div>
         </div>
       </div>
@@ -1013,6 +1027,12 @@ function BinaBul() {
    ============================================================ */
 export default function HomePage() {
   const [lang, setLang] = useState<Lang>("tr");
+  const aracImages = ["https://cdn.mobildiafon.com/mainqr/qr1.webp", "https://cdn.mobildiafon.com/mainqr/qr2.webp"];
+  const [aracSlide, setAracSlide] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setAracSlide((v) => (v + 1) % aracImages.length), 3500);
+    return () => clearInterval(id);
+  }, []);
   const [theme, setTheme] = useState<Theme>("light");
   const [pageSiteTexts, setPageSiteTexts] = useState<Record<string, { tr: string; en: string }>>({});
   useEffect(() => {
@@ -1118,6 +1138,85 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section id="arac" className="md-section md-features-sec">
+          <div className="md-wrap">
+            <div className="md-center">
+              <span className="md-eyebrow">MobilDiafon Auto</span>
+              <h2 className="md-title">{lang === "en" ? "Be reached via your car's QR — your number stays private." : "Aracınıza QR ile ulaşılsın, numaranız gizli kalsın."}</h2>
+              <p className="md-lead md-lead-center">{lang === "en" ? "Stick the QR on your windshield. In case of wrong parking, headlights left on, a blocked exit or an emergency, people can reach you without ever seeing your phone number." : "Ön cama yapıştırdığınız QR ile; hatalı park, açık kalan far, çıkışı kapatan araç ya da acil bir durumda, numaranız paylaşılmadan size ulaşılır."}</p>
+            </div>
+            <div className="arac-media">
+              {aracImages.map((src, i) => (
+                <img key={src} src={src} alt="MobilDiafon Auto" className="arac-img" style={{ opacity: i === aracSlide ? 1 : 0 }} />
+              ))}
+            </div>
+            <div className="arac-cta">
+              <a href="/arac-siparis" className="btn btn-primary arac-buy">{lang === "en" ? "Buy Now — ₺790" : "Hemen Satın Al — ₺790"}</a>
+              <span className="arac-cta-note">{lang === "en" ? "1-year subscription included · Shipped to your address" : "1 yıllık abonelik dahil · Adresinize kargolanır"}</span>
+            </div>
+            <div className="md-features md-feature-grid-6">
+              <div className="md-arac-item">
+                <article className="md-feature">
+                  <h3>{lang === "en" ? "Your number stays hidden" : "Numaranız gizli kalır"}</h3>
+                  <p>{lang === "en" ? "The caller never sees your phone number. The call is set up securely through the browser." : "Arayan kişi numaranızı görmez. Görüşme tarayıcı üzerinden, güvenli şekilde kurulur."}</p>
+                </article>
+              </div>
+              <div className="md-arac-item" style={{transitionDelay:"120ms"}}>
+                <article className="md-feature">
+                  <h3>{lang === "en" ? "Ready for every situation" : "Her duruma hazır"}</h3>
+                  <p>{lang === "en" ? "Wrong parking, headlights left on, a car blocking the exit, or a request to move your car — all handled with a single scan." : "Yanlış park, açık kalan ışık/far, çıkışı kapatan araç, “aracınızı çeker misiniz” — hepsi tek okutmayla."}</p>
+                </article>
+              </div>
+              <div className="md-arac-item" style={{transitionDelay:"240ms"}}>
+                <article className="md-feature">
+                  <h3>{lang === "en" ? "Share with your family" : "Ailenizle paylaşın"}</h3>
+                  <p>{lang === "en" ? "Add your spouse or a relative; when the bell rings, both of you get notified. You can also leave a short note." : "Eşinizi veya bir yakınınızı ekleyin; zil çaldığında ikinize de bildirim gider. Kısa bir mesaj da bırakabilirsiniz."}</p>
+                </article>
+              </div>
+            </div>
+            <div className="md-steps" style={{marginTop:"34px"}}>
+              <div className="md-arac-item">
+                <article className="md-step">
+                  <div className="md-step-num">01</div>
+                  <h3>{lang === "en" ? "Stick the QR on your car" : "QR etiketini aracınıza yapıştırın"}</h3>
+                  <p>{lang === "en" ? "Place the MobilDiafon Auto QR label on your windshield or window." : "MobilDiafon Auto QR etiketini ön cama veya yan cama yapıştırın."}</p>
+                </article>
+              </div>
+              <div className="md-arac-item" style={{transitionDelay:"130ms"}}>
+                <article className="md-step">
+                  <div className="md-step-num">02</div>
+                  <h3>{lang === "en" ? "Visitor scans it" : "Ziyaretçi okutur"}</h3>
+                  <p>{lang === "en" ? "Anyone can scan the code with their phone camera — no app needed." : "Herhangi biri telefon kamerasıyla kodu okutur — uygulama gerekmez."}</p>
+                </article>
+              </div>
+              <div className="md-arac-item" style={{transitionDelay:"260ms"}}>
+                <article className="md-step">
+                  <div className="md-step-num">03</div>
+                  <h3>{lang === "en" ? "Your phone rings" : "Telefonunuz çalar"}</h3>
+                  <p>{lang === "en" ? "You get a call or notification and talk via video or voice — your number stays private." : "Size çağrı veya bildirim gelir; görüntülü veya sesli görüşürsünüz — numaranız gizli kalır."}</p>
+                </article>
+              </div>
+            </div>
+            <div className="md-center arac-faq-head" style={{marginTop:"46px"}}>
+              <span className="md-eyebrow">SSS</span>
+              <h2 className="md-title">{lang === "en" ? "Vehicle QR — FAQ" : "Araç QR — Sıkça Sorulan Sorular"}</h2>
+            </div>
+            <div className="md-faq" style={{marginTop:"20px"}}>
+              <details className="md-faq-item">
+                <summary>{lang === "en" ? "Does the caller need to install an app?" : "Arayan kişinin uygulama indirmesi gerekir mi?"}<span className="md-faq-ic" aria-hidden="true"></span></summary>
+                <div className="md-faq-a">{lang === "en" ? "No. The visitor just scans the QR and connects through the browser. Only you, the owner, use the app." : "Hayır. Ziyaretçi sadece QR'ı okutur ve tarayıcı üzerinden bağlanır. Yalnızca araç sahibi olarak siz uygulamayı kullanırsınız."}</div>
+              </details>
+              <details className="md-faq-item">
+                <summary>{lang === "en" ? "Will my phone number be visible?" : "Numaram görünür mü?"}<span className="md-faq-ic" aria-hidden="true"></span></summary>
+                <div className="md-faq-a">{lang === "en" ? "No. Your number is never shared. The call is anonymous and runs over a secure connection." : "Hayır. Numaranız hiçbir zaman paylaşılmaz. Görüşme anonimdir ve güvenli bağlantı üzerinden yürür."}</div>
+              </details>
+              <details className="md-faq-item">
+                <summary>{lang === "en" ? "Can I add more than one person to a car?" : "Bir araca birden fazla kişi ekleyebilir miyim?"}<span className="md-faq-ic" aria-hidden="true"></span></summary>
+                <div className="md-faq-a">{lang === "en" ? "Yes. You can add your spouse or a relative; when the car is rung, everyone added gets notified." : "Evet. Eşinizi veya bir yakınınızı ekleyebilirsiniz; araç zili çaldığında eklenen herkese bildirim gider."}</div>
+              </details>
+            </div>
+          </div>
+        </section>
         <section id="fiyat" className="md-section">
           <div className="md-wrap">
             <Reveal variant="fade" className="md-center">
@@ -1127,7 +1226,7 @@ export default function HomePage() {
             </Reveal>
             <div className="md-pricing-grid">
               {plans.length === 0 ? (
-                <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#888", padding: "40px 0" }}>Planlar yükleniyor...</div>
+                <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#888", padding: "40px 0" }}>{lang === "en" ? "Loading plans..." : "Planlar yükleniyor..."}</div>
               ) : plans.map((p) => {
                 const isFeatured = p.id === featuredPlan?.id;
                 const isFree = p.monthlyPrice === 0;
@@ -1206,6 +1305,7 @@ export default function HomePage() {
       <a href="#ozellikler">{t.nav.features}</a>
       <a href="#fiyat">{t.nav.pricing}</a>
       <a href="#bina">{t.nav.add}</a>
+      <a href="#arac">{lang === "en" ? "Vehicle QR" : "Araç QR"}</a>
       <a href="/blog">Blog</a>
     </div>
 
@@ -1231,21 +1331,21 @@ export default function HomePage() {
       <h4>{t.footer.contactTitle}</h4>
       <a href="mailto:info@mobildiafon.com" className="md-foot-mail">info@mobildiafon.com</a>
       <div className="md-foot-addr">
-        <strong>Türkiye</strong>
+        <strong>{lang === "en" ? "Turkey" : "Türkiye"}</strong>
         <span>{t.footer.addrTR}</span>
       </div>
       <div className="md-foot-addr">
-        <strong>Belçika</strong>
+        <strong>{lang === "en" ? "Belgium" : "Belçika"}</strong>
         <span>{t.footer.addrBE}</span>
       </div>
       <div className="md-foot-stores">
         <a href="#" aria-label="App Store" className="md-store">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.02-2.05 1.68-3.03 1.76-3.08-.96-1.4-2.45-1.59-2.98-1.61-1.27-.13-2.48.75-3.12.75-.64 0-1.64-.73-2.69-.71-1.38.02-2.66.8-3.37 2.04-1.44 2.49-.37 6.17 1.03 8.19.69.99 1.51 2.1 2.58 2.06 1.04-.04 1.43-.67 2.69-.67 1.25 0 1.61.67 2.71.65 1.12-.02 1.83-1 2.51-2 .79-1.15 1.12-2.26 1.13-2.32-.03-.01-2.17-.83-2.19-3.3l.01.01zM15.1 6.07c.57-.69.95-1.65.85-2.6-.82.03-1.81.54-2.4 1.23-.53.61-.99 1.59-.86 2.52.91.07 1.84-.46 2.41-1.15z" /></svg>
-          <div><small>İndir</small><b>App Store</b></div>
+          <div><small>{lang === "en" ? "Download" : "İndir"}</small><b>App Store</b></div>
         </a>
         <a href="#" aria-label="Google Play" className="md-store">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 2.3c-.3.3-.5.7-.5 1.3v16.8c0 .6.2 1 .5 1.3l.1.1L13 12.6v-.2L3.7 2.2l-.1.1zM16.3 15.9l-3-3v-.2l3-3 .1.1 3.6 2c1 .6 1 1.5 0 2.1l-3.6 2-.1.1zM14.8 14.4l-3.1-3.1L4.3 18.7c.3.4.9.4 1.5.1l9-5.1-.1.7zM5.8 5.2c-.6-.3-1.2-.3-1.5.1l7.4 7.4 3.1-3.1-9-5.1z" /></svg>
-          <div><small>İndir</small><b>Google Play</b></div>
+          <div><small>{lang === "en" ? "Download" : "İndir"}</small><b>Google Play</b></div>
         </a>
       </div>
     </div>

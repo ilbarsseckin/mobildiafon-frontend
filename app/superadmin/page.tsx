@@ -100,7 +100,19 @@ export default function SuperAdmin() {
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<"overview" | "customers" | "texts">("overview");
+  const [tab, setTab] = useState<"overview" | "customers" | "texts" | "vehicles" | "orders" | "businesses">("overview");
+  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [trackInputs, setTrackInputs] = useState<Record<string, string>>({});
+  const [vehData, setVehData] = useState<any | null>(null);
+  const [vehFilter, setVehFilter] = useState<"all" | "active" | "unsold">("all");
+  const [genCount, setGenCount] = useState(10);
+  const [genResult, setGenResult] = useState<{ code: string; secretCode: string }[] | null>(null);
+  const [genCsv, setGenCsv] = useState("");
+  const [genLoading, setGenLoading] = useState(false);
+  const [resetCode, setResetCode] = useState("");
+  const [resetResult, setResetResult] = useState<{ code: string; secretCode: string } | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const [data, setData] = useState<Customer[]>([]);
   const [ov, setOv] = useState<Overview | null>(null);
@@ -143,6 +155,9 @@ export default function SuperAdmin() {
   }, []);
   useEffect(() => { if (authed) { loadData(); loadOverview(); } }, [authed]);
   useEffect(() => { if (authed && tab === "texts") loadTexts(); }, [authed, tab]);
+  useEffect(() => { if (authed && tab === "vehicles") loadVehicles(); }, [authed, tab]);
+  useEffect(() => { if (authed && tab === "orders") loadOrders(); }, [authed, tab]);
+  useEffect(() => { if (authed && tab === "businesses") loadBusinesses(); }, [authed, tab]);
 
   async function login() {
     setError(""); setLoading(true);
@@ -196,6 +211,115 @@ export default function SuperAdmin() {
     } catch { setOv(null); }
   }
 
+  async function loadVehicles() {
+    try {
+      const res = await fetch(`${API}/superadmin/vehicles`, { headers: authHeader() });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      setVehData(d);
+    } catch { setVehData(null); }
+  }
+
+  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [bizSearch, setBizSearch] = useState("");
+  async function loadBusinesses() {
+    try {
+      const res = await fetch(`${API}/superadmin/businesses`, { headers: authHeader() });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      setBusinesses(d.businesses || []);
+    } catch { setBusinesses([]); }
+  }
+
+  async function loadOrders() {
+    setOrdersLoading(true);
+    try {
+      const res = await fetch(`${API}/superadmin/vehicle-orders`, { headers: authHeader() });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      setOrders(Array.isArray(d) ? d : []);
+    } catch { setOrders([]); }
+    finally { setOrdersLoading(false); }
+  }
+
+  async function markShipped(id: string) {
+    try {
+      const res = await fetch(`${API}/superadmin/vehicle-orders/ship`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ id, trackingNo: trackInputs[id] || "" }),
+      });
+      if (res.status === 401) { logout(); return; }
+      await loadOrders();
+    } catch {}
+  }
+  async function generateCards() {
+    if (genCount < 1 || genCount > 500) { alert("1 ile 500 arasi bir sayi girin"); return; }
+    setGenLoading(true);
+    try {
+      const res = await fetch(`${API}/superadmin/vehicles/generate`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ count: genCount }),
+      });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      setGenResult(d.cards || []);
+      setGenCsv(d.csv || "");
+      loadVehicles();
+    } catch { alert("Uretim basarisiz"); }
+    finally { setGenLoading(false); }
+  }
+  async function resetSecret() {
+    const code = resetCode.trim().toUpperCase();
+    if (!code) { alert("Kart kodunu girin"); return; }
+    setResetLoading(true);
+    setResetResult(null);
+    try {
+      const res = await fetch(`${API}/superadmin/vehicles/reset-secret`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      if (d.success) {
+        setResetResult({ code: d.code, secretCode: d.secretCode });
+      } else {
+        alert(d.message || "Sifirlama basarisiz");
+      }
+    } catch { alert("Baglanti hatasi"); }
+    finally { setResetLoading(false); }
+  }
+  async function downloadLabels(format: string) {
+    if (!genResult || genResult.length === 0) { alert("Önce kart üretin"); return; }
+    try {
+      const res = await fetch(`${API}/superadmin/vehicles/labels`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ cards: genResult, format }),
+      });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) { alert("PDF üretilemedi"); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `arac-etiketleri-${format}-${new Date().toISOString().slice(0,10)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { alert("Bağlantı hatası"); }
+  }
+  function downloadCsv() {
+    if (!genCsv) return;
+    const blob = new Blob([genCsv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `arac-kartlari-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
   function refresh() { loadData(); loadOverview(); }
 
   function logout() {
@@ -277,6 +401,13 @@ export default function SuperAdmin() {
             Müşteriler <span className="sa-badge">{data.length}</span>
           </button>
           <button className={tab === "texts" ? "active" : ""} onClick={() => setTab("texts")}>Site Metinleri</button>
+          <button className={tab === "vehicles" ? "active" : ""} onClick={() => setTab("vehicles")}>
+            Araç Kartları{vehData?.summary ? <span className="sa-badge">{vehData.summary.produced}</span> : null}
+          </button>
+          <button className={tab === "orders" ? "active" : ""} onClick={() => setTab("orders")}>Araç Siparişleri</button>
+          <button className={tab === "businesses" ? "active" : ""} onClick={() => setTab("businesses")}>
+            İşletmeler <span className="sa-badge">{businesses.length}</span>
+          </button>
         </nav>
 
         {tab === "overview" && !ov && (
@@ -409,6 +540,47 @@ export default function SuperAdmin() {
             </div>
           </section>
         )}
+
+        {tab === "businesses" && (
+          <section>
+            <div className="sa-toolbar">
+              <input className="sa-input search" placeholder="İşletme veya sahip ara…" value={bizSearch} onChange={(e) => setBizSearch(e.target.value)} />
+            </div>
+            <div className="sa-table-scroll">
+              <table className="sa-table">
+                <thead>
+                  <tr>
+                    <th>İşletme</th><th>Kategori</th><th>Sahip</th><th>Adres</th>
+                    <th className="num">Birim</th><th className="num">Çağrı</th><th>Kayıt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {businesses
+                    .filter((b) => {
+                      const q = bizSearch.trim().toLowerCase();
+                      if (!q) return true;
+                      return (b.name || "").toLowerCase().includes(q) || (b.owner || "").toLowerCase().includes(q);
+                    })
+                    .map((b) => (
+                    <tr key={b.id}>
+                      <td>
+                        <div className="sa-cust-name">{b.name}</div>
+                        <div className="sa-cust-sub">{b.phone}</div>
+                      </td>
+                      <td>{b.category}</td>
+                      <td>{b.owner}</td>
+                      <td className="muted">{b.address || "—"}</td>
+                      <td className="num">{b.units}</td>
+                      <td className="num">{(b.calls || 0).toLocaleString("tr-TR")}</td>
+                      <td className="muted">{new Date(b.since).toLocaleDateString("tr-TR")}</td>
+                    </tr>
+                  ))}
+                  {businesses.length === 0 && <tr><td colSpan={7} className="sa-empty">İşletme bulunamadı.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
         {tab === "texts" && (
           <section className="sa-texts">
             <div className="sa-texts-head">
@@ -450,7 +622,123 @@ export default function SuperAdmin() {
             )}
           </section>
         )}
-      </div>
+              {tab === "orders" && (
+          <div className="sa-orders">
+            <h2 className="sa-h2">Araç QR Siparişleri</h2>
+            {ordersLoading && <div className="sa-muted">Yükleniyor...</div>}
+            {!ordersLoading && orders.length === 0 && <div className="sa-muted">Henüz sipariş yok.</div>}
+            {!ordersLoading && orders.map((o) => (
+              <div key={o.id} className="sa-order">
+                <div className="sa-order-top">
+                  <b>{o.buyerName}</b>
+                  <span className={`sa-badge ${o.status === "paid" ? "ok" : "wait"}`}>{o.status === "paid" ? "Ödendi" : o.status === "failed" ? "Başarısız" : "Bekliyor"}</span>
+                  {o.shipStatus === "shipped" && <span className="sa-badge ship">Kargolandı</span>}
+                </div>
+                <div className="sa-order-row">📞 {o.buyerPhone}{o.buyerEmail ? " · ✉ " + o.buyerEmail : ""}</div>
+                <div className="sa-order-row">📍 {o.shipCity}{o.shipDistrict ? " / " + o.shipDistrict : ""} — {o.shipAddress}</div>
+                <div className="sa-order-row">💳 {o.amount} TL</div>
+                {o.vehicleCode && (
+                  <div className="sa-order-codes">Kart kodu: <b>{o.vehicleCode}</b> · Gizli kod: <b>{o.vehicleSecretCode}</b></div>
+                )}
+                {o.status === "paid" && o.shipStatus !== "shipped" && (
+                  <div className="sa-order-ship">
+                    <input placeholder="Takip no (opsiyonel)" value={trackInputs[o.id] || ""} onChange={(e) => setTrackInputs((t) => ({ ...t, [o.id]: e.target.value }))} />
+                    <button className="sa-btn primary" onClick={() => markShipped(o.id)}>Kargolandı İşaretle</button>
+                  </div>
+                )}
+                {o.shipStatus === "shipped" && (
+                  <div className="sa-order-shipped">✓ Kargolandı{o.trackingNo ? " · Takip: " + o.trackingNo : ""}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {tab === "vehicles" && (
+          <section className="sa-veh">
+            <div className="sa-kpis" style={{ marginBottom: 18 }}>
+              <Kpi label="Üretilen Kart" value={String(vehData?.summary?.produced ?? 0)} />
+              <Kpi label="Satılan (Aktif)" value={String(vehData?.summary?.sold ?? 0)} accent="green" />
+              <Kpi label="Stokta" value={String(vehData?.summary?.unsold ?? 0)} accent="amber" />
+              <Kpi label="Aktif Abonelik" value={String(vehData?.summary?.activeSubs ?? 0)} accent="red" />
+            </div>
+            <div className="sa-veh-gen">
+              <div className="sa-veh-gen-head">
+                <h2>Toplu Kart Üret</h2>
+                <p>Sahipsiz araç kartları üretir. Gizli kodlar <b>yalnızca bir kez</b> gösterilir — CSV olarak indirip saklayın.</p>
+              </div>
+              <div className="sa-veh-gen-form">
+                <input type="number" min={1} max={500} className="sa-input" style={{ width: 120 }} value={genCount} onChange={(e) => setGenCount(parseInt(e.target.value) || 0)} />
+                <button className="sa-save-btn" onClick={generateCards} disabled={genLoading}>{genLoading ? "Üretiliyor…" : "Üret"}</button>
+                {genResult && genResult.length > 0 && (
+                  <>
+                    <button className="sa-free-btn active" onClick={downloadCsv}>CSV Indir ({genResult.length})</button>
+                    <button className="sa-free-btn active" onClick={() => downloadLabels("a4")}>A4 Etiket PDF</button>
+                    <button className="sa-free-btn active" onClick={() => downloadLabels("single")}>Tekil Etiket PDF</button>
+                  </>
+                )}
+              </div>
+              {genResult && genResult.length > 0 && (
+                <>
+                  <div className="sa-veh-warn">⚠ Bu kodları şimdi kaydedin. Sayfadan çıkınca gizli kodlar bir daha gösterilmeyecek.</div>
+                  <div className="sa-table-scroll" style={{ maxHeight: 260 }}>
+                    <table className="sa-table">
+                      <thead><tr><th>Kod (Camdaki QR)</th><th>Gizli Kod (Kutuda)</th></tr></thead>
+                      <tbody>
+                        {genResult.map((r: { code: string; secretCode: string }, i: number) => (<tr key={i}><td className="mono">{r.code}</td><td className="mono strong">{r.secretCode}</td></tr>))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="sa-veh-gen sa-veh-reset">
+              <div className="sa-veh-gen-head">
+                <h2>Gizli Kod Sıfırla</h2>
+                <p>Müşteri gizli kodunu kaybettiyse: kart kodunu girin, yeni gizli kod üretilir. Eski kod geçersiz olur.</p>
+              </div>
+              <div className="sa-veh-gen-form">
+                <input className="sa-input" style={{ width: 200 }} placeholder="AUTO-XXXXXX"
+                  value={resetCode} onChange={(e) => setResetCode(e.target.value)} />
+                <button className="sa-save-btn" onClick={resetSecret} disabled={resetLoading}>
+                  {resetLoading ? "Sıfırlanıyor…" : "Sıfırla"}
+                </button>
+              </div>
+              {resetResult && (
+                <div className="sa-veh-warn" style={{ marginTop: 14 }}>
+                  ✓ <b>{resetResult.code}</b> için yeni gizli kod: <span className="mono strong" style={{ fontSize: 18 }}>{resetResult.secretCode}</span>
+                  <br/>Bu kodu müşteriye verin. Eski kod artık geçersiz.
+                </div>
+              )}
+            </div>
+            <div className="sa-veh-list">
+              <div className="sa-veh-filters">
+                <button className={vehFilter === "all" ? "active" : ""} onClick={() => setVehFilter("all")}>Tümü</button>
+                <button className={vehFilter === "active" ? "active" : ""} onClick={() => setVehFilter("active")}>Satılan</button>
+                <button className={vehFilter === "unsold" ? "active" : ""} onClick={() => setVehFilter("unsold")}>Stokta</button>
+              </div>
+              <div className="sa-table-scroll">
+                <table className="sa-table">
+                  <thead><tr><th>Kod</th><th>Etiket / Plaka</th><th>Durum</th><th>Sahip</th><th>Telefon</th><th>Abonelik Bitişi</th><th className="num">Kalan Gün</th></tr></thead>
+                  <tbody>
+                    {(vehData?.vehicles || []).filter((v: any) => vehFilter === "all" ? true : v.status === vehFilter).map((v: any) => (
+                      <tr key={v.id}>
+                        <td className="mono">{v.code}</td>
+                        <td>{v.label || "—"}{v.plate ? <div className="sa-cust-sub">{v.plate}</div> : null}</td>
+                        <td><span className={`sa-status ${v.status === "active" ? "active" : "trial"}`}>{v.status === "active" ? "Satıldı" : "Stokta"}</span></td>
+                        <td>{v.ownerName || "—"}</td>
+                        <td className="muted">{v.ownerPhone || "—"}</td>
+                        <td className="muted">{v.subscriptionEnd ? new Date(v.subscriptionEnd).toLocaleDateString("tr-TR") : "—"}</td>
+                        <td className="num strong">{v.daysLeft != null ? v.daysLeft : "—"}</td>
+                      </tr>
+                    ))}
+                    {(!vehData || (vehData.vehicles || []).filter((v: any) => vehFilter === "all" ? true : v.status === vehFilter).length === 0) && (<tr><td colSpan={7} className="sa-empty">Kayıt yok.</td></tr>)}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+</div>
 
       <style jsx global>{SA_CSS}</style>
     </main>
@@ -740,4 +1028,14 @@ const SA_CSS = `
 .sa-text-card label { display: block; font-size: 11.5px; font-weight: 600; color: #7a8398; margin: 10px 0 4px; }
 .sa-text-card .sa-input { width: 100%; padding: 9px 11px; border: 1px solid #e2e6ee; border-radius: 9px; font-size: 13.5px; font-family: inherit; resize: vertical; }
 .sa-text-card .sa-input:focus { outline: none; border-color: #E63946; }
+
+.sa-veh-gen { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+.sa-veh-gen-head h2 { margin: 0 0 4px; font-size: 17px; color: var(--ink); }
+.sa-veh-gen-head p { margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+.sa-veh-gen-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.sa-veh-warn { margin: 14px 0 8px; padding: 10px 14px; background: var(--red-soft); color: var(--red); border-radius: 10px; font-size: 13px; font-weight: 600; }
+.sa-veh-filters { display: flex; gap: 8px; margin-bottom: 14px; }
+.sa-veh-filters button { padding: 7px 16px; border: 1px solid var(--line); background: var(--surface); border-radius: 20px; font-size: 13px; cursor: pointer; color: var(--ink-soft); }
+.sa-veh-filters button.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .5px; }
 `;
