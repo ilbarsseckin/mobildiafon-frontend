@@ -53,6 +53,9 @@ export default function SatinAl() {
   const [error, setError] = useState("");
 
   const [bldType, setBldType] = useState<string>("apartman");
+  const [blokMode, setBlokMode] = useState<"duz" | "bloklu">("duz");
+  const [blokSayisi, setBlokSayisi] = useState<string>("2");
+  const [blokDaire, setBlokDaire] = useState<string>("");
   const [form, setForm] = useState({
     siteName: "",
     flatCount: "",
@@ -124,7 +127,13 @@ export default function SatinAl() {
 
   function validate(): string | null {
     if (!form.siteName.trim()) return "Bina / site adını girin.";
-    if (!isEnterprise && !form.flatCount.trim()) return "Daire sayısını girin.";
+    const blokluMod = bldType === "apartman" && blokMode === "bloklu";
+    if (blokluMod) {
+      if (!blokSayisi.trim() || Number(blokSayisi) < 1) return "Blok sayısını girin.";
+      if (!blokDaire.trim() || Number(blokDaire) < 1) return "Her bloktaki daire sayısını girin.";
+    } else if (!isEnterprise && !form.flatCount.trim()) {
+      return "Daire sayısını girin.";
+    }
     if (!form.fullName.trim()) return "Yetkili adını girin.";
     if (!/^0?5\d{9}$|^\+?\d{10,13}$/.test(form.phone.replace(/\s/g, ""))) return "Geçerli bir telefon numarası girin.";
     if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Geçerli bir e-posta girin.";
@@ -212,6 +221,14 @@ export default function SatinAl() {
         });
       } else {
         const flatCount = Number(form.flatCount) || 1;
+        const bs = Number(blokSayisi) || 0;
+        const bd = Number(blokDaire) || 0;
+        const bloklar = (blokMode === "bloklu" && bs > 0 && bd > 0)
+          ? Array.from({ length: Math.min(bs, 26) }, (_, i) => ({
+              blockName: String.fromCharCode(65 + i) + " Blok",
+              flatCount: bd,
+            }))
+          : [{ flatCount }];
         createRes = await fetch(`${API}/buildings/create-structure`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -219,7 +236,7 @@ export default function SatinAl() {
             siteName: form.siteName.trim(),
             latitude: lat,
             longitude: lng,
-            blocks: [{ flatCount }],
+            blocks: bloklar,
           }),
         });
       }
@@ -410,7 +427,45 @@ export default function SatinAl() {
                   <span>{bldType === "isletme" ? "İşletme Adı" : bldType === "villa" ? "Villa Adı" : "Bina / Site Adı"}</span>
                   <input value={form.siteName} onChange={(e) => set("siteName", e.target.value)} placeholder={bldType === "isletme" ? "örn. Fera Life Market" : bldType === "villa" ? "örn. Yılmaz Villası" : "örn. Yıldız Apartmanı"} />
                 </label>
-                {!isEnterprise && (
+                {!isEnterprise && bldType === "apartman" && (
+                  <label className="ck-field full">
+                    <span>Yapı Tipi</span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button type="button" onClick={() => setBlokMode("duz")}
+                        style={{ flex: 1, padding: "10px 12px", borderRadius: 10, cursor: "pointer",
+                          border: blokMode === "duz" ? "2px solid #E63946" : "1px solid #ddd",
+                          background: blokMode === "duz" ? "#FDECEE" : "#fff",
+                          fontWeight: blokMode === "duz" ? 600 : 400 }}>
+                        Düz (1…N)
+                      </button>
+                      <button type="button" onClick={() => setBlokMode("bloklu")}
+                        style={{ flex: 1, padding: "10px 12px", borderRadius: 10, cursor: "pointer",
+                          border: blokMode === "bloklu" ? "2px solid #E63946" : "1px solid #ddd",
+                          background: blokMode === "bloklu" ? "#FDECEE" : "#fff",
+                          fontWeight: blokMode === "bloklu" ? 600 : 400 }}>
+                        Bloklu (A/B/C)
+                      </button>
+                    </div>
+                  </label>
+                )}
+                {!isEnterprise && bldType === "apartman" && blokMode === "bloklu" && (
+                  <>
+                    <label className="ck-field">
+                      <span>Blok Sayısı</span>
+                      <input value={blokSayisi} onChange={(e) => setBlokSayisi(e.target.value)} inputMode="numeric" placeholder="örn. 2" />
+                    </label>
+                    <label className="ck-field">
+                      <span>Her Blokta Daire</span>
+                      <input value={blokDaire} onChange={(e) => setBlokDaire(e.target.value)} inputMode="numeric" placeholder="örn. 55" />
+                    </label>
+                    {Number(blokSayisi) > 0 && Number(blokDaire) > 0 && (
+                      <div className="ck-field full" style={{ background: "#EEF2FF", padding: "10px 12px", borderRadius: 10, fontSize: 13 }}>
+                        Otomatik: A-1 … {String.fromCharCode(64 + Math.min(Number(blokSayisi), 26))}-{blokDaire} ({blokSayisi}×{blokDaire}={Number(blokSayisi) * Number(blokDaire)} daire)
+                      </div>
+                    )}
+                  </>
+                )}
+                {!isEnterprise && !(bldType === "apartman" && blokMode === "bloklu") && (
                   <label className="ck-field full">
                     <span>{bldType === "isletme" ? "Birim Sayısı" : bldType === "villa" ? "Birim Sayısı" : "Daire / Birim Sayısı"}</span>
                     <input value={form.flatCount} onChange={(e) => set("flatCount", e.target.value)} inputMode="numeric" placeholder="örn. 24" />

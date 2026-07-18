@@ -597,7 +597,7 @@ function HeroCarousel() {
 /* ============================================================
    BİNANI BUL — yardımcılar
    ============================================================ */
-type Bldg = { il: string; ilce: string; ad: string; daire: number; lat: number; lng: number; id?: string };
+type Bldg = { il: string; ilce: string; ad: string; daire: number; lat: number; lng: number; id?: string; blocks?: { id: string; name: string; fullName: string; flatCount: number }[]; blockCount?: number; type?: string };
 
 const DEMO_MODE = false;
 
@@ -680,9 +680,10 @@ async function searchNear(center: LatLng): Promise<Bldg[]> {
     if (!res.ok) return [];
     const arr = await res.json();
     return (Array.isArray(arr) ? arr : []).map((b: any) => ({
-      il: b.il || "", ilce: b.ilce || "", ad: b.buildingName ?? "Bina",
+      il: b.il || "", ilce: b.ilce || "", ad: b.name ?? b.buildingName ?? "Bina",
       daire: b.unitCount ?? b.daire ?? 0, lat: b.latitude ?? center.lat,
       lng: b.longitude ?? center.lng, id: b.id,
+      blocks: b.blocks || [], blockCount: b.blockCount ?? 0, type: b.type || "residential",
     }));
   } catch { return []; }
 }
@@ -710,6 +711,7 @@ function BinaBul() {
   const [il, setIl] = useState("");
   const [ilce, setIlce] = useState("");
   const [residentOpen, setResidentOpen] = useState(false);
+  const [resBlok, setResBlok] = useState<string>("");
   const [joinDone, setJoinDone] = useState(false);
   const [resDaire, setResDaire] = useState("1");
   const [resTel, setResTel] = useState("");
@@ -793,20 +795,21 @@ function BinaBul() {
 
   function backToMap() { setScanned(false); setFound(null); setFoundList([]); setResidentOpen(false); setManagerOpen(false); setJoinDone(false); }
   function backFromSub() { setResidentOpen(false); setManagerOpen(false); setJoinDone(false); }
-  function openResident() { setResidentOpen(true); setManagerOpen(false); setResDaire("1"); setJoinDone(false); }
+  function openResident() { setResidentOpen(true); setManagerOpen(false); setResDaire("1"); setJoinDone(false); setResBlok(found?.blocks?.[0]?.id || ""); }
   const [joinError, setJoinError] = useState("");
   const [joining, setJoining] = useState(false);
   async function sendWebJoin() {
     setJoinError("");
     const phone = resTel.replace(/\s/g, "");
     if (!/^0?5\d{9}$/.test(phone)) { setJoinError("Geçerli bir telefon numarası girin."); return; }
-    if (!found?.id) { setJoinError("Bina seçimi geçersiz."); return; }
+    const hedefBina = resBlok || found?.blocks?.[0]?.id || found?.id;
+    if (!hedefBina) { setJoinError("Bina seçimi geçersiz."); return; }
     setJoining(true);
     try {
       const res = await fetch("https://mobildiafon.com/api/buildings/web-join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ buildingId: found.id, flatNo: resDaire, phone }),
+        body: JSON.stringify({ buildingId: hedefBina, flatNo: resDaire, phone }),
       });
       const data = await res.json();
       if (data.success) { setJoinDone(true); }
@@ -935,10 +938,19 @@ function BinaBul() {
               <h3 className="bb2-h">{tb.residentTitle(bbTitle(found?.ad || ""))}</h3>
               {!joinDone ? (
                 <>
+                  {(found?.blockCount || 0) > 1 && (
+                    <div className="bb-field"><label>Blok</label>
+                      <select value={resBlok} onChange={(e) => { setResBlok(e.target.value); setResDaire("1"); }}>
+                        {(found?.blocks || []).map((bl) => (
+                          <option key={bl.id} value={bl.id}>{bl.name} ({bl.flatCount} daire)</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div className="bb-field"><label>{tb.yourFlat}</label>
-                    {(found?.daire || 0) > 0 ? (
+                    {(((found?.blocks || []).find((b) => b.id === resBlok)?.flatCount) ?? found?.daire ?? 0) > 0 ? (
                       <select value={resDaire} onChange={(e) => setResDaire(e.target.value)}>
-                        {Array.from({ length: found?.daire || 1 }, (_, i) => i + 1).map((d) => (<option key={d} value={String(d)}>{tb.flat(d)}</option>))}
+                        {Array.from({ length: ((found?.blocks || []).find((b) => b.id === resBlok)?.flatCount) ?? found?.daire ?? 1 }, (_, i) => i + 1).map((d) => (<option key={d} value={String(d)}>{tb.flat(d)}</option>))}
                       </select>
                     ) : (
                       <input value={resDaire} onChange={(e) => setResDaire(e.target.value)} placeholder={tb.flat(1)} autoComplete="off" />
