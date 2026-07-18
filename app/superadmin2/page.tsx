@@ -30,6 +30,11 @@ export default function SuperAdmin2() {
   const [owners, setOwners] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [invForm, setInvForm] = useState<any>(null);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [vSummary, setVSummary] = useState<any>({});
+  const [genForm, setGenForm] = useState<any>(null);
+  const [genResult, setGenResult] = useState<any[] | null>(null);
+  const [vFilter, setVFilter] = useState("all");
   const [loading, setLoading] = useState(false);
   const [trackInputs, setTrackInputs] = useState<Record<string, string>>({});
   const [locFilter, setLocFilter] = useState("all");
@@ -66,11 +71,12 @@ export default function SuperAdmin2() {
   async function loadAll() {
     setLoading(true);
     try {
-      const [lr, or_, ow, iv] = await Promise.all([
+      const [lr, or_, ow, iv, vh] = await Promise.all([
         fetch(`${API}/superadmin/locations`, { headers: authHeader() }),
         fetch(`${API}/superadmin/vehicle-orders`, { headers: authHeader() }),
         fetch(`${API}/superadmin/owners`, { headers: authHeader() }),
         fetch(`${API}/superadmin/invoices`, { headers: authHeader() }),
+        fetch(`${API}/superadmin/vehicles`, { headers: authHeader() }),
       ]);
       if (lr.status === 401 || or_.status === 401) { logout(); return; }
       const ld = await lr.json();
@@ -81,6 +87,9 @@ export default function SuperAdmin2() {
       setOwners(Array.isArray(wd) ? wd : []);
       const id_ = await iv.json();
       setInvoices(id_?.invoices || []);
+      const vd = await vh.json();
+      setVehicles(vd?.vehicles || []);
+      setVSummary(vd?.summary || {});
     } catch {}
     finally { setLoading(false); }
   }
@@ -143,6 +152,74 @@ export default function SuperAdmin2() {
     await loadAll();
   }
 
+  async function generateCards() {
+    const n = Number(genForm?.count) || 0;
+    if (n < 1 || n > 500) { alert("1-500 arasi bir sayi girin"); return; }
+    const res = await fetch(`${API}/superadmin/vehicles/generate`, {
+      method: "POST",
+      headers: { ...authHeader(), "Content-Type": "application/json" },
+      body: JSON.stringify({ count: n }),
+    });
+    const d = await res.json();
+    const cards = d.cards || d.vehicles || [];
+    if (cards.length) { setGenResult(cards); setGenForm(null); await loadAll(); }
+    else alert(d.message || "Kart uretilemedi");
+  }
+
+  async function downloadLabels(cards: any[], format: string) {
+    const res = await fetch(`${API}/superadmin/vehicles/labels`, {
+      method: "POST",
+      headers: { ...authHeader(), "Content-Type": "application/json" },
+      body: JSON.stringify({ cards, format }),
+    });
+    if (!res.ok) { alert("PDF olusturulamadi"); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `etiketler-${Date.now()}.pdf`; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function setCardStatus(code: string, status: string) {
+    const msg = status === "burned"
+      ? `${code} yakilacak. Bu kart bir daha aktive edilemez. Emin misiniz?`
+      : `${code} stoga geri alinacak. Devam?`;
+    if (!confirm(msg)) return;
+    const res = await fetch(`${API}/superadmin/vehicles/set-status`, {
+      method: "POST",
+      headers: { ...authHeader(), "Content-Type": "application/json" },
+      body: JSON.stringify({ code, status }),
+    });
+    const d = await res.json();
+    if (!d.success) alert(d.message || "Islem basarisiz");
+    await loadAll();
+  }
+
+  async function setCardStatus(code: string, status: string) {
+    const msg = status === "burned"
+      ? `${code} yakilacak. Bu kart bir daha aktive edilemez. Emin misiniz?`
+      : `${code} stoga geri alinacak. Devam?`;
+    if (!confirm(msg)) return;
+    const res = await fetch(`${API}/superadmin/vehicles/set-status`, {
+      method: "POST",
+      headers: { ...authHeader(), "Content-Type": "application/json" },
+      body: JSON.stringify({ code, status }),
+    });
+    const d = await res.json();
+    if (!d.success) alert(d.message || "Islem basarisiz");
+    await loadAll();
+  }
+
+  async function downloadQr(code: string) {
+    const res = await fetch(`${API}/superadmin/vehicles/${code}/qr`, { headers: authHeader() });
+    if (!res.ok) { alert("QR olusturulamadi"); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${code}.png`; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   // --- Turetilmis veriler ---
   const kargoBekleyen = orders.filter((o) => o.status === "paid" && o.shipStatus !== "shipped");
   const iadePenceresi = orders.filter((o) => o.refund?.canRefund);
@@ -179,6 +256,7 @@ export default function SuperAdmin2() {
         <MenuItem active={tab === "bugun"} onClick={() => setTab("bugun")} label="Bugun" badge={toplamIs || undefined} accent />
         <div style={S.group}>ARAC</div>
         <MenuItem active={tab === "siparis"} onClick={() => setTab("siparis")} label="Siparisler" badge={kargoBekleyen.length || undefined} />
+        <MenuItem active={tab === "kartlar"} onClick={() => setTab("kartlar")} label="Kartlar" count={vehicles.length} />
         <div style={S.group}>MUSTERI</div>
         <MenuItem active={tab === "kisiler"} onClick={() => setTab("kisiler")} label="Kisiler" count={owners.length} />
         <div style={S.group}>PARA</div>
@@ -336,6 +414,61 @@ export default function SuperAdmin2() {
           </>
         )}
 
+        {tab === "kartlar" && (
+          <>
+            <div style={S.head}>
+              <h2 style={S.h2}>Arac Kartlari</h2>
+              <button onClick={() => setGenForm({ count: "10" })} style={S.btnPrimary}>+ Kart Uret</button>
+            </div>
+            <div style={{ ...S.metrics, gridTemplateColumns: "repeat(4,1fr)", marginBottom: 14 }}>
+              <Metric label="Uretilen" value={vSummary.produced || 0} />
+              <Metric label="Stokta" value={vSummary.unsold || 0} />
+              <Metric label="Satilan" value={vSummary.sold || 0} />
+              <Metric label="Aktif abonelik" value={vSummary.activeSubs || 0} />
+            </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              {[["all", "Hepsi"], ["unsold", "Stokta"], ["active", "Aktif"], ["burned", "Yanmis"]].map(([k, lbl]) => (
+                <button key={k} onClick={() => setVFilter(k)} style={vFilter === k ? S.chipOn : S.chip}>{lbl}</button>
+              ))}
+            </div>
+            {vehicles.length === 0 && <div style={S.card}><span style={S.muted}>Kart yok. Uretmek icin yukaridaki butonu kullanin.</span></div>}
+            {vehicles
+              .filter((v: any) => vFilter === "all" ? true : v.status === vFilter)
+              .map((v: any) => (
+                <div key={v.id || v.code} style={S.card}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                    <span style={{ fontWeight: 600, fontFamily: "monospace" }}>{v.code}</span>
+                    <span style={v.status === "burned" ? S.badgeRed : v.status === "unsold" ? S.tag : S.badgeGreen}>
+                      {v.status === "unsold" ? "Stokta" : v.status === "burned" ? "Yanmis" : "Aktif"}
+                    </span>
+                  </div>
+                  {(v.plate || v.ownerName) && (
+                    <div style={{ ...S.sub, marginTop: 5 }}>
+                      {v.plate || v.label || ""}{v.ownerName ? " · " + v.ownerName : ""}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                    {v.status !== "burned" && (
+                      <button onClick={() => setCardStatus(v.code, "burned")} style={S.btnGhost}>Karti Yak</button>
+                    )}
+                    <button onClick={() => downloadQr(v.code)} style={S.btnGhost}>QR Indir</button>
+                    {v.status === "burned" && (
+                      <button onClick={() => setCardStatus(v.code, "unsold")} style={S.btnGhost}>Stoga Al</button>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                    {v.status !== "burned" && (
+                      <button onClick={() => setCardStatus(v.code, "burned")} style={S.btnGhost}>Karti Yak</button>
+                    )}
+                    {v.status === "burned" && (
+                      <button onClick={() => setCardStatus(v.code, "unsold")} style={S.btnGhost}>Stoga Al</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </>
+        )}
+
         {tab === "fatura" && (
           <>
             <div style={S.head}>
@@ -388,6 +521,44 @@ export default function SuperAdmin2() {
           </>
         )}
       </main>
+
+      {genForm && (
+        <>
+          <div onClick={() => setGenForm(null)} style={S.overlay} />
+          <div style={S.drawer}>
+            <button onClick={() => setGenForm(null)} style={S.drawerClose}>Kapat</button>
+            <h3 style={{ fontSize: 17, margin: "0 0 6px" }}>Kart Uret</h3>
+            <p style={{ ...S.sub, marginBottom: 14 }}>Gizli kodlar sadece bir kez gosterilir. PDF indirmeden ekrani kapatmayin.</p>
+            <label style={S.lbl}>Adet (1-500)</label>
+            <input value={genForm.count} onChange={(e) => setGenForm({ count: e.target.value })} inputMode="numeric" style={S.input} />
+            <button onClick={generateCards} style={{ ...S.btnPrimary, width: "100%", marginTop: 18, padding: 10 }}>Uret</button>
+          </div>
+        </>
+      )}
+
+      {genResult && (
+        <>
+          <div style={S.overlay} />
+          <div style={S.drawer}>
+            <h3 style={{ fontSize: 17, margin: "0 0 6px" }}>{genResult.length} kart uretildi</h3>
+            <div style={{ background: "#fef3c7", color: "#92400e", padding: 10, borderRadius: 8, fontSize: 12.5, marginBottom: 14 }}>
+              Gizli kodlar bir daha gosterilmez. PDF indirin veya kodlari kaydedin.
+            </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              <button onClick={() => downloadLabels(genResult, "a4")} style={S.btnPrimary}>A4 PDF</button>
+              <button onClick={() => downloadLabels(genResult, "single")} style={S.btnGhost}>Tekli PDF</button>
+            </div>
+            <div style={{ maxHeight: "50vh", overflowY: "auto", fontFamily: "monospace", fontSize: 12 }}>
+              {genResult.map((k: any, i: number) => (
+                <div key={i} style={{ padding: "5px 0", borderBottom: "1px solid #f1f5f9" }}>
+                  {k.code} <span style={{ color: "#94a3b8" }}>/</span> {k.secretCode}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setGenResult(null)} style={{ ...S.btnGhost, width: "100%", marginTop: 16, padding: 10 }}>Kapat</button>
+          </div>
+        </>
+      )}
 
       {invForm && (
         <>
