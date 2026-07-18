@@ -195,21 +195,6 @@ export default function SuperAdmin2() {
     await loadAll();
   }
 
-  async function setCardStatus(code: string, status: string) {
-    const msg = status === "burned"
-      ? `${code} yakilacak. Bu kart bir daha aktive edilemez. Emin misiniz?`
-      : `${code} stoga geri alinacak. Devam?`;
-    if (!confirm(msg)) return;
-    const res = await fetch(`${API}/superadmin/vehicles/set-status`, {
-      method: "POST",
-      headers: { ...authHeader(), "Content-Type": "application/json" },
-      body: JSON.stringify({ code, status }),
-    });
-    const d = await res.json();
-    if (!d.success) alert(d.message || "Islem basarisiz");
-    await loadAll();
-  }
-
   async function downloadQr(code: string) {
     const res = await fetch(`${API}/superadmin/vehicles/${code}/qr`, { headers: authHeader() });
     if (!res.ok) { alert("QR olusturulamadi"); return; }
@@ -457,12 +442,6 @@ export default function SuperAdmin2() {
                     )}
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                    {v.status !== "burned" && (
-                      <button onClick={() => setCardStatus(v.code, "burned")} style={S.btnGhost}>Karti Yak</button>
-                    )}
-                    {v.status === "burned" && (
-                      <button onClick={() => setCardStatus(v.code, "unsold")} style={S.btnGhost}>Stoga Al</button>
-                    )}
                   </div>
                 </div>
               ))}
