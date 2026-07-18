@@ -100,7 +100,7 @@ export default function SuperAdmin() {
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<"overview" | "customers" | "texts" | "vehicles" | "orders" | "businesses">("overview");
+  const [tab, setTab] = useState<"overview" | "customers" | "texts" | "vehicles" | "orders" | "businesses" | "invoices">("overview");
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [trackInputs, setTrackInputs] = useState<Record<string, string>>({});
@@ -158,6 +158,7 @@ export default function SuperAdmin() {
   useEffect(() => { if (authed && tab === "vehicles") loadVehicles(); }, [authed, tab]);
   useEffect(() => { if (authed && tab === "orders") loadOrders(); }, [authed, tab]);
   useEffect(() => { if (authed && tab === "businesses") loadBusinesses(); }, [authed, tab]);
+  useEffect(() => { if (authed && tab === "invoices") loadInvoices(); }, [authed, tab]);
 
   async function login() {
     setError(""); setLoading(true);
@@ -229,6 +230,75 @@ export default function SuperAdmin() {
       const d = await res.json();
       setBusinesses(d.businesses || []);
     } catch { setBusinesses([]); }
+  }
+
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invForm, setInvForm] = useState<{ ownerUserId: string; title: string; amount: string }>({ ownerUserId: "", title: "", amount: "" });
+
+  async function loadInvoices() {
+    try {
+      const res = await fetch(`${API}/superadmin/invoices`, { headers: authHeader() });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      setInvoices(d.invoices || []);
+    } catch { setInvoices([]); }
+  }
+
+  async function createInvoice() {
+    if (!invForm.ownerUserId) { alert("Once musteri secin"); return; }
+    try {
+      const res = await fetch(`${API}/superadmin/invoices/create`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerUserId: invForm.ownerUserId, title: invForm.title, amount: invForm.amount ? parseInt(invForm.amount) : undefined }),
+      });
+      const d = await res.json();
+      if (d.success) { setInvForm({ ownerUserId: "", title: "", amount: "" }); loadInvoices(); }
+      else alert(d.message || "Eklenemedi");
+    } catch { alert("Baglanti hatasi"); }
+  }
+
+  async function markPaid(id: string, paid: boolean) {
+    try {
+      const res = await fetch(`${API}/superadmin/invoices/mark-paid`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ id, paid }),
+      });
+      const d = await res.json();
+      if (d.success) loadInvoices(); else alert(d.message || "Islem basarisiz");
+    } catch { alert("Baglanti hatasi"); }
+  }
+
+  async function uploadInvoice(id: string, file: any) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const res = await fetch(`${API}/superadmin/invoices/upload`, {
+          method: "POST",
+          headers: { ...authHeader(), "Content-Type": "application/json" },
+          body: JSON.stringify({ id, file: String(reader.result) }),
+        });
+        const d = await res.json();
+        if (d.success) loadInvoices(); else alert(d.message || "Yuklenemedi");
+      } catch { alert("Baglanti hatasi"); }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function sendInvoice(id: string) {
+    if (!confirm("Fatura musterinin mail adresine gonderilsin mi?")) return;
+    try {
+      const res = await fetch(`${API}/superadmin/invoices/send`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const d = await res.json();
+      if (d.success) { alert("Fatura gonderildi"); loadInvoices(); }
+      else alert(d.message || "Gonderilemedi");
+    } catch { alert("Baglanti hatasi"); }
   }
 
   async function loadOrders() {
@@ -408,6 +478,9 @@ export default function SuperAdmin() {
           <button className={tab === "businesses" ? "active" : ""} onClick={() => setTab("businesses")}>
             İşletmeler <span className="sa-badge">{businesses.length}</span>
           </button>
+          <button className={tab === "invoices" ? "active" : ""} onClick={() => setTab("invoices")}>
+            Faturalar <span className="sa-badge">{invoices.length}</span>
+          </button>
         </nav>
 
         {tab === "overview" && !ov && (
@@ -531,6 +604,7 @@ export default function SuperAdmin() {
                         ) : (
                           <button className="sa-free-btn" onClick={() => toggleFree(c.id, true)} title="Sınırsız ücretsiz yap">Ücretsiz Yap</button>
                         )}
+                        <button className="sa-free-btn" style={{ marginLeft: 6 }} onClick={() => { setInvForm({ ownerUserId: c.id, title: "", amount: "" }); setTab("invoices"); }} title="Bu müşteriye fatura ekle">Fatura</button>
                       </td>
                     </tr>
                   ))}
@@ -576,6 +650,70 @@ export default function SuperAdmin() {
                     </tr>
                   ))}
                   {businesses.length === 0 && <tr><td colSpan={7} className="sa-empty">İşletme bulunamadı.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {tab === "invoices" && (
+          <section>
+            <div className="sa-toolbar">
+              <select className="sa-sort" value={invForm.ownerUserId} onChange={(e) => setInvForm({ ...invForm, ownerUserId: e.target.value })} aria-label="Müşteri">
+                <option value="">Müşteri seçin…</option>
+                {data.map((c) => (<option key={c.id} value={c.id}>{c.name} — {c.owner}</option>))}
+              </select>
+              <input className="sa-input" placeholder="Başlık (ör. Temmuz aboneliği)" value={invForm.title} onChange={(e) => setInvForm({ ...invForm, title: e.target.value })} />
+              <input className="sa-input" placeholder="Tutar (₺)" value={invForm.amount} onChange={(e) => setInvForm({ ...invForm, amount: e.target.value })} />
+              <button className="sa-free-btn active" onClick={createInvoice}>Fatura Ekle</button>
+            </div>
+            <div className="sa-table-scroll">
+              <table className="sa-table">
+                <thead>
+                  <tr>
+                    <th>Müşteri</th><th>Başlık</th><th className="num">Tutar</th>
+                    <th>Ödeme</th><th>Fatura PDF</th><th>Gönderim</th><th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoices.map((v) => (
+                    <tr key={v.id}>
+                      <td>
+                        <div className="sa-cust-name">{v.owner}</div>
+                        <div className="sa-cust-sub">{v.email || v.phone || "mail yok"}</div>
+                      </td>
+                      <td>{v.title || "—"}</td>
+                      <td className="num">{v.amount ? fmt(v.amount) : "—"}</td>
+                      <td>
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                          <input type="checkbox" checked={v.paymentStatus === "paid"} onChange={(e) => markPaid(v.id, e.target.checked)} />
+                          {v.paymentStatus === "paid" ? "Ödendi" : "Bekliyor"}
+                        </label>
+                      </td>
+                      <td>
+                        {v.uploaded ? (
+                          <a href={v.fileUrl} target="_blank" rel="noreferrer">PDF ✓</a>
+                        ) : (
+                          <label className="sa-free-btn" style={{ cursor: "pointer" }}>
+                            Yükle
+                            <input type="file" accept="application/pdf" style={{ display: "none" }} onChange={(e) => uploadInvoice(v.id, e.target.files?.[0])} />
+                          </label>
+                        )}
+                      </td>
+                      <td className="muted">{v.sent && v.sentAt ? new Date(v.sentAt).toLocaleDateString("tr-TR") : "—"}</td>
+                      <td>
+                        <button
+                          className="sa-free-btn"
+                          disabled={!v.uploaded || !v.email}
+                          onClick={() => sendInvoice(v.id)}
+                          title={!v.email ? "Müşterinin mail adresi yok" : (!v.uploaded ? "Önce PDF yükleyin" : "Faturayı mail ile gönder")}
+                        >
+                          {v.sent ? "Tekrar Gönder" : "Gönder"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {invoices.length === 0 && <tr><td colSpan={7} className="sa-empty">Henüz fatura yok.</td></tr>}
                 </tbody>
               </table>
             </div>
