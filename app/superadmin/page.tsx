@@ -323,6 +323,37 @@ export default function SuperAdmin() {
       await loadOrders();
     } catch {}
   }
+  async function cancelOrder(id: string) {
+    const reason = prompt("Iptal sebebi (opsiyonel):") ?? "";
+    if (!confirm("Bu siparis iptal edilecek. Emin misiniz?")) return;
+    try {
+      const res = await fetch(`${API}/superadmin/vehicle-orders/cancel`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ id, reason }),
+      });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      if (d?.message && d?.statusCode) { alert(d.message); return; }
+      await loadOrders();
+    } catch {}
+  }
+  async function refundOrder(id: string, amount: number) {
+    const reason = prompt("Iade sebebi (opsiyonel):") ?? "";
+    if (!confirm(`${amount} TL iade islenecek. Parayi iyzico panelinden elle gondermeyi unutmayin. Devam?`)) return;
+    try {
+      const res = await fetch(`${API}/superadmin/vehicle-orders/refund`, {
+        method: "POST",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ id, reason }),
+      });
+      if (res.status === 401) { logout(); return; }
+      const d = await res.json();
+      if (d?.message && d?.statusCode) { alert(d.message); return; }
+      alert("Iade islendi. Simdi iyzico panelinden " + amount + " TL iade gonderin.");
+      await loadOrders();
+    } catch {}
+  }
   async function generateCards() {
     if (genCount < 1 || genCount > 500) { alert("1 ile 500 arasi bir sayi girin"); return; }
     setGenLoading(true);
@@ -786,6 +817,26 @@ export default function SuperAdmin() {
                 )}
                 {o.shipStatus === "shipped" && (
                   <div className="sa-order-shipped">✓ Kargolandı{o.trackingNo ? " · Takip: " + o.trackingNo : ""}</div>
+                )}
+                {o.status === "refunded" && (
+                  <div className="sa-order-shipped">↩ İade edildi{o.refundAmount ? " · " + o.refundAmount + " TL" : ""}{o.refundReason ? " · " + o.refundReason : ""}</div>
+                )}
+                {o.status === "cancelled" && (
+                  <div className="sa-order-shipped">✕ İptal edildi{o.refundReason ? " · " + o.refundReason : ""}</div>
+                )}
+                {o.refund?.canCancel && (
+                  <div className="sa-order-ship">
+                    <button className="sa-btn" onClick={() => cancelOrder(o.id)}>Siparişi İptal Et</button>
+                  </div>
+                )}
+                {o.refund?.canRefund && (
+                  <div className="sa-order-ship">
+                    <button className="sa-btn primary" onClick={() => refundOrder(o.id, o.refund.amount)}>İade İşle ({o.refund.amount} TL)</button>
+                    <span className="sa-muted" style={{ marginLeft: 8, fontSize: 13 }}>{o.refund.reason}</span>
+                  </div>
+                )}
+                {o.status === "paid" && !o.refund?.canRefund && !o.refundedAt && (
+                  <div className="sa-muted" style={{ fontSize: 13, marginTop: 6 }}>{o.refund?.reason}</div>
                 )}
               </div>
             ))}
