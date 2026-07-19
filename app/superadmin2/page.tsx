@@ -524,7 +524,8 @@ export default function SuperAdmin2() {
               Gizli kodlar bir daha gosterilmez. PDF indirin veya kodlari kaydedin.
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-              <button onClick={() => downloadLabels(genResult, "a4")} style={S.btnPrimary}>A4 PDF</button>
+              <button onClick={() => downloadLabels(genResult, "production")} style={S.btnPrimary}>Matbaa PDF</button>
+              <button onClick={() => downloadLabels(genResult, "a4")} style={S.btnGhost}>A4 PDF</button>
               <button onClick={() => downloadLabels(genResult, "single")} style={S.btnGhost}>Tekli PDF</button>
             </div>
             <div style={{ maxHeight: "50vh", overflowY: "auto", fontFamily: "monospace", fontSize: 12 }}>
