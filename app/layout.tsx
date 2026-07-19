@@ -69,7 +69,37 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" className={`${bricolage.variable} ${jakarta.variable}`}>
-      <body>{children}<WhatsAppButton /></body>
+      <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "MobilDiafon",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Android, iOS, Web",
+              description:
+                "QR ve konum tabanlı dijital diafon platformu. Apartman, site, işletme ve araçlar için kapı iletişimi.",
+              url: "https://mobildiafon.com",
+              inLanguage: "tr-TR",
+              offers: {
+                "@type": "Offer",
+                priceCurrency: "TRY",
+                availability: "https://schema.org/InStock",
+              },
+              publisher: {
+                "@type": "Organization",
+                name: "MobilDiafon",
+                url: "https://mobildiafon.com",
+                logo: "https://mobildiafon.com/logo.png",
+              },
+            }),
+          }}
+        />
+        {children}
+        <WhatsAppButton />
+      </body>
     </html>
   );
 }
